@@ -72,7 +72,7 @@ import { Component } from 'react';
 import { registerCallback, isSiteInDarkMode } from '../components/ThemeButton';
 import SmallContentBoxPage, { getStateFromIndex } from '../components/SmallContentBoxPage';
 import '../css/buttons.scss';
-import { validators } from 'xpkg-common';
+import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function

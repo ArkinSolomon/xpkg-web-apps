@@ -16,6 +16,7 @@
     "services/registry"
   ],
   "devDependencies": {
+    "lerna": "^7.4.2",
     "typescript": "^5.2.2"
   }
 }
