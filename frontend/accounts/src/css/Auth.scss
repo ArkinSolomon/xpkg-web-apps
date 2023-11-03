@@ -1,0 +1,150 @@
+/*
+ * Copyright (c) 2023. Arkin Solomon.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied limitations under the License.
+ */
+@import '_fonts.scss';
+@import '_themes.scss';
+@import '_media.scss';
+
+.explain-text {
+  font-family: $noto-sans;
+  font-size: 11pt;
+  line-height: 13pt;
+
+  &,
+  a,
+  a:visited {
+    @include themed() {
+      color: t('secondary-text-color');
+    }
+  }
+
+  a {
+    cursor: pointer;
+    text-decoration: underline;
+
+    &.clicked {
+      @include themed() {
+        color: t('good-green');
+      }
+    }
+  }
+}
+
+.bottom-buttons {
+  display: flex;
+  flex-flow: row;
+
+  &>* {
+    flex: 1 100%;
+  }
+
+  button {
+    max-width: fit-content;
+  }
+
+  .center-link-wrapper {
+    display: flex;
+    text-align: center;
+    align-items: center;
+
+    a {
+      flex-grow: 1;
+
+      cursor: pointer;
+
+      font-family: $noto-sans;
+      font-size: 10pt;
+      text-decoration: underline;
+
+      @include themed() {
+        color: t('secondary-text-color');
+      }
+
+      &:hover {
+        filter: brightness(85%);
+      }
+    }
+
+    &.hide {
+      visibility: hidden;
+      cursor: default;
+    }
+  }
+
+  button.hide {
+    visibility: hidden;
+    cursor: default;
+  }
+}
+
+.auth-lock {
+  display: flex;
+
+  width: 80%;
+  height: 3.1em;
+  padding: 0.5em;
+
+  z-index: -40;
+
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+
+  @include themed() {
+    background-color: t('box-footer-background');
+    border-color: t('main-box-border');
+  }
+
+  .left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    height: 100%;
+    min-width: 54px;
+
+    @media screen and (max-width: calc($phone-width / 2)) {
+      display: none;
+    }
+
+    img {
+      margin-left: auto;
+      margin-right: auto;
+      width: auto;
+      max-height: 55%;
+
+      user-select: none;
+
+      @include themed() {
+        filter: t('main-text-color-filter');
+      }
+    }
+  }
+
+  .right {
+    p {
+      font-family: $noto-sans;
+      font-size: 10pt;
+      line-height: 12pt;
+
+      b {
+        font-weight: bold;
+      }
+
+      @include themed() {
+        color: t('main-text-color');
+      }
+    }
+  }
+}

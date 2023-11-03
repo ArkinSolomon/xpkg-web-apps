@@ -1,0 +1,21 @@
+{
+  "name": "@xpkg/versioning",
+  "version": "0.1.0",
+  "description": "X-Pkg tools for versioning",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "clean": "npx tsc --clean",
+    "build": "npm ci && npx tsc --build"
+  },
+  "types": "dist/index.d.ts",
+  "author": "Arkin Solomon",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/big.js": "^6.2.1",
+    "@types/node": "^20.8.10"
+  },
+  "dependencies": {
+    "big.js": "^6.2.1"
+  }
+}

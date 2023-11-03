@@ -1,0 +1,12 @@
+{
+  "name": "@xpkg/developer-portal",
+  "version": "0.1.0",
+  "description": "Where devlopers upload their packages.",
+  "main": "src/index.tsx",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Arkin Solomon",
+  "license": "Apache-2.0"
+}

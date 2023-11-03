@@ -1,0 +1,231 @@
+/*
+ * Copyright (c) 2022-2023. Arkin Solomon.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied limitations under the License.
+ */
+@import "_fonts.scss";
+@import "_colors.scss";
+@import "_mixins.scss";
+
+.input {
+  font-family: $noto-sans;
+  display: block;
+  position: relative;
+
+  label {
+    white-space: nowrap;
+  }
+
+  .error {
+    color: $error-red;
+  }
+
+  .max-len-counter {
+    transform: translateY(3px);
+    position: absolute;
+    right: 0;
+  }
+
+  .error-text {
+    transform: translateY(3px);
+    position: absolute;
+    left: 0;
+  }
+
+  input,
+  select {
+    margin-top: 8px;
+    font-size: 11pt;
+
+    height: 18pt;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.input-field {
+  input {
+    appearance: none;
+    height: 20pt;
+
+    display: block;
+    border-radius: 5px;
+    border: 1px solid $light-gray;
+
+    padding-left: 3px;
+  }
+
+  &.input-readonly input {
+    padding-left: 0;
+  }
+}
+
+.input-checkbox {
+  font-size: 10pt;
+
+  input {
+    position: relative;
+    display: inline-block;
+    margin-right: 8px;
+    cursor: pointer;
+
+    appearance: none;
+    background-color: white;
+
+    margin: 0;
+    margin-right: 3px;
+
+    border: 1px solid $light-gray;
+    border-radius: 4px;
+
+    width: 1.4em;
+    height: 1.4em;
+
+    transform: translateY(0.25em);
+
+    &:checked {
+      background-color: $dark-blue;
+
+      border: 2px solid $light-gray;
+      border-radius: 4px;
+
+      z-index: 999;
+
+      &:after {
+        content: " ";
+        position: absolute;
+
+        top: -1px;
+        left: -1px;
+        right: -1px;
+        bottom: -1px;
+
+        border: 2px solid white;
+        border-radius: 4px;
+      }
+    }
+
+    &:disabled {
+      background-color: adjust-color($color: $dark-blue, $red: 55, $green: 55, $blue: 55);
+    }
+  }
+
+  label {
+    height: 1.4em;
+    vertical-align: text-bottom;
+    display: inline-block;
+    padding-left: 7px;
+
+  }
+}
+
+.input-dropdown {
+  display: inline-block;
+
+  select {
+    display: block;
+    appearance: none;
+    height: 20pt;
+    width: 100%;
+
+    border-radius: 5px;
+    border: 1px solid $light-gray;
+
+    font-size: 11pt;
+    background: url('../../public/dropdown-arrow.png') 96% / 15% no-repeat white;
+
+    &:disabled {
+      appearance: none;
+
+      background: $disabled-gray;
+      color: black;
+    }
+  }
+}
+
+.input-area {
+
+  textarea {
+    border-radius: 5px;
+    border: 1px solid $light-gray;
+
+    margin-top: 11px;
+    font-size: 13pt;
+
+    width: 100%;
+    resize: none;
+
+    height: 13pt;
+  }
+
+  label {
+    display: block;
+  }
+}
+
+.input-field,
+.input-dropdown label {
+  margin-left: 1px;
+  font-size: 12pt;
+}
+
+.input-field,
+.input-dropdown,
+.input-area {
+
+  &.input-readonly {
+
+    input,
+    select {
+      text-align-last: center;
+      background-color: $disabled-gray;
+    }
+  }
+
+  input,
+  textarea,
+  select {
+    transition: border .1s;
+    font-family: $noto-sans;
+  }
+
+  &.error-outline {
+
+    input,
+    textarea,
+    select {
+      border: 1px solid $error-red;
+    }
+  }
+}
+
+.input-file {
+  font-family: $noto-sans;
+
+  p {
+    margin-bottom: 4px;
+  }
+
+  label {
+    @include primary-button;
+    padding: 5px 1rem;
+
+    input {
+      position: absolute;
+      left: -999999rem;
+    }
+  }
+
+  span {
+    margin-left: 10px;
+  }
+}

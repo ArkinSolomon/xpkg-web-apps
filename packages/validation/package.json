@@ -1,0 +1,22 @@
+{
+  "name": "@xpkg/validation",
+  "version": "0.1.0",
+  "description": "X-Pkg user input validators/cleansers",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "clean": "npx tsc --build --clean",
+    "build": "npm ci && npx tsc --build"
+  },
+  "types": "dist/index.d.ts",
+  "author": "Arkin Solomon",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@xpkg/versioning": "^0.1.0",
+    "express-validator": "^7.0.1"
+  },
+  "devDependencies": {
+    "@types/big.js": "^6.2.1",
+    "@types/node": "^20.8.10"
+  }
+}

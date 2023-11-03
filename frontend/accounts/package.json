@@ -1,0 +1,12 @@
+{
+  "name": "@xpkg/accounts",
+  "version": "0.1.0",
+  "description": "X-Pkg accounts is the frontend application which houses the account management and login/creation screens. It is closely tied to the X-Pkg identity service.",
+  "main": "src/index.tsx",
+  "devDependencies": {},
+  "scripts": {
+    "start": "bun run src/index.tsx"
+  },
+  "author": "Arkin Solomon",
+  "license": "Apache-2.0"
+}

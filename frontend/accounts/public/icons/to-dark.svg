@@ -1,0 +1,11 @@
+<svg version="1.1" viewBox="0.0 0.0 128.0 128.0" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns="http://www.w3.org/2000/svg">
+  <clipPath id="p.0">
+    <path d="m0 0l128.0 0l0 128.0l-128.0 0l0 -128.0z" clip-rule="nonzero"/>
+  </clipPath>
+  <g clip-path="url(#p.0)">
+    <path fill="#000000" fill-opacity="0.0" d="m0 0l128.0 0l0 128.0l-128.0 0z" fill-rule="evenodd"/>
+    <path class="theme-icon-color" fill="#0f0" d="m100.44357 115.39446l0 0c-28.527466 20.14318 -67.98987 13.346367 -88.14174 -15.181099c-20.15187 -28.527466 -13.36211 -67.98281 15.165355 -88.125984l0 0c-5.007477 47.85171 26.195322 92.02313 72.97638 103.30708z" fill-rule="evenodd"/>
+  </g>
+</svg>

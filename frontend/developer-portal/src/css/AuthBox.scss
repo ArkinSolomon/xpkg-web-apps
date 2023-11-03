@@ -1,0 +1,110 @@
+/*
+ * Copyright (c) 2022-2023. Arkin Solomon.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied limitations under the License.
+ */
+@import "_colors.scss";
+@import "_fonts.scss";
+@import "_mixins.scss";
+
+#auth-box-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+#auth-box {
+  margin: 4em 0;
+  border: 1px solid $light-gray;
+  border-radius: 8px;
+  background-color: white;
+  width: 29em;
+  padding: 12px;
+
+  h2 {
+    font-family: $noto-sans;
+    color: $dark-blue;
+    font-size: 19pt;
+    text-align: center;
+  }
+
+  #auth-box-children-wrapper {
+    padding: 12px;
+    padding-bottom: 7em;
+    width: 80%;
+
+    border-radius: 4px;
+    border: 1px solid $really-light-gray;
+
+    margin-top: 1em;
+    margin-left: auto;
+    margin-right: auto;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    .input-field {
+      width: 85%;
+      margin: 0.7em auto;
+    }
+
+    .input-checkbox {
+      margin: 0.25em auto;
+    }
+  }
+
+  input[type="submit"] {
+    @include primary-button;
+
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+
+    transform: translateY(-50%);
+    width: 60%;
+    height: 45px;
+  }
+
+  .help-links {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 2.4em;
+    margin: 0 auto;
+
+    a {
+      color: $light-gray;
+      text-decoration: underline;
+      font-family: $noto-sans;
+      font-size: 9pt;
+      text-align: center;
+      display: block;
+      margin: 11px 0;
+
+      &.linkDisabled {
+        pointer-events: none;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  p.auth-box-error {
+    font-family: $noto-sans;
+    color: $error-red;
+
+    line-height: 12pt;
+    height: 13pt;
+    text-align: center;
+  }
+}

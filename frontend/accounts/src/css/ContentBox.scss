@@ -1,0 +1,95 @@
+/*
+ * Copyright (c) 2023. Arkin Solomon.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied limitations under the License.
+ */
+@import '_themes.scss';
+@import '_media.scss';
+@import '_fonts.scss';
+
+main#content-box {
+  position: relative;
+
+  margin: 0 auto;
+
+  top: 40%;
+  transform: translateY(-40%);
+
+  border-radius: 14px;
+  z-index: 10;
+
+  @include themed() {
+    background-color: t('content-box-color');
+    border: 1px solid t('main-box-border');
+  }
+
+  &.small {
+    min-height: 380px;
+    height: 55%;
+    max-height: 512px;
+    padding: 24px;
+
+    overflow: hidden;
+
+    @media screen and (max-width: $tablet-width) {
+      width: min(100%, 400px);
+      max-width: 80vw;
+    }
+
+    @media screen and (min-width: $tablet-width) {
+      width: 370px;
+    }
+
+    .main-title {
+      font-family: $noto-sans;
+      font-size: 22pt;
+      text-align: center;
+      display: block;
+      width: 100%;
+
+      @include themed() {
+        color: t('primary-text-color');
+      }
+
+      img {
+        aspect-ratio: 1;
+        height: 60px;
+        display: inline;
+        vertical-align: middle;
+        margin-right: 10px;
+        user-select: none;
+
+        @include themed() {
+          filter: t('primary-text-color-filter');
+        }
+      }
+    }
+
+    .subtitle {
+      font-family: $noto-sans;
+      text-align: center;
+      font-size: 16pt;
+
+      @include themed() {
+        color: t('primary-text-color');
+      }
+    }
+
+    .box-footer {
+      position: absolute;
+
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "xpkg-web-apps",
+  "version": "0.1.0",
+  "description": "X-Pkg web application source code",
+  "private": true,
+  "author": "Arkin Solomon",
+  "license": "Apache-2.0",
+  "workspaces": [
+    "frontend/accounts",
+    "frontend/developer-portal",
+    "packages/backend-util",
+    "packages/validation",
+    "packages/versioning",
+    "services/identity-service",
+    "services/jobs-service",
+    "services/registry"
+  ],
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}

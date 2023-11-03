@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) 2022-2023. Arkin Solomon.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied limitations under the License.
+ */
+@import "_colors.scss";
+@import "_fonts.scss";
+
+#side-bar {
+
+  border-right: 1px solid $light-gray;
+  height: 100%;
+
+  .side-bar-item {
+    width: 100%;
+    border-bottom: 1px solid $light-gray;
+    margin-bottom: 6px;
+
+    &:last-of-type {
+      border-bottom: 0;
+      margin-bottom: 0;
+    }
+
+    button {
+      font-family: $noto-sans;
+      color: $gray;
+      width: 100%;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      border: none;
+      background: none;
+      text-decoration: underline;
+
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+}
