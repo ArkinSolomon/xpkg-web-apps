@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "sourceMap": true,
+    "types": ["bun-types"]
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../../packages/backend-util"
+    },
+    {
+      "path": "../../packages/versioning"
+    },
+    {
+      "path": "../../packages/validation"
+    }
+  ]
+}
