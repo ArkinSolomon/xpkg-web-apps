@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "clean": "npx tsc --build --clean",
-    "build": "npm ci && npx tsc --build"
+    "install-deps": "npm install",
+    "build": "npx tsc --build",
+    "lint": "npx eslint"
   },
   "author": "Arkin Solomon",
   "license": "Apache-2.0",

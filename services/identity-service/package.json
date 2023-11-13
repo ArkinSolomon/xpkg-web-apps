@@ -12,7 +12,8 @@
     "bun-types": "^1.0.7"
   },
   "scripts": {
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "lint": "npx eslint"
   },
   "author": "Arkin Solomon",
   "license": "Apache-2.0",
