@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>X-Pkg Documentation</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="Description">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.0.slim.min.js"
+      integrity="sha256-tG5mcZUtJsZvyKAxYLVXrmjKBVLd6VpVccqz/r4ypFE=" crossorigin="anonymous"></script>
+
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="/_media/icons/apple-touch-icon-57x57.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/_media/icons/apple-touch-icon-114x114.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/_media/icons/apple-touch-icon-72x72.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/_media/icons/apple-touch-icon-144x144.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="60x60" href="/_media/icons/apple-touch-icon-60x60.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="120x120" href="/_media/icons/apple-touch-icon-120x120.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="76x76" href="/_media/icons/apple-touch-icon-76x76.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/_media/icons/apple-touch-icon-152x152.png" />
+    <link rel="icon" type="image/png" href="/_media/icons/favicon-196x196.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="/_media/icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/png" href="/_media/icons/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="/_media/icons/favicon-16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="/_media/icons/favicon-128.png" sizes="128x128" />
+    <link rel="icon" type="image/x-icon" href="/_media/icons/favicon.ico">
+
+    <!-- General styles -->
+    <style>
+      :root {
+        --theme-color: #1f222a;
+      }
+
+      .folder.level-1>a {
+        font-weight: bolder;
+      }
+
+      .app-name-link>img {
+        max-width: 85%;
+      }
+
+      /* Table headers are appended to every line without this, see https://github.com/docsifyjs/docsify/issues/794 */
+      td::before {
+        display: none
+      }
+
+      /* Centering tables */
+      .table-wrapper table {
+        margin-left: auto;
+        margin-right: auto;
+        width: fit-content;
+      }
+
+      blockquote, details{
+        background-color: var(--blockquote-background);
+        border-radius: 3px;
+        border-left: 4px solid var(--theme-color);
+        color: var(--blockquote-text-color);
+      }
+
+      details {
+        min-height: 32px;
+        margin-bottom: 18px;
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      details[open] {
+        padding-bottom: 4px;
+      }
+
+      summary {
+        padding-left: 8px;
+        font-weight: bold;
+        font-size: 12pt;
+        vertical-align: middle;
+        line-height: 32px;
+      }
+
+      pre[data-lang] {
+        border-radius: 4px;
+      }
+
+      details pre[data-lang] {
+        margin-left: auto;
+        margin-right: auto;
+        width: 97%;
+      }
+    </style>
+
+    <!-- Light mode styles (for code only) -->
+    <style>
+      :root {
+        --page-background-color: #ffffff;
+
+        --text-color: #cfd5e3;
+        --bold-text-color: #e4e7f2;
+
+        --selection-color: #b4d5fe;
+
+        --blockquote-background: #353c4f;
+        --blockquote-text-color: #bcc3d7;
+
+        /* For blocks of language text */
+        --code-theme-lang-text: #9bc0cf;
+
+        --code-inline-color: #d76a10;
+
+        --code-theme-background: #eeeeee;
+        --code-theme-comment: #7d8b8f;
+        --code-theme-function: #a32f35;
+        --code-theme-keyword: #1b83a2;
+        --code-theme-operator: #c0b21d;
+        --code-theme-punctuation: #6694a6;
+        --code-theme-selector: #676dc3;
+        --code-theme-tag: #802247;
+        --code-theme-text: #3e3e3e;
+        --code-theme-variable: #ffcb6b;
+      }
+    </style>
+
+    <!-- Dark mode styles -->
+    <style>
+      body.dark {
+        --page-background-color: #292e3c;
+        --sidebar-background-color: #242834;
+
+        --odd-table-row-bg: #1f2430;
+
+        --text-color: #cfd5e3;
+        --bold-text-color: #e4e7f2;
+
+        --selection-color: #b4d5fe;
+
+        --blockquote-background: #262a33;
+        --blockquote-text-color: #bcc3d7;
+
+        /* For blocks of language text */
+        --code-theme-lang-text: #9bc0cf;
+
+        --code-inline-color: #e38131;
+
+        --code-theme-background: #21242e;
+        --code-theme-comment: #9bbcc6;
+        --code-theme-function: #f07178;
+        --code-theme-keyword: #5bbad7;
+        --code-theme-operator: #ebbd67;
+        --code-theme-punctuation: #6694a6;
+        --code-theme-selector: #8086d6;
+        --code-theme-tag: #f07178;
+        --code-theme-text: #f3f3f3;
+        --code-theme-variable: #ffcb6b;
+      }
+
+      body.dark .sidebar-toggle,
+      body.dark .sidebar {
+        background-color: var(--sidebar-background-color, --page-background-color);
+      }
+
+      body.dark {
+        background-color: var(--page-background-color);
+        color: var(--text-color);
+      }
+
+      body.dark em {
+        color: var(--text-color);
+      }
+
+      body.dark .anchor span {
+        color: var(--text-color);
+      }
+
+      body.dark .markdown-section a {
+        color: var(--bold-text-color);
+      }
+
+      body.dark .markdown-section blockquote p {
+        color: var(--blockquote-text-color);
+      }
+
+      body.dark .markdown-section h1,
+      body.dark .markdown-section h2,
+      body.dark .markdown-section h3,
+      body.dark .markdown-section h4,
+      body.dark .markdown-section strong {
+        color: var(--text-color);
+      }
+
+      body.dark .sidebar {
+        color: var(--bold-text-color);
+      }
+
+      body.dark .sidebar ul li a {
+        color: var(--text-color);
+      }
+
+      body.dark .sidebar ul li.active>a {
+        color: var(--bold-text-color);
+      }
+
+      body.dark .sidebar-toggle-button span {
+        background-color: var(--bold-text-color);
+      }
+
+      body.dark .sidebar-toggle-button span:hover {
+        background-color: var(--text-color);
+      }
+
+      .markdown-section p.tip,
+      .markdown-section tr:nth-child(2n) {
+        background-color: var(--odd-table-row-bg);
+      }
+    </style>
+
+    <!-- Use variables to create code block styles -->
+    <style>
+      :root {
+        --code-font-family: Inconsolata, Consolas, Menlo, Monaco, "Andale Mono WT", "Andale Mono", "Lucida Console", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", Courier, monospace;
+        --code-font-size: .95rem;
+        --code-font-weight: normal;
+        --code-tab-size: 4;
+        --code-block-border-radius: 4px;
+        --code-block-line-height: var(--base-line-height);
+        --code-block-margin: 1em 0;
+        --code-block-padding: 1.75em 1.5em 1.5em 1.5em;
+        --code-inline-border-radius: 2px;
+        --code-inline-margin: 0 0.15em;
+        --code-inline-padding: 0.125em 0.4em;
+        --pre-font-family: var(--code-font-family);
+        --pre-font-size: var(--code-font-size);
+      }
+
+      pre {
+        font-family: var(--pre-font-family);
+        font-size: var(--pre-font-size);
+        font-weight: var(--pre-font-weight);
+        line-height: var(--pre-line-height)
+      }
+
+      .markdown-section code,
+      .markdown-section pre {
+        background-color: var(--code-theme-background);
+      }
+
+      .markdown-section pre[data-lang] code {
+        display: block;
+        overflow: auto;
+        padding: var(--code-block-padding);
+      }
+
+      code[class*=lang-],
+      pre[data-lang] {
+        color: var(--code-theme-text) !important;
+      }
+
+      code[class*=lang-text] {
+        color: var(--code-theme-lang-text) !important;
+      }
+
+      pre[data-lang]::-moz-selection,
+      pre[data-lang] ::-moz-selection,
+      code[class*=lang-]::-moz-selection,
+      code[class*=lang-] ::-moz-selection {
+        background: var(--code-theme-selection, var(--selection-color))
+      }
+
+      pre[data-lang]::-moz-selection,
+      pre[data-lang] ::-moz-selection,
+      code[class*=lang-]::-moz-selection,
+      code[class*=lang-] ::-moz-selection {
+        background: var(--code-theme-selection, var(--selection-color))
+      }
+
+      pre[data-lang]::selection,
+      pre[data-lang] ::selection,
+      code[class*=lang-]::selection,
+      code[class*=lang-] ::selection {
+        background: var(--code-theme-selection, var(--selection-color))
+      }
+
+      :not(pre)>code[class*=lang-],
+      pre[data-lang] {
+        background: var(--code-theme-background)
+      }
+
+      .markdown-section code {
+        font-family: var(--code-font-family);
+        font-size: var(--code-font-size);
+        font-weight: var(--code-font-weight);
+        line-height: inherit
+      }
+
+      .markdown-section code:not([class*=lang-]):not([class*=language-]) {
+        margin: var(--code-inline-margin);
+        padding: var(--code-inline-padding);
+        border-radius: var(--code-inline-border-radius);
+        background: var(--code-theme-background);
+        color: var(--code-inline-color, currentColor);
+        white-space: nowrap
+      }
+
+      .token.comment,
+      .token.prolog,
+      .token.doctype,
+      .token.cdata {
+        color: var(--code-theme-comment)
+      }
+
+      .token.punctuation {
+        color: var(--code-theme-punctuation)
+      }
+
+      .token.property,
+      .token.tag,
+      .token.boolean,
+      .token.number,
+      .token.constant,
+      .token.command,
+      .token.symbol,
+      .token.deleted {
+        color: var(--code-theme-tag)
+      }
+
+      .token.selector,
+      .token.attr-name,
+      .token.string,
+      .token.pathpart,
+      .token.char,
+      .token.builtin,
+      .token.inserted {
+        color: var(--code-theme-selector)
+      }
+
+      .token.operator,
+      .token.entity,
+      .token.url,
+      .language-css .token.string,
+      .style .token.string {
+        color: var(--code-theme-operator)
+      }
+
+      .token.envvar,
+      .token.atrule,
+      .token.attr-value,
+      .token.keyword {
+        color: var(--code-theme-keyword)
+      }
+
+      .token.function {
+        color: var(--code-theme-function)
+      }
+
+      .token.regex,
+      .token.important,
+      .token.variable {
+        color: var(--code-theme-variable)
+      }
+
+      .token.important,
+      .token.bold {
+        font-weight: bold
+      }
+
+      .token.italic {
+        font-style: italic
+      }
+
+      .token.entity {
+        cursor: help
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script>
+      window.$docsify = {
+        name: 'X-Pkg Documentation',
+        repo: 'https://github.com/ArkinSolomon/xpkg-docs',
+        loadSidebar: true,
+        subMaxLevel: 3,
+        sidebarDisplayLevel: 0,
+        loadFooter: '_footer.html',
+        logo: '/_media/sidebar-light.png'
+      }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-uri.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@alertbox/docsify-footer@1.0.0-0/dist/docsify-footer.min.js"
+      integrity="sha256-IOPDTfgrbdv3T2SsvUgc5ThEVyAFn7BP8lydleTUTB0=" crossorigin="anonymous"></script>
+
+    <script>
+      // See https://ultimatecourses.com/blog/detecting-dark-mode-in-javascript
+      const isDarkMode = () =>
+        window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      if (isDarkMode()) {
+        document.querySelector('body').classList.add('dark');
+        $('.app-name-link>img').ready(function () {
+          console.log($('.app-name-link img').attr('src', '/_media/sidebar-dark.png'))
+        });
+      }
+    </script>
+    <script>
+      Prism.languages.ska = {
+        'comment': /#.*$/m,
+        'variable': /\$\w[\w|\d_]*/,
+        'constant': /%\w[\w\d_]*/,
+        'envvar': /@\w[\w\d_]*/,
+        'builtin': [
+          /print(?=\s*\()/,
+          /list(?=\s*\()/,
+          /range(?=\s*\()/,
+          /exit(?=\s*\()/,
+          /type(?=\s*\()/,
+          /str(?=\s*\()/
+        ],
+        'function': /\w(\w|\d)*(?=\n*\(.*\))/m,
+        'string': /"(?:[^"\\]|\\.)*"/,
+        'punctuation': [
+          /{/,
+          /}/,
+          /,/,
+          /\$?\(/,
+          /\)/
+        ],
+        'number': /[+-]?(?:(?:[+-]?\d*\.?\d+e[+-]?\d+)|(?:(?:\d+)?\.\d+)|\d+)(?!\s*=(?!=))/,
+        'operator': [
+          /\+/,
+          /\-/,
+          /[<>=]=?/,
+          /\.\.\./,
+          /\*/,
+          /\//,
+          /&/,
+          /\|/,
+          /!/
+        ],
+        'keyword': [
+          /func/,
+          /for/,
+          /while/,
+          /if/,
+          /else\s+if/,
+          /else/,
+          /return/,
+          /continue/,
+          /break/,
+          /\s+in\s+/,
+          /NULL/,
+          /TRUE/,
+          /FALSE/
+        ],
+        'command': [
+          /MKDIRS/,
+          /MKDIR/,
+          /RENAME/,
+          /MOVE/,
+          /WRITE/,
+          /READ/,
+          /APPEND/,
+          /ISFILE/,
+          /ISDIR/,
+          /DELETE/,
+          /EXISTS/,
+          /PATH/,
+          /TO/,
+          /COPY/
+        ],
+        'pathpart': /(?<!\/).+(?!\/)/
+      }
+    </script>
+  </body>
+
+</html>
