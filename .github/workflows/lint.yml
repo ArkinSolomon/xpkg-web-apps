@@ -1,0 +1,19 @@
+name: Lint
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/workflows/setup.yml
+      - run: npx nx affected -t lint --parallel=3
+      - uses: actions-x/commit@v6
+        with:
+          message: "Automatically lint"
+          token: ${{ secrets.PUSH_TOKEN }}
+          

@@ -1,0 +1,17 @@
+name: CI/CD
+on:
+  workflow_dispatch: 
+  workflow_run:
+    workflows: ["Lint"]
+    branches: [main]
+    types: 
+      - completed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+    steps:
+      - uses: ./.github/workflows/setup.yml
+      - run: git branch --track master origin/master
+      - run: npx nx affected -t build --parallel=3

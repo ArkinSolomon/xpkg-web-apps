@@ -2,21 +2,21 @@
   "$schema": "https://raw.githubusercontent.com/nrwl/nx/master/packages/next/src/generators/application/schema.json",
   "namedInputs": {
     "src-files": ["{projectRoot}/**/*.ts"],
-    "install-deps-inputs": ["{projectRoot}/package.json"]
+    "package-json": ["{projectRoot}/package.json"]
   },
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build", "install-deps"],
       "cache": true,
-      "inputs": ["src-files", "^src-files"]
+      "inputs": ["src-files", "^src-files", "package-json"]
     },
     "lint": {
       "cache": true,
-      "inputs": ["src-files"]
+      "inputs": ["src-files", "package-json"]
     }, 
     "install-deps": {
       "cache": true,
-      "inputs": ["install-deps-inputs", "^install-deps-inputs"]
+      "inputs": ["install-deps-inputs", "^install-deps-inputs", "package-json"]
     }
   },
   "affected": {

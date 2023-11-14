@@ -8,7 +8,7 @@
     "clean": "npx tsc --build --clean",
     "install-deps": "npm install",
     "build": "npx tsc --build",
-    "lint": "npx eslint"
+    "lint": "npx eslint --fix"
   },
   "author": "Arkin Solomon",
   "license": "Apache-2.0",

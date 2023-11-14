@@ -10,7 +10,7 @@
     "install-deps": "npm install",
     "build": "npx tsc --build",
     "start": "node --trace-warnings --enable-source-maps -r dotenv/config .",
-    "lint": "npx eslint"
+    "lint": "npx eslint --fix"
   },
   "author": "Arkin Solomon",
   "license": "Apache-2.0",
