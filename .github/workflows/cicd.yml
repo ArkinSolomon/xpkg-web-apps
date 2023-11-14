@@ -12,6 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Build
     steps:
-      - uses: ./.github/workflows/setup.yml
+      - uses: ArkinSolomon/xpkg-web-apps/.github/workflows/setup.yml@master
       - run: git branch --track master origin/master
       - run: npx nx affected -t build --parallel=3
