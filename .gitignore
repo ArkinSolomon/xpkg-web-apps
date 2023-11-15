@@ -35,3 +35,5 @@ keys/
 
 # Nx
 /.nx
+
+ecosystem.config.cjs
