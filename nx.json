@@ -20,7 +20,7 @@
     },
     "install-deps": {
       "cache": true,
-      "inputs": ["install-deps-inputs", "^install-deps-inputs", "package-json"]
+      "inputs": ["package-json"]
     }
   },
   "affected": {
