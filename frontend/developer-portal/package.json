@@ -9,6 +9,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "npx eslint --fix",
+    "check-lint": "npx eslint",
     "install-deps": "npm install"
   },
   "devDependencies": {

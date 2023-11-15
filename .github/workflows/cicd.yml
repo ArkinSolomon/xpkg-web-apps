@@ -1,14 +1,17 @@
 name: CI/CD
 on:
   workflow_dispatch: 
-  workflow_run:
-    workflows: ["Lint"]
-    branches: [main]
-    types: 
-      - completed
+  push:
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ArkinSolomon/xpkg-web-apps/.github/workflows/setup.yml@master
+      - run: npx nx affected -t check-lint --parallel=3
   build:
+    needs: lint
     runs-on: ubuntu-latest
     name: Build
     steps:

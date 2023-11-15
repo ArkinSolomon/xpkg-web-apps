@@ -13,7 +13,8 @@
   },
   "scripts": {
     "start": "bun run src/index.ts",
-    "lint": "npx eslint --fix"
+    "lint": "npx eslint --fix",
+    "check-lint": "npx eslint"
   },
   "author": "Arkin Solomon",
   "license": "Apache-2.0",
