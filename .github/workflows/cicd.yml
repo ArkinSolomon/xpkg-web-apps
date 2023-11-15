@@ -1,9 +1,5 @@
 name: CI/CD
-on:
-  workflow_dispatch: 
-  push:
-    branches:
-      - "**"
+on: [push, workflow_dispatch]
 
 jobs:
   lint:
