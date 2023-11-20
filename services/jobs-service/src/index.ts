@@ -200,34 +200,34 @@ io.on('connection', client => {
     clientLogger.trace('Client data recieved');
 
     switch (data.jobType) {
-      case JobType.Packaging: {
+    case JobType.Packaging: {
 
-        // We do not know if these are the only keys provided, so only select them
-        let sentJobInfo = data.info as PackagingInfo;
-        sentJobInfo = {
-          packageId: sentJobInfo.packageId,
-          packageVersion: sentJobInfo.packageVersion
-        };
-        jobInfo = sentJobInfo;
+      // We do not know if these are the only keys provided, so only select them
+      let sentJobInfo = data.info as PackagingInfo;
+      sentJobInfo = {
+        packageId: sentJobInfo.packageId,
+        packageVersion: sentJobInfo.packageVersion
+      };
+      jobInfo = sentJobInfo;
 
-        if (!sentJobInfo.packageId || typeof sentJobInfo.packageId !== 'string' || !sentJobInfo.packageVersion || typeof sentJobInfo.packageVersion !== 'string') {
-          invalidJobData = true;
-          client.disconnect();
-          clientLogger.error('Client sent invalid packaging job data');
-          return;
-        }
-
-        await packagingDatabase.addJob(sentJobInfo);
-        packagingJobClaimer.tryClaimJob(sentJobInfo);
-        break;
-      }
-      // case JobType.Resource:
-      //   const jobInfo = data.info as ResourceInfo;
-      // break;
-      default:
-        clientLogger.warn('Invalid job type: ' + data.jobType);
+      if (!sentJobInfo.packageId || typeof sentJobInfo.packageId !== 'string' || !sentJobInfo.packageVersion || typeof sentJobInfo.packageVersion !== 'string') {
+        invalidJobData = true;
         client.disconnect();
+        clientLogger.error('Client sent invalid packaging job data');
         return;
+      }
+
+      await packagingDatabase.addJob(sentJobInfo);
+      packagingJobClaimer.tryClaimJob(sentJobInfo);
+      break;
+    }
+    // case JobType.Resource:
+    //   const jobInfo = data.info as ResourceInfo;
+    // break;
+    default:
+      clientLogger.warn('Invalid job type: ' + data.jobType);
+      client.disconnect();
+      return;
     }
 
     clients.push({
@@ -252,19 +252,19 @@ io.on('connection', client => {
     clientLogger.info(`Worker stating job completed (${reason})`);
 
     switch (jobType) {
-      case JobType.Packaging: {
-        await packagingDatabase.removeJob(jobInfo as PackagingInfo);
-        break;
-      }
-      // case JobType.Resource:
-      //   const jobInfo = data.info as ResourceInfo;
-      // break;
-      default:
+    case JobType.Packaging: {
+      await packagingDatabase.removeJob(jobInfo as PackagingInfo);
+      break;
+    }
+    // case JobType.Resource:
+    //   const jobInfo = data.info as ResourceInfo;
+    // break;
+    default:
 
-        // This shouldn't reach
-        clientLogger.error('Invalid job type (while completing)');
-        client.disconnect();
-        return;
+      // This shouldn't reach
+      clientLogger.error('Invalid job type (while completing)');
+      client.disconnect();
+      return;
     }
 
     logger.emit('Removed job from database');
@@ -298,19 +298,19 @@ io.on('connection', client => {
 
     clientLogger.info(`Unexpected worker disconnect, attempting to set job as failure (${reason})`);
     switch (jobType) {
-      case JobType.Packaging: {
-        packagingDatabase.failJob(jobInfo as PackagingInfo);
-        break;
-      }
-      // case JobType.Resource:
-      //   const jobInfo = data.info as ResourceInfo;
-      // break;
-      default:
+    case JobType.Packaging: {
+      packagingDatabase.failJob(jobInfo as PackagingInfo);
+      break;
+    }
+    // case JobType.Resource:
+    //   const jobInfo = data.info as ResourceInfo;
+    // break;
+    default:
 
-        // Shouldn't reach
-        clientLogger.error('Invalid job type (while failing)');
-        client.disconnect();
-        return;
+      // Shouldn't reach
+      clientLogger.error('Invalid job type (while failing)');
+      client.disconnect();
+      return;
     }
 
     clientLogger.trace('Tried to fail job');

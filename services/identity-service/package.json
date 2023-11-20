@@ -26,5 +26,12 @@
     "luxon": "^3.4.3",
     "nanoid": "^5.0.2",
     "pino-http": "^8.5.1"
+  },
+  "nx": {
+    "targets": {
+      "start": {
+        "dependsOn": ["^build"]
+      }
+    }
   }
 }
