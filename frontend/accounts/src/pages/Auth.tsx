@@ -26,7 +26,8 @@ enum Page {
   CreateEnterNamePage = 2,
   CreateEnterPasswordPage = 3,
   CreateConfirmPasswordPage = 4,
-  CreateTermsPage = 5
+  CreateTermsPage = 5,
+  CreatingAccountPage = 6
 }
 
 /**
@@ -34,7 +35,7 @@ enum Page {
  * 
  * @typedef {Object} AuthState
  * @property {'light'|'dark'} theme The theme of the ReCaptcha.
- * @property {Page} currentState The current page that we are on.
+ * @property {Page} currentPage The current page that we are on.
  * @property {string} [subtitle] The subtitle of the page.
  * @property {boolean} showLockFooter True if the lock footer should be shown (the box that says ensure you're on accounts.xpkg.net).
  * @property {boolean} showBack True if the back button should be shown.
@@ -45,8 +46,9 @@ enum Page {
  * @property {() => void} onBack The action to run when the back button is pressed.
  * @property {() => void} onNext The action to run when the next button is pressed.
  * @property {() => void} onMiddleAnchor The action to run when the middle anchor is pressed.
- * @property {boolean} hasOpenedTOS True if the terms of service page has been opened during account creation.
- * @property {boolean} hasOpenedPP True if the privacy policy page has been opened during account creation.
+ * @property {boolean} tosChecked True if the terms of service agreement has been checked.
+ * @property {boolean} ppChecked True if the privacy policy page agreement has been checked.
+ * @property {boolean} enableNext True if the next button is enabled.
  */
 type AuthState = {
   theme: 'light' | 'dark';
@@ -61,19 +63,37 @@ type AuthState = {
   onBack: () => void;
   onNext: () => void;
   onMiddleAnchor: () => void;
-  hasOpenedTOS: boolean;
-  hasOpenedPP: boolean;
+  tosChecked: boolean;
+  ppChecked: boolean;
+  enableNext: boolean;
+};
+
+/**
+ * The data used when creating a user or logging in.
+ * 
+ * @typedef {Object} AuthData
+ * @property {string} [email] The email address of the user that is creating thier account or logging in.
+ * @property {string} [name] The name that the user would like for their account.
+ * @property {string} [password] The password that the user enters to login, or when they are creating their account.
+ * @property {string} [confirmPassword] The password that the user enters in order to confirm their password.
+ */
+type AuthData = {
+  email?: string;
+  name?: string;
+  password?: string;
+  confirmPassword?: string;
 };
 
 import '../css/Auth.scss';
 import SmallContentBox from '../components/SmallContentBox';
 import TextInput from '../components/TextInput';
-import { Component } from 'react';
+import { ChangeEvent, Component } from 'react';
 import { registerCallback, isSiteInDarkMode } from '../components/ThemeButton';
 import SmallContentBoxPage, { getStateFromIndex } from '../components/SmallContentBoxPage';
 import '../css/buttons.scss';
 import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
+import Checkbox from '../components/Checkbox';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EMPTY_FUNCTION = () => { };
@@ -85,14 +105,15 @@ export default class extends Component {
 
   state: AuthState;
 
-  private isComponentMounted = false;
+  private _authData: AuthData = {};
+  private _isComponentMounted = false;
 
   constructor(props: Record<string, never>) {
     super(props);
 
     this.state = {
       theme: isSiteInDarkMode() ? 'dark' : 'light',
-      currentPage: Page.CreateTermsPage,
+      currentPage: Page.DefaultPage,
       showLockFooter: true,
       showBack: true,
       showNext: true,
@@ -101,8 +122,9 @@ export default class extends Component {
       onBack: EMPTY_FUNCTION,
       onNext: EMPTY_FUNCTION,
       onMiddleAnchor: EMPTY_FUNCTION,
-      hasOpenedTOS: false,
-      hasOpenedPP: false
+      tosChecked: false,
+      ppChecked: false,
+      enableNext: true,
     };
 
     this._setPageFromIndex(this.state.currentPage);
@@ -110,19 +132,22 @@ export default class extends Component {
     registerCallback(v => {
       const theme = v ? 'dark' : 'light';
       
-      if (this.isComponentMounted)
+      if (this._isComponentMounted)
         this.setState({ theme } as Partial<AuthState>);
       else
         this.state.theme = theme;
     });
+
+    this._determineNextEnable = this._determineNextEnable.bind(this);
+    this._updateAuthData = this._updateAuthData.bind(this);
   }
   
   componentDidMount(): void {
-    this.isComponentMounted = true;
+    this._isComponentMounted = true;
   }
 
   componentWillUnmount(): void {
-    this.isComponentMounted = false;
+    this._isComponentMounted = false;
   }
   
   /**
@@ -216,11 +241,32 @@ export default class extends Component {
         nextText: 'Create',
         middleAnchor: void 0,
         showLockFooter: true,
-        onNext: () => this._setPageFromIndex(Page.ErrorPage),
+        onNext: () => {
+          grecaptcha.ready(function() {
+            grecaptcha.execute(window.SITE_KEY, {action: 'submit'}).then(function(token) {
+              console.log(token);
+            });
+          });
+          this._setPageFromIndex(Page.CreatingAccountPage);
+        },
         onBack: () => this._setPageFromIndex(Page.CreateConfirmPasswordPage),
         onMiddleAnchor: () => this._setPageFromIndex(Page.ErrorPage),
-        hasOpenedPP: false,
-        hasOpenedTOS: false
+        ppChecked: false,
+        tosChecked: false
+      };
+      break;
+    case Page.CreatingAccountPage:
+      updateData = {
+        subtitle: CREATE_SECTION_SUBTITLE,
+        showBack: false,
+        showNext: false,
+        backText: 'NOT_SHOWN',
+        nextText: 'NOT_SHOWN',
+        middleAnchor: void 0,
+        showLockFooter: true,
+        onNext: EMPTY_FUNCTION,
+        onBack: EMPTY_FUNCTION,
+        onMiddleAnchor: EMPTY_FUNCTION
       };
       break;
     default:
@@ -240,7 +286,7 @@ export default class extends Component {
       break;
     }
 
-    if (this.isComponentMounted) 
+    if (this._isComponentMounted) 
       this.setState({
         ...updateData,
         currentPage: index
@@ -257,97 +303,134 @@ export default class extends Component {
    * Determine if the next button should be enabled based on the current page and current state.
    * 
    * @async
-   * @returns {boolean} True if the next button should be enabled.
    */
-  private async _determineNextEnable(): Promise<boolean> {
+  private async _determineNextEnable(): Promise<void> {
     let enableNext = true;
+    const ghostReq = {
+      body: this._authData
+    };
     switch (this.state.currentPage) {
-    case Page.CreateEnterEmailPage: {
-      const req = {
-        body: {
-          email: 'email'
-        }
-      };
-      enableNext = false;
-      console.log((await validators.isValidEmail(body('email')).run(req)).isEmpty());
+    case Page.CreateEnterEmailPage: 
+      enableNext = (await validators.isValidEmail(body('email')).run(ghostReq)).isEmpty();
       break;
-    }
+    case Page.CreateEnterNamePage:
+      enableNext = (await validators.isValidName(body('name')).run(ghostReq)).isEmpty();
+      break;
+    case Page.CreateEnterPasswordPage:
+      enableNext = (await validators.isValidPassword(body('password')).run(ghostReq)).isEmpty();
+      break;
+    case Page.CreateConfirmPasswordPage:
+      enableNext = this._authData.password === this._authData.confirmPassword;
+      break;
     case Page.CreateTermsPage:
-      enableNext = this.state.hasOpenedPP && this.state.hasOpenedTOS;
+      enableNext = this.state.ppChecked && this.state.tosChecked;
       break;
     }
-    return enableNext;
+
+    if (enableNext == this.state.enableNext) {
+      return;
+    }
+    
+    this.setState({
+      enableNext,
+    } as Partial<AuthState>);
+  }
+
+  /**
+   * Update the AuthData and check for validation.
+   * 
+   * @param {string} keyname The key of the AuthData that needs to be updated.
+   * @returns {ChangeEvent<HTMLInputElement> => void} A new function that updates the authorization data and determines if the next button should be enabled.
+   */
+  private _updateAuthData(keyname: keyof AuthData): (e: ChangeEvent<HTMLInputElement>) => void {
+    return (e: ChangeEvent<HTMLInputElement>) => {
+      this._authData[keyname] = e.target.value;
+      this._determineNextEnable();
+    };
   }
 
   render() {
-    const enableNext = this._determineNextEnable();
+    this._determineNextEnable();
     return (
-      <>
-        <SmallContentBox subtitle={this.state.subtitle} footer={
-          <>
-            <div className='bottom-buttons mb-12 px-8'>
-              {/* We use arrow functions in order to avoid having to bind every function */}
-              <button className={'secondary-button ' + (this.state.showBack ? '' : 'hide')} onClick={() => this.state.onBack()}>{this.state.backText}</button>
-              <div className={'center-link-wrapper ' + (this.state.middleAnchor ? '' : 'hide')}><a onClick={() => this.state.onMiddleAnchor()}>{this.state.middleAnchor}</a></div>
-              <button className={'primary-button ' + (this.state.showNext ? '' : 'hide')} onClick={() => this.state.onNext()} disabled={!enableNext}>{this.state.nextText}</button>
-            </div>
-            {
-              this.state.showLockFooter && <div className='auth-lock mx-auto mt-7 mb-5'>
-                <div className='left'>
-                  <img src='/icons/lock.png' alt='Lock Icon' />
-                </div>
-                <div className='right'>
-                  <p>Ensure you are only submitting your credentials to <b>accounts.xpkg.net</b>. Do not login from suspicious links.</p>
-                </div>
+      <SmallContentBox subtitle={this.state.subtitle} footer={
+        <>
+          <div className='bottom-buttons mb-12 px-8'>
+            {/* We use arrow functions in order to avoid having to bind every function */}
+            <button className={'secondary-button ' + (this.state.showBack ? '' : 'hide')} onClick={() => this.state.onBack()}>{this.state.backText}</button>
+            <div className={'center-link-wrapper ' + (this.state.middleAnchor ? '' : 'hide')}><a onClick={() => this.state.onMiddleAnchor()}>{this.state.middleAnchor}</a></div>
+            <input className={'primary-button ' + (this.state.showNext ? '' : 'hide')} onClick={() => this.state.onNext()} type='submit' disabled={!this.state.enableNext} value={this.state.nextText} />
+          </div>
+          {
+            this.state.showLockFooter && <div className='auth-lock mx-auto mt-7 mb-5'>
+              <div className='left'>
+                <img src='/icons/lock.png' alt='Lock Icon' />
               </div>
-            }
-          </>
-        }>
-          <>
-            <SmallContentBoxPage pageState={getStateFromIndex(Page.ErrorPage, this.state.currentPage)}>
-              <>
-                <p className='explain-text'>Oh no! Something went very wrong. This page is not implemented, or you were not sent to the proper page.</p>
-              </>
-            </SmallContentBoxPage>
-            <SmallContentBoxPage pageState={getStateFromIndex(Page.DefaultPage, this.state.currentPage)}>
-              <>
-                <p className='explain-text'>Welcome to X-Pkg Accounts. This portal lets you manage all of your account details.</p>
-                <button className='primary-button w-10/12 block mx-auto mt-6' onClick={() => this._setPageFromIndex(1)}>Create an account</button>
-                <button className='secondary-button w-10/12 block mx-auto mt-6' onClick={() => this._setPageFromIndex(-1)}>Login</button>
-              </>
-            </SmallContentBoxPage>
-            <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterEmailPage, this.state.currentPage)}>
-              <>
-                <p className='explain-text'>Let's get started! Enter your email address. This address will be the primary point of contact between you and X-Pkg.</p>
-                <TextInput className='mt-4' inputType='email' name='email' label='Email Address' placeholder='you@example.com' />
-              </>
-            </SmallContentBoxPage>
-            <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterNamePage, this.state.currentPage)}>
-              <>
-                <p className='explain-text'>Enter a unique name. It can contain spaces, and does not have to be your real name. This will be public.</p>
-                <TextInput className='mt-4' inputType='text' name='text' label='Name' placeholder='John Doe' />
-              </>
-            </SmallContentBoxPage>
-            <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterPasswordPage, this.state.currentPage)}>
-              <>
-                <p className='explain-text'>Type a secure and unique password.</p>
-                <TextInput className='mt-4' inputType='password' name='password' label='Password' placeholder='P@ssw0rd!' />
-              </>
-            </SmallContentBoxPage>
-            <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateConfirmPasswordPage, this.state.currentPage)}>
-              <>
-                <p className='explain-text'>Retype your password.</p>
-                <TextInput className='mt-4' inputType='password' name='confirmPassword' label='Password' placeholder='P@ssw0rd!' />
-              </>
-            </SmallContentBoxPage>
-            <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateTermsPage, this.state.currentPage)}>
-              <>
-                <p className='explain-text'>By signing up for X-Pkg, you agree to the <a className={(this.state.hasOpenedTOS && 'clicked') || void 0} onClick={() => this.setState({ hasOpenedTOS: true } as Partial<AuthState>)} href='https://cataas.com/cat/gif' target='_blank'>terms of use</a> and <a className={(this.state.hasOpenedPP && 'clicked') || void 0} onClick={() => this.setState({ hasOpenedPP: true } as Partial<AuthState>)} href='https://cataas.com/cat/gif' target='_blank'>privacy policy</a>. Please read through both policies before creating an account.</p>
-              </>
-            </SmallContentBoxPage>
-          </>
-        </SmallContentBox>
-      </>
+              <div className='right'>
+                <p>Ensure you are only submitting your credentials to <b>accounts.xpkg.net</b>. Do not login from suspicious links.</p>
+              </div>
+            </div>
+          }
+        </>
+      }>
+        <>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.ErrorPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Oh no! Something went very wrong. This page is not implemented, or you were not sent to the proper page.</p>
+            </>
+          </SmallContentBoxPage>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.DefaultPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Welcome to X-Pkg Accounts. This portal lets you manage all of your account details.</p>
+              <button className='primary-button w-10/12 block mx-auto mt-6' onClick={() => this._setPageFromIndex(1)}>Create an account</button>
+              <button className='secondary-button w-10/12 block mx-auto mt-6' onClick={() => this._setPageFromIndex(-1)}>Login</button>
+            </>
+          </SmallContentBoxPage>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterEmailPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Let's get started! Enter your email address. This address will be the primary point of contact between you and X-Pkg.</p>
+              <TextInput className='mt-4' inputType='email' name='email' label='Email Address' placeholder='you@example.com' onChange={this._updateAuthData('email')} />
+            </>
+          </SmallContentBoxPage>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterNamePage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Enter a unique name. It can contain spaces, and does not have to be your real name. This will be public.</p>
+              <TextInput className='mt-4' inputType='text' name='text' label='Name' placeholder='John Doe' onChange={this._updateAuthData('name')}/>
+            </>
+          </SmallContentBoxPage>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterPasswordPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Type a secure and unique password.</p>
+              <TextInput className='mt-4' inputType='password' name='password' label='Password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('password')}/>
+            </>
+          </SmallContentBoxPage>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateConfirmPasswordPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Retype your password.</p>
+              <TextInput className='mt-4' inputType='password' name='confirmPassword' label='Password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('confirmPassword')}/>
+            </>
+          </SmallContentBoxPage>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateTermsPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>By signing up for X-Pkg, you agree to the terms of service and privacy policy. Please read through both documents before creating an account.</p>
+              <Checkbox className='mt-4' checked={this.state.tosChecked} name={'tos-checkbox'} onChange={e => this.setState({
+                tosChecked: e.target.checked
+              } as Partial<AuthState>)}>
+                <p className='explain-text'>I agree to the <a href='https://cataas.com/cat/gif' target='_blank'>terms of use</a>.</p>
+              </Checkbox>
+              <Checkbox className='mt-3' checked={this.state.ppChecked} name={'tos-checkbox'} onChange={e => this.setState({
+                ppChecked: e.target.checked
+              } as Partial<AuthState>)}>
+                <p className='explain-text'>I agree to the <a href='https://cataas.com/cat/gif' target='_blank'>privacy policy</a>.</p>
+              </Checkbox>
+            </>
+          </SmallContentBoxPage>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.CreatingAccountPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Creating your account...</p>
+            </>
+          </SmallContentBoxPage>
+        </>
+      </SmallContentBox>
     );
   }
 }

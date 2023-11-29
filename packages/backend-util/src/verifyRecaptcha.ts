@@ -24,11 +24,15 @@ if (disableCaptcha)
  * 
  * @param {string} token The token to verify.
  * @param {string} ip The ip address to report to reCAPTCHA.
+ * @param {string} action The action which caused this reCAPTCHA token to be generated.
+ * @param {string} threshold The minimum threshold required to be considered as valid.
  * @returns {Promise<boolean>} A promise which resolves to true if the action should be allowed, or false if the action should not be allowed, or if there is an error.
  */
-export default async function (token: string, ip: string): Promise<boolean> {
-  if (disableCaptcha)
+export default async function (token: string, ip: string, action: string, threshold: number): Promise<boolean> {
+  if (disableCaptcha) {
+    logger.info({ ip, action, threshold }, 'Ignoring reCAPTCHA validation request (reCAPTCHA disabled)');
     return true;
+  }
   try {
     const params = new URLSearchParams({
       secret: process.env.RECAPTCHA_SECRET as string,
@@ -40,9 +44,22 @@ export default async function (token: string, ip: string): Promise<boolean> {
 
     const response = res.data as {
       success: boolean;
+      score: number;
+      action: string;
+      challenge_ts: string;
+      hostname: string;
+      errorCodes?: string[];
     };
 
-    return response.success;
+    const valid = response.success && response.score >= threshold && response.action === action;
+
+    if (!valid) {
+      logger.info({ ...response, ip, expectedAction: action, threshold }, 'Unsuccessful reCAPTCHA validation');
+    } else {
+      logger.trace({ ...response, ip, expectedAction: action, threshold }, 'Successful reCAPTCHA response');
+    }
+
+    return valid;
   } catch (e) {
     logger.error(e, 'Error with reCAPTCHA verification');
     return false;

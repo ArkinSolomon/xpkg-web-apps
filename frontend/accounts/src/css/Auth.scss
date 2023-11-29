@@ -41,6 +41,16 @@
   }
 }
 
+p.check-box-text {
+  &,
+  a,
+  a:visited {
+    @include themed() {
+      color: t('primary-text-color');
+    }
+  }
+}
+
 .bottom-buttons {
   display: flex;
   flex-flow: row;
@@ -49,7 +59,7 @@
     flex: 1 100%;
   }
 
-  button {
+  button, input[type="submit"] {
     max-width: fit-content;
   }
 
@@ -82,7 +92,7 @@
     }
   }
 
-  button.hide {
+  button.hide, input.hide {
     visibility: hidden;
     cursor: default;
   }

@@ -21,7 +21,7 @@ export default function (props: {
   label: string;
   placeholder?: string;
   defaultValue?: string;
-  onChange?: unknown;
+  onChange?: ChangeEventHandler<HTMLInputElement>;
   inputType?: HTMLInputTypeAttribute;
   className?: string;
   hasError?: boolean;
@@ -31,7 +31,7 @@ export default function (props: {
   return (
     <div className={'input text-input ' + (props.hasError ? 'error ' : '') + (props.className ?? '')}>
       <label htmlFor={id}>{ props.label }</label>
-      <input key={id} type={props.inputType ?? 'text'} id={id} placeholder={placeholder} defaultValue={props.defaultValue} />
+      <input key={id} type={props.inputType ?? 'text'} id={id} placeholder={placeholder} defaultValue={props.defaultValue} onChange={props.onChange} />
     </div>
   );
 }
