@@ -16,7 +16,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@xpkg/versioning": "^0.1.0",
-    "express-validator": "^7.0.1"
+    "express-validator": "^7.0.1",
+    "nanoid": "^5.0.4"
   },
   "devDependencies": {
     "@types/big.js": "^6.2.1",

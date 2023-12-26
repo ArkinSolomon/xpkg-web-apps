@@ -84,7 +84,7 @@ const clientSchema = new Schema<ClientData>({
   collection: 'clients'
 });
 
-const usersDB = mongoose.connection.useDb('clients');
-const ClientModel = usersDB.model<ClientData>('client', clientSchema);
+const clientsDB = mongoose.connection.useDb('clients');
+const ClientModel = clientsDB.model<ClientData>('client', clientSchema);
 
 export default ClientModel;

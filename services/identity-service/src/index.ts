@@ -76,9 +76,18 @@ app.use(pinoHttp({
   }
 }));
 
+const authorizeRoutes = [
+  '/oauth/authorize'
+];
+
+import authorization from './util/authorization.js';
+app.use(authorizeRoutes, authorization);
+
 import account from './routes/account.js';
+import oauth from './routes/oauth.js';
 
 app.use('/account/', account);
+app.use('/oauth/', oauth);
 
 const port = process.env.PORT || 4819;
 app.listen(port, () => logger.info(`X-Pkg identity service listening on port ${port}`));

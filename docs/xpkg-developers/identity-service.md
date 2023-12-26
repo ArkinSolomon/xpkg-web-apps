@@ -19,7 +19,7 @@ The identity service takes a special `client_id` parameter for proprietary servi
 
 ### Proprietary OAuth2 Differences
 
-In OAuth2, the user is typically given an access code after authorization, which is forwarded to a server (called the client), which recieves the token. However, for proprietary services, the user is given teh access token in place of the OAuth2 code. It is the client's responsibility to fetch manage the access token(s) they are issued. X-Pkg attempts to make this simpler by expiring access tokens that access sensitive content (like registry tokens) quickly. 
+In OAuth2, the user is typically given an access code after authorization, which is forwarded to a server (called the client), which recieves the token. However, for proprietary services, the user is given the access token in place of the OAuth2 code. It is the client's responsibility to fetch manage the access token(s) they are issued. X-Pkg attempts to make this simpler by expiring access tokens that access sensitive content (like registry tokens) quickly. 
 
 This works this way for several reasons: in order to remain RESTful, proprietary server backends do not retain token information. Additionally, X-Pkg web-applications are not backed by one singular server, rather they are statically served, and dynamically load content using X-Pkg's APIs.
 
@@ -52,7 +52,7 @@ The SSO process below outlines a procedure to authorize with XIS from the develo
 3. XIS presents the user with a login screen.
 4. Once the user authenticates successfully and authorizes the developer portal's access, a new access token for the registry is issued (only one registry token can exist at a time).
 5. The user is redirected to the developer portal through the provided redirect URL.
-6. The developer portal makes a call to the registry service with the access token.
+6. The developer portal makes a call to the X-Pkg registry with the access token.
 7. The registry makes a call to the XIS with the access token, sending along the client secret, and the client id.
 8. The XIS looks for a client with a matching client id, and validates the secret stored in the database, with the one provided.
 9. The XIS then looks for a token with the given token id, and client id, then pulls the author id, and permissions number.

@@ -14,8 +14,10 @@
  */
 
 import { nanoid } from 'nanoid';
-import UserModel from './models/userModel.js';
+import UserModel, { UserData } from './models/userModel.js';
 import NoSuchAccountError from '../errors/noSuchAccountError.js';
+import { HydratedDocument } from 'mongoose';
+import { hash } from 'hasha';
 
 /**
  * Create a new user with a random identifier.
@@ -23,17 +25,18 @@ import NoSuchAccountError from '../errors/noSuchAccountError.js';
  * @async
  * @param {string} name The name of the user.
  * @param {string} email The email of the user (in lowercase).
- * @param {string} hash The hash of the users's password.
+ * @param {string} passwordHash The hash of the users's password.
  * @returns {Promise<Document<UserData>>} A promise which resolves to the document of the new user.
  */
-export async function createUser(name: string, email: string, hash: string) {
+export async function createUser(name: string, email: string, passwordHash: string) {
   const userId = nanoid(32);
-
+  const emailHash = await hash(email, { algorithm: 'sha256' });
   const userDoc = new UserModel({
     userId,
     name,
     email,
-    hash,
+    hash: passwordHash,
+    profilePicUrl: 'https://gravatar.com/avatar/' + emailHash
   });
   await userDoc.save();
 
@@ -41,11 +44,33 @@ export async function createUser(name: string, email: string, hash: string) {
 }
 
 /**
+ * Get a user from their id. Does not include the user's password hash.
+ * 
+ * @async
+ * @param {string} userId The id of the user to get.
+ * @returns {Promise<HydratedDocument<Omit<UserData, 'hash'>>>} A promise which resolves to the user's data, without their hash.
+ * @throws {NoSuchAccountError} Error thrown if no account exists with the given user id.
+ */
+export async function getUserFromId(userId: string) {
+  const user = await UserModel.findOne({
+    userId
+  })
+    .select({
+      hash: 0
+    })
+    .exec();
+  if (!user)
+    throw new NoSuchAccountError('userId', userId);
+
+  return user as HydratedDocument<Omit<UserData, 'hash'>>;
+}
+
+/**
  * Get an user's document from their email.
  * 
  * @async
  * @param {string} userEmail The email of the author to get.
- * @returns {Promise<Document<UserData>>} A promise which resolves to the mongoose document, or null if the user does not exist.
+ * @returns {Promise<HydratedDocument<UserData>>} A promise which resolves to the mongoose document, or null if the user does not exist.
  * @throws {NoSuchAccountError} Error thrown if no account exists with the given email.
  */
 export async function getUserFromEmail(email: string) {
@@ -105,7 +130,7 @@ export async function nameOrEmailExists(name: string, email: string): Promise<'e
     ]
   }).exec();
 
-  if (!foundUser) 
+  if (!foundUser)
     return null;
   return email === foundUser.email ? 'email' : 'name';
 }

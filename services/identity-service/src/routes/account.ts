@@ -15,7 +15,7 @@
 import { Router } from 'express';
 import { body, matchedData, validationResult } from 'express-validator';
 import { validators } from '@xpkg/validation';
-import {logger, verifyRecaptcha} from '@xpkg/backend-util';
+import { logger, verifyRecaptcha } from '@xpkg/backend-util';
 import * as tokenDatabase from '../database/tokenDatabase.js';
 import * as userDatabase from '../database/userDatabase.js';
 import NoSuchAccountError from '../errors/noSuchAccountError.js';
@@ -37,7 +37,7 @@ route.post('/create',
     const result = validationResult(req);
     if (!result.isEmpty()) {
       const message = result.array()[0].msg;
-      routeLogger.trace(`Validation failed with message: ${message}`);
+      routeLogger.trace(`Bad request with message: ${message}`);
       return res
         .status(400)
         .send(message);
@@ -51,7 +51,7 @@ route.post('/create',
     };
 
     try {
-      if (!(await verifyRecaptcha(validation, req.ip || 'unknown'))) {
+      if (!validation || !(await verifyRecaptcha(validation, req.ip || 'unknown', 'create', 0))) {
         routeLogger.trace('ReCAPTCHA validation failed');
         return res.sendStatus(418);
       }
@@ -79,11 +79,8 @@ route.post('/create',
         newUserId: user.userId
       });
       routeLogger.trace('New author account registered in database');
-      const token = tokenDatabase.createXISToken(user.userId);
+      const token = await tokenDatabase.createXisToken(user.userId);
 
-      routeLogger.trace('Generated auth and verification tokens');
-
-      // author.sendEmail('Welcome to X-Pkg', `Welcome to X-Pkg!\n\nTo start uploading packages or resources to the portal, you need to verify your email first: http://localhost:3001/verify/${verificationToken} (this link expires in 24 hours).`);
       res.json({ token });
       routeLogger.info('New author account created');
     } catch (e) {
@@ -106,7 +103,7 @@ route.post('/login',
     const result = validationResult(req);
     if (!result.isEmpty()) {
       const message = result.array()[0].msg;
-      logger.info(`Request failed with message: ${message}`);
+      routeLogger.trace(`Bad request with message: ${message}`);
       return res
         .status(400)
         .send(message);
@@ -115,7 +112,7 @@ route.post('/login',
     const { email, password, validation } = matchedData(req);
 
     try {
-      if (!(await verifyRecaptcha(validation, req.ip || 'unknown'))) {
+      if (!validation || !(await verifyRecaptcha(validation, req.ip || 'unknown', 'login', 0))) {
         routeLogger.info('ReCAPTCHA validation failed');
         return res.sendStatus(418);
       }
@@ -131,12 +128,10 @@ route.post('/login',
       }
 
       routeLogger.trace('Login credentials valid');
-      const token = await tokenDatabase.createXISToken(user.userId);
+      const token = await tokenDatabase.createXisToken(user.userId);
       routeLogger.info('Successful login, token generated');
 
       res.json({ token });
-
-      // await author.sendEmail('New Login', `There was a new login to your X-Pkg account from ${req.ip}`);
     } catch (e) {
       if (e instanceof NoSuchAccountError) {
         routeLogger.info('No account with email');

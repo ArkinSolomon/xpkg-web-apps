@@ -27,7 +27,10 @@ enum Page {
   CreateEnterPasswordPage = 3,
   CreateConfirmPasswordPage = 4,
   CreateTermsPage = 5,
-  CreatingAccountPage = 6
+  CreatingAccountPage = 6,
+  LoginEnterEmailPage = 7,
+  LoginEnterPasswordPage = 8,
+  LoggingInPage = 9
 }
 
 /**
@@ -94,12 +97,16 @@ import '../css/buttons.scss';
 import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
 import Checkbox from '../components/Checkbox';
+import axios from 'axios';
+import { setCookie } from '../scripts/cookies';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EMPTY_FUNCTION = () => { };
 
 const CREATE_SECTION_SUBTITLE = 'Create an account';
 const LOGIN_INSTEAD_TEXT = 'Login instead';
+const LOGIN_SECTION_SUBTITLE = 'Login';
+const CREATE_INSTEAD_TEXT = 'Create an account';
 
 export default class extends Component {
 
@@ -187,7 +194,7 @@ export default class extends Component {
         showLockFooter: true,
         onNext: () => this._setPageFromIndex(Page.CreateEnterNamePage),
         onBack: () => this._setPageFromIndex(Page.DefaultPage),
-        onMiddleAnchor: () => this._setPageFromIndex(Page.ErrorPage)
+        onMiddleAnchor: () => this._setPageFromIndex(Page.LoginEnterEmailPage)
       };
       break;
     case Page.CreateEnterNamePage:
@@ -201,7 +208,7 @@ export default class extends Component {
         showLockFooter: true,
         onNext: () => this._setPageFromIndex(Page.CreateEnterPasswordPage),
         onBack: () => this._setPageFromIndex(Page.CreateEnterEmailPage),
-        onMiddleAnchor: () => this._setPageFromIndex(Page.ErrorPage)
+        onMiddleAnchor: () => this._setPageFromIndex(Page.LoginEnterEmailPage)
       };
       break;
     case Page.CreateEnterPasswordPage: 
@@ -215,7 +222,7 @@ export default class extends Component {
         showLockFooter: true,
         onNext: () => this._setPageFromIndex(Page.CreateConfirmPasswordPage),
         onBack: () => this._setPageFromIndex(Page.CreateEnterNamePage),
-        onMiddleAnchor: () => this._setPageFromIndex(Page.ErrorPage)
+        onMiddleAnchor: () => this._setPageFromIndex(Page.LoginEnterEmailPage)
       };
       break;
     case Page.CreateConfirmPasswordPage: 
@@ -229,7 +236,7 @@ export default class extends Component {
         showLockFooter: true,
         onNext: () => this._setPageFromIndex(Page.CreateTermsPage),
         onBack: () => this._setPageFromIndex(Page.CreateEnterPasswordPage),
-        onMiddleAnchor: () => this._setPageFromIndex(Page.ErrorPage)
+        onMiddleAnchor: () => this._setPageFromIndex(Page.LoginEnterEmailPage)
       };
       break;
     case Page.CreateTermsPage:
@@ -242,15 +249,32 @@ export default class extends Component {
         middleAnchor: void 0,
         showLockFooter: true,
         onNext: () => {
-          grecaptcha.ready(function() {
-            grecaptcha.execute(window.SITE_KEY, {action: 'submit'}).then(function(token) {
-              console.log(token);
-            });
+          grecaptcha.ready(async () => {
+            try {
+              const recaptchaToken = grecaptcha.execute(window.SITE_KEY, { action: 'create' });
+              const result = await axios.post('http://localhost:4819/account/create', {
+                email: this._authData.email,
+                name: this._authData.name,
+                password: this._authData.password,
+                validation: recaptchaToken
+              }); 
+
+              if (result.status !== 200) {
+                throw 'Error: status ' + result.status;
+              }
+
+              console.log(result.data);
+              
+              setCookie('token', result.data.token, 1);
+            } catch (e) {
+              console.error(e);
+              this._setPageFromIndex(Page.ErrorPage);
+            }
           });
           this._setPageFromIndex(Page.CreatingAccountPage);
         },
         onBack: () => this._setPageFromIndex(Page.CreateConfirmPasswordPage),
-        onMiddleAnchor: () => this._setPageFromIndex(Page.ErrorPage),
+        onMiddleAnchor: () => this._setPageFromIndex(Page.LoginEnterEmailPage),
         ppChecked: false,
         tosChecked: false
       };
@@ -267,6 +291,71 @@ export default class extends Component {
         onNext: EMPTY_FUNCTION,
         onBack: EMPTY_FUNCTION,
         onMiddleAnchor: EMPTY_FUNCTION
+      };
+      break;
+    case Page.LoginEnterEmailPage:
+      updateData = {
+        subtitle: LOGIN_SECTION_SUBTITLE,
+        showBack: true,
+        showNext: true,
+        backText: 'Back',
+        nextText: 'Next',
+        middleAnchor: CREATE_INSTEAD_TEXT,
+        showLockFooter: true,
+        onNext: () => this._setPageFromIndex(Page.LoginEnterPasswordPage),
+        onBack: () => this._setPageFromIndex(Page.DefaultPage),
+        onMiddleAnchor: () => this._setPageFromIndex(Page.CreateEnterEmailPage),
+      };
+      break;
+    case Page.LoginEnterPasswordPage:
+      updateData = {
+        subtitle: LOGIN_SECTION_SUBTITLE,
+        showBack: true,
+        showNext: true,
+        backText: 'Back',
+        nextText: 'Login',
+        middleAnchor: CREATE_INSTEAD_TEXT,
+        showLockFooter: true,
+        onNext: () => {
+          grecaptcha.ready(async () => {
+            try {
+              const recaptchaToken = grecaptcha.execute(window.SITE_KEY, { action: 'create' });
+              const result = await axios.post('http://localhost:4819/account/login', {
+                email: this._authData.email,
+                password: this._authData.password,
+                validation: recaptchaToken
+              }); 
+
+              if (result.status !== 200) {
+                throw 'Error: status ' + result.status;
+              }
+
+              console.log(result.data);
+              
+              setCookie('token', result.data.token, 1);
+            } catch (e) {
+              console.error(e);
+              this._setPageFromIndex(Page.ErrorPage);
+            }
+          });
+          this._setPageFromIndex(Page.LoggingInPage);
+        },
+        onBack: () => this._setPageFromIndex(Page.LoginEnterEmailPage),
+        onMiddleAnchor: () => this._setPageFromIndex(Page.CreateEnterEmailPage),
+      };
+      break;
+    case Page.LoggingInPage:
+      updateData = {
+        subtitle: LOGIN_SECTION_SUBTITLE,
+        showBack: false,
+        showNext: false,
+        backText: 'NOT_SHOWN',
+        nextText: 'NOT_SHOWN',
+        middleAnchor: void 0,
+        showLockFooter: true,
+        onNext: EMPTY_FUNCTION,
+        onBack: EMPTY_FUNCTION,
+        onMiddleAnchor: EMPTY_FUNCTION,
       };
       break;
     default:
@@ -311,12 +400,14 @@ export default class extends Component {
     };
     switch (this.state.currentPage) {
     case Page.CreateEnterEmailPage: 
+    case Page.LoginEnterEmailPage:
       enableNext = (await validators.isValidEmail(body('email')).run(ghostReq)).isEmpty();
       break;
     case Page.CreateEnterNamePage:
       enableNext = (await validators.isValidName(body('name')).run(ghostReq)).isEmpty();
       break;
     case Page.CreateEnterPasswordPage:
+    case Page.LoginEnterPasswordPage:
       enableNext = (await validators.isValidPassword(body('password')).run(ghostReq)).isEmpty();
       break;
     case Page.CreateConfirmPasswordPage:
@@ -355,7 +446,7 @@ export default class extends Component {
       <SmallContentBox subtitle={this.state.subtitle} footer={
         <>
           <div className='bottom-buttons mb-12 px-8'>
-            {/* We use arrow functions in order to avoid having to bind every function */}
+            {/* We use arrow functions in order to avoid having to bind every function to this page's instance */}
             <button className={'secondary-button ' + (this.state.showBack ? '' : 'hide')} onClick={() => this.state.onBack()}>{this.state.backText}</button>
             <div className={'center-link-wrapper ' + (this.state.middleAnchor ? '' : 'hide')}><a onClick={() => this.state.onMiddleAnchor()}>{this.state.middleAnchor}</a></div>
             <input className={'primary-button ' + (this.state.showNext ? '' : 'hide')} onClick={() => this.state.onNext()} type='submit' disabled={!this.state.enableNext} value={this.state.nextText} />
@@ -381,8 +472,8 @@ export default class extends Component {
           <SmallContentBoxPage pageState={getStateFromIndex(Page.DefaultPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Welcome to X-Pkg Accounts. This portal lets you manage all of your account details.</p>
-              <button className='primary-button w-10/12 block mx-auto mt-6' onClick={() => this._setPageFromIndex(1)}>Create an account</button>
-              <button className='secondary-button w-10/12 block mx-auto mt-6' onClick={() => this._setPageFromIndex(-1)}>Login</button>
+              <button className='primary-button w-10/12 block mx-auto mt-6' onClick={() => this._setPageFromIndex(Page.CreateEnterEmailPage)}>Create an account</button>
+              <button className='secondary-button w-10/12 block mx-auto mt-6' onClick={() => this._setPageFromIndex(Page.LoginEnterEmailPage)}>Login</button>
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterEmailPage, this.state.currentPage)}>
@@ -427,6 +518,23 @@ export default class extends Component {
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreatingAccountPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Creating your account...</p>
+            </>
+          </SmallContentBoxPage>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.LoginEnterEmailPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Welcome back to X-Pkg! Enter the email you used to sign up for your account.</p>
+              <TextInput className='mt-4' inputType='email' name='email' label='Email Address' placeholder='you@example.com' onChange={this._updateAuthData('email')} />
+            </>
+          </SmallContentBoxPage>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.LoginEnterPasswordPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Enter the password you used when you signed up for your account. <a href='https://cataas.com/cat/gif'>I forgot my password.</a></p>
+              <TextInput className='mt-4' inputType='password' name='password' label='Password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('password')}/>
+            </>
+          </SmallContentBoxPage>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.LoggingInPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Logging into your account...</p>
             </>
           </SmallContentBoxPage>
         </>

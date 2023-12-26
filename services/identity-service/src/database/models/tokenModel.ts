@@ -76,7 +76,7 @@ export type TokenScope = typeof TokenScope[keyof typeof TokenScope];
  * 
  * @typedef {string} TokenData
  * @property {string} userId The id of the user who this token is for.
- * @property {string} tokenIdHash The hash of the id of the token.
+ * @property {string} tokenId The id of the token.
  * @property {string} clientId The id of the client that required this token to be issued.
  * @property {string} tokenName The name of the token. Either one provided by the user, or the same as the client application name.
  * @property {string} [tokenDescription] The description of the token. Either one optionally provided by the user for issued tokens, or the same as the client description.
@@ -87,10 +87,11 @@ export type TokenScope = typeof TokenScope[keyof typeof TokenScope];
  * @property {Date} created When the token was created.
  * @property {Date} regenerated When the token was last regenerated.
  * @property {string} [data] Optional token data.
+ * @property {Date} used When the token was last used.
  */
 export type TokenData = {
   userId: string;
-  tokenIdHash: string;
+  tokenId: string;
   clientId: string;
   tokenName: string;
   tokenDescription?: string;
@@ -101,6 +102,7 @@ export type TokenData = {
   created: Date;
   regenerated: Date;
   data?: string;
+  used: Date;
 };
 
 
@@ -112,10 +114,11 @@ const tokenSchema = new Schema<TokenData>({
     required: true,
     index: true
   }, 
-  tokenIdHash: {
+  tokenId: {
     type: String, 
     required: true,
-    index: true
+    index: true,
+    unique: true
   },
   clientId: {
     type: String,
@@ -151,22 +154,27 @@ const tokenSchema = new Schema<TokenData>({
   created: {
     type: Date,
     required: true,
-    default: Date.now()
+    default: Date.now
   },
   regenerated: {
     type: Date,
     required: true,
-    default: Date.now()
+    default: Date.now
   },
   data: {
     type: String,
     required: false
+  },
+  used: {
+    type: Date,
+    required: true,
+    default: Date.now
   }
 }, {
   collection: 'tokens'
 });
 
-const usersDB = mongoose.connection.useDb('users');
-const TokenModel = usersDB.model<TokenData>('token', tokenSchema);
+const tokensDB = mongoose.connection.useDb('tokens');
+const TokenModel = tokensDB.model<TokenData>('token', tokenSchema);
 
 export default TokenModel;

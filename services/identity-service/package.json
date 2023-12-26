@@ -23,14 +23,19 @@
     "@xpkg/validation": "^0.1.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
+    "hasha": "^6.0.0",
     "luxon": "^3.4.3",
     "nanoid": "^5.0.2",
-    "pino-http": "^8.5.1"
+    "pino": "^8.17.1",
+    "pino-http": "^8.5.1",
+    "query-string": "^8.1.0"
   },
   "nx": {
     "targets": {
       "start": {
-        "dependsOn": ["^build"]
+        "dependsOn": [
+          "^build"
+        ]
       }
     }
   }

@@ -12,5 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-export * as validators from './validators.js';
-export * as identifiers from './identifiers.js';
+import { customAlphabet } from 'nanoid';
+
+export const numericNanoid = customAlphabet('0123456789');
+export const alphaNanoid = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+export const alphanumericNanoid = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
