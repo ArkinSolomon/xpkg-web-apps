@@ -19,6 +19,7 @@ import { logger, verifyRecaptcha } from '@xpkg/backend-util';
 import * as tokenDatabase from '../database/tokenDatabase.js';
 import * as userDatabase from '../database/userDatabase.js';
 import NoSuchAccountError from '../errors/noSuchAccountError.js';
+import { AuthorizedRequest } from '../util/authorization.js';
 
 const route = Router();
 
@@ -143,59 +144,16 @@ route.post('/login',
     }
   });
 
-// route.post('/verify/:verificationToken',
-//   param('verificationToken').trim().notEmpty(),
-//   body('validation').trim().notEmpty(),
-//   async (req, res) => {
+route.post('/tokenvalidate', (req: AuthorizedRequest, res) => {
+  const routeLogger = logger.child({
+    ip: req.ip,
+    route: '/account/tokenvalidate',
+    requestId: req.id,
+  });
 
-//     const result = validationResult(req);
-//     if (!result.isEmpty()) {
-//       logger.info('Request body field validation failed');
-//       return res.sendStatus(400);
-//     }
-
-//     const { verificationToken, validation } = matchedData(req);
-
-//     const routeLogger = logger.child({
-//       ip: req.ip,
-//       route: '/auth/verify/:verificationToken',
-//       id: req.id
-//     });
-
-//     const isTokenValid = await verifyRecaptcha(validation, req.ip as string);
-//     if (!isTokenValid) {
-//       routeLogger.info('Could not validate reCAPTCHA token');
-//       return res.sendStatus(418);
-//     }
-
-//     let authorId;
-//     try {
-//       const payload = await decode(verificationToken, process.env.EMAIL_VERIFY_SECRET as string) as AccountValidationPayload;
-//       authorId = payload.id;
-//     } catch {
-//       routeLogger.info(`Invalid token in verification request from ${req.ip}`);
-//       return res.sendStatus(401);
-//     }
-
-//     routeLogger.setBindings({
-//       authorId
-//     });
-
-//     try {
-//       const isVerified = await authorDatabase.isVerified(authorId);
-//       if (isVerified) {
-//         routeLogger.info('Author already verified, can not reverify');
-//         return res.sendStatus(403);
-//       }
-
-//       routeLogger.trace('Will attempt to set the verification status of the author to true');
-//       await authorDatabase.verify(authorId);
-//       routeLogger.info('Verification status changed');
-//       res.sendStatus(204);
-//     } catch (e) {
-//       routeLogger.error(e);
-//       res.sendStatus(500);
-//     }
-//   });
+  // Since this route is protected by middleware, if it gets to this point, the user has already been authorized
+  routeLogger.info({ userId: req.user?.userId ?? '<NO USER ID>' }, 'Token is valid for this user!');
+  return res.sendStatus(204);
+});
 
 export default route;

@@ -199,6 +199,6 @@ function deconstructToken(token: string): [string, string, DateTime] {
   return [
     token.slice(5, 37),
     token.slice(37, 108),
-    DateTime.fromMillis(parseInt(token.slice(108), 16))
+    DateTime.fromSeconds(parseInt(token.slice(108), 16))
   ];
 }

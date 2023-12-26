@@ -27,19 +27,21 @@ import { Request, Response, NextFunction } from 'express';
 import { validateXisToken } from '../database/tokenDatabase.js';
 import { UserData } from '../database/models/userModel.js';
 import { getUserFromId } from '../database/userDatabase.js';
+import { logger } from '@xpkg/backend-util';
 
 export default async function (req: AuthorizedRequest, res: Response, next: NextFunction) {
   if (!req.headers.authorization) {
-    res.sendStatus(401);
-    return;
+    logger.trace({ ip: req.ip, requestId: req.id, }, 'No authorization header provided');
+    return res.sendStatus(401);
   }
 
   const userId = await validateXisToken(req.headers.authorization!);
   if (!userId) {
-    res.sendStatus(401);
-    return;
+    logger.trace({ ip: req.ip, requestId: req.id }, 'Invalid token provided');
+    return res.sendStatus(401);
   }
 
+  logger.trace({ ip: req.ip, requestId: req.id, userId }, 'User authorized');
   (req as AuthorizedRequest).user = await getUserFromId(userId);
   next();
 }

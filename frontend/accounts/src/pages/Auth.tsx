@@ -20,6 +20,7 @@
  * @enum {number}
  */
 enum Page {
+  CurrentLoginPage = -2,
   ErrorPage = -1,
   DefaultPage = 0,
   CreateEnterEmailPage = 1,
@@ -98,7 +99,7 @@ import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
 import Checkbox from '../components/Checkbox';
 import axios from 'axios';
-import { setCookie } from '../scripts/cookies';
+import { getCookie, setCookie } from '../scripts/cookies';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EMPTY_FUNCTION = () => { };
@@ -114,6 +115,7 @@ export default class extends Component {
 
   private _authData: AuthData = {};
   private _isComponentMounted = false;
+  private _redirectUrl: string;
 
   constructor(props: Record<string, never>) {
     super(props);
@@ -134,6 +136,44 @@ export default class extends Component {
       enableNext: true,
     };
 
+    const searchParams = new URLSearchParams(window.location.search);
+    const nextText = searchParams.get('next')?.toLowerCase();
+    if (nextText === 'authorize') {
+      if (searchParams.has('client_id') && searchParams.has('scope') && searchParams.has('redirect_uri') && searchParams.has('response_type') && searchParams.has('code_challenge')) {
+        const newSearchParams = new URLSearchParams();
+        newSearchParams.append('client_id', searchParams.get('client_id')!);
+        newSearchParams.append('scope', searchParams.get('scope')!);
+        newSearchParams.append('redirect_uri', searchParams.get('redirect_uri')!);
+        newSearchParams.append('response_type', searchParams.get('response_type')!);
+        newSearchParams.append('code_challenge', searchParams.get('code_challenge')!);
+
+        if (searchParams.has('state')) {
+          newSearchParams.append('state', searchParams.get('state')!);
+        }
+        
+        this._redirectUrl = '/authorize' + searchParams.toString();
+        this.state.currentPage = Page.DefaultPage;
+      } else {
+        this._redirectUrl = '/account';
+        this.state.currentPage = Page.ErrorPage;
+      }
+    } else {
+      this._redirectUrl = '/account';
+      this.state.currentPage = Page.DefaultPage;
+    }
+
+    const tokenCookie = getCookie('token');
+    if (tokenCookie) {
+      const expiry = new Date(parseInt(tokenCookie.slice(108), 16) * 1000);
+      
+      if (expiry.getTime() > Date.now()) {
+        if (this.state.currentPage !== Page.ErrorPage) {
+          this.state.currentPage = Page.CurrentLoginPage;
+          this._checkForTokenValidity(tokenCookie);
+        }
+      }
+    }
+    
     this._setPageFromIndex(this.state.currentPage);
 
     registerCallback(v => {
@@ -156,6 +196,25 @@ export default class extends Component {
   componentWillUnmount(): void {
     this._isComponentMounted = false;
   }
+
+  private async _checkForTokenValidity(token: string) {
+    
+    try {
+      const data = await axios.post('http://localhost:4819/account/tokenvalidate', {}, {
+        headers: {
+          Authorization: token
+        }
+      });
+
+      if (data.status === 204) {
+        window.location.href = this._redirectUrl;
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      this._setPageFromIndex(Page.DefaultPage);
+    }
+  }
   
   /**
    * Update the state to display the current state, as well as modify the state with the proper callbacks.
@@ -169,6 +228,20 @@ export default class extends Component {
       subtitle: string | typeof undefined;
     } & Partial<AuthState>;
     switch (index) {
+    case Page.CurrentLoginPage:
+      updateData = {
+        subtitle: void 0,
+        showBack: false,
+        showNext: false,
+        backText: 'NOT_SHOWN',
+        nextText: 'NOT_SHOWN',
+        middleAnchor: void 0,
+        showLockFooter: true,
+        onNext: EMPTY_FUNCTION,
+        onBack: EMPTY_FUNCTION,
+        onMiddleAnchor: EMPTY_FUNCTION
+      };
+      break;
     case Page.DefaultPage:
       updateData = {
         subtitle: void 0,
@@ -263,9 +336,8 @@ export default class extends Component {
                 throw 'Error: status ' + result.status;
               }
 
-              console.log(result.data);
-              
               setCookie('token', result.data.token, 1);
+              window.location.href = this._redirectUrl;
             } catch (e) {
               console.error(e);
               this._setPageFromIndex(Page.ErrorPage);
@@ -329,10 +401,9 @@ export default class extends Component {
               if (result.status !== 200) {
                 throw 'Error: status ' + result.status;
               }
-
-              console.log(result.data);
               
               setCookie('token', result.data.token, 1);
+              window.location.href = this._redirectUrl;
             } catch (e) {
               console.error(e);
               this._setPageFromIndex(Page.ErrorPage);
@@ -464,6 +535,11 @@ export default class extends Component {
         </>
       }>
         <>
+          <SmallContentBoxPage pageState={getStateFromIndex(Page.CurrentLoginPage, this.state.currentPage)}>
+            <>
+              <p className='explain-text'>Checking your current session. Please wait...</p>
+            </>
+          </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.ErrorPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Oh no! Something went very wrong. This page is not implemented, or you were not sent to the proper page.</p>
