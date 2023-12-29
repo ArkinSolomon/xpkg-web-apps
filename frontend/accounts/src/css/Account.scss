@@ -51,6 +51,40 @@ main {
   // @media screen and (max-width: $phone-width) {
 
   // }
+
+  .main-title {
+    font-family: $noto-sans;
+    font-size: 16pt;
+    text-align: center;
+    display: block;
+    width: 100%;
+  
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 10px;
+    padding-right: 10px;
+  
+    text-wrap: nowrap;
+    white-space: nowrap;
+  
+    @include themed() {
+      color: t('primary-text-color');
+    }
+  
+    img {
+      aspect-ratio: 1;
+      height: 45px;
+      display: inline;
+      vertical-align: middle;
+      margin-right: 10px;
+      user-select: none;
+  
+      @include themed() {
+        filter: t('primary-text-color-filter');
+      }
+    }
+  }
 }
 
 #page-view {
@@ -73,40 +107,6 @@ main {
 
     @include themed {
       color: t('primary-text-color');
-    }
-  }
-}
-
-.main-title {
-  font-family: $noto-sans;
-  font-size: 16pt;
-  text-align: center;
-  display: block;
-  width: 100%;
-
-  box-sizing: border-box;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 10px;
-  padding-right: 10px;
-
-  text-wrap: nowrap;
-  white-space: nowrap;
-
-  @include themed() {
-    color: t('primary-text-color');
-  }
-
-  img {
-    aspect-ratio: 1;
-    height: 45px;
-    display: inline;
-    vertical-align: middle;
-    margin-right: 10px;
-    user-select: none;
-
-    @include themed() {
-      filter: t('primary-text-color-filter');
     }
   }
 }

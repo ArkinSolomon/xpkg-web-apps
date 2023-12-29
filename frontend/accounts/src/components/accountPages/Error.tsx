@@ -14,8 +14,9 @@
  */
 import '../../css/accountPages/LoadingPage.scss';
 
-export default function Loading() {
+// This is just the loading page with customizable text (for now)
+export default function Error({ error }: { error: string; }) {
   return (
-    <p className='loading-page'>Loading user data...</p>
+    <p className='loading-page'>{error}</p>
   );
 }

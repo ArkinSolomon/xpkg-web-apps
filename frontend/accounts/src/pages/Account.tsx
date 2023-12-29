@@ -21,6 +21,7 @@
  */
 enum AccountPage {
   None,
+  Error,
   PersonalInformation,
   NotificationSettings,
   SecuritySettings,
@@ -30,18 +31,34 @@ enum AccountPage {
 }
 
 /**
+ * The state of if the pages can be switched or not.
+ * 
+ * @name SwitchState
+ * @enum {string}
+ */
+enum SwitchState {
+  Yes, 
+  No,
+  Ask
+}
+
+/**
  * The data retrieved from the server about this user.
  * 
  * @typedef {Object} UserData
  * @property {string} name The public name of the user.
  * @property {string} email The email address of the user.
+ * @property {boolean} emailVerified True if the user's email has been verified.
  * @property {string} userId The user's id.
+ * @property {string} profilePicture The profile picture of the user.
  * @property {boolean} isDeveloper True if the user is a developer.
  */
-type UserData = {
+export type UserData = {
   name: string;
   email: string;
+  emailVerified: string;
   userId: string;
+  profilePicture: string;
   isDeveloper: boolean;
 }
 
@@ -51,10 +68,14 @@ type UserData = {
  * @typedef {Object} AccountState
  * @property {AccountPage} loadedPage The currently active page.
  * @property {string} pageTitle The title of the currently active page (human-readable).
+ * @property {SwitchState} switchState What to do if a user navigates (disallow switching, ask first, or allow switching).
+ * @property {string} [error] The error to display on the error page. Does not automatically show the page when set.
  */
 type AccountState = {
   loadedPage: AccountPage;
   pageTitle: string;
+  switchState: SwitchState;
+  error?: string;
 }
 
 import { Component, ReactNode } from 'react';
@@ -68,52 +89,137 @@ import SecuritySettingsIcon from '../svgs/SecuritySettingsIcon';
 import NotificationsIcon from '../svgs/NotificationsIcon';
 import YourDataIcon from '../svgs/YourDataIcon';
 import Loading from '../components/accountPages/Loading';
+import PersonalInformation from '../components/accountPages/PersonalInformation';
+import axios from 'axios';
+import { getCookie } from '../scripts/cookies';
+import tokenValidityChecker from '../scripts/tokenValidityChecker';
+import Error from '../components/accountPages/Error';
 
 export default class extends Component {
   private _userData?: UserData;
   state: AccountState;
+
+  private _isMounted = false;
 
   constructor(props: Record<string, never>) {
     super(props);
     
     this.state = {
       loadedPage: AccountPage.None,
-      pageTitle: ''
+      pageTitle: '',
+      switchState: SwitchState.No
     };
+
+    (async () => {
+      const isLoginValid = await tokenValidityChecker();
+      if (isLoginValid !== 204) {
+        window.location.href = '/authenticate?next=account';
+      }
+
+      const response =  await axios.get('http://localhost:4819/account/userdata', {
+        headers: {
+          Authorization: getCookie('token')!
+        },
+        validateStatus: () => true
+      });
+
+      if (response.status !== 200) {
+        this._setOrUpdateState({
+          error: 'An unknown error occured',
+        });
+        return this._changePage(AccountPage.Error);
+      }
+
+      this._userData = response.data;
+      this._changePage(AccountPage.PersonalInformation);
+    })();
+  }
+
+  componentDidMount(): void {
+    this._isMounted = true;
+  }
+
+  componentWillUnmount(): void {
+    this._isMounted = false;
+  }
+
+  private _setOrUpdateState(newState: Partial<AccountState>) {
+    if (!this._isMounted) {
+      this.state = {
+        ...this.state,
+        ...newState
+      };
+    } else {
+      this.setState(newState);
+    }
   }
 
   private _changePage(newPage: AccountPage) {
     return (() => {
-      let pageTitle: string;
+      if (this.state.switchState === SwitchState.No) {
+        return;
+      }
+
+      let pageUpdate: Pick<AccountState, 'pageTitle' | 'switchState'>;
       switch (newPage) {
       case AccountPage.None:
-        pageTitle = '';
+        pageUpdate = {
+          pageTitle: '',
+          switchState: SwitchState.No
+        };
+        break;
+      case AccountPage.Error:
+        pageUpdate = {
+          pageTitle: 'An Error Occurred',
+          switchState: SwitchState.No
+        };
         break;
       case AccountPage.PersonalInformation:
-        pageTitle = 'Personal Information';
+        pageUpdate = {
+          pageTitle: 'Personal Information',
+          switchState: SwitchState.Yes
+        };
         break;
       case AccountPage.NotificationSettings:
-        pageTitle = 'Notification Settings';
+        pageUpdate = {
+          pageTitle: 'Notification Settings',
+          switchState: SwitchState.Yes
+        };
         break;
       case AccountPage.SecuritySettings:
-        pageTitle = 'Security Settings';
+        pageUpdate = {
+          pageTitle: 'Security Settings',
+          switchState: SwitchState.Yes
+        };
         break;
       case AccountPage.YourData:
-        pageTitle = 'Your Data';
+        pageUpdate = {
+          pageTitle: 'Your Data',
+          switchState: SwitchState.Yes
+        };
         break;
       case AccountPage.DeveloperSettings:
-        pageTitle = 'Developer Settings';
+        pageUpdate = {
+          pageTitle: 'Developer Settings',
+          switchState: SwitchState.Yes
+        };
         break;
       case AccountPage.OAuthClients:
-        pageTitle = 'OAuth Clients';
+        pageUpdate = {
+          pageTitle: 'OAuth Clients',
+          switchState: SwitchState.Yes
+        };
         break;
       default:
-        pageTitle = '<NO PAGE TITLE>';
+        pageUpdate = {
+          pageTitle: '<NO PAGE TITLE>',
+          switchState: SwitchState.Yes
+        };
       }
 
       this.setState({
         loadedPage: newPage,
-        pageTitle
+        ...pageUpdate
       } as Partial<AccountState>);
     }).bind(this);
   }
@@ -122,6 +228,10 @@ export default class extends Component {
     switch (this.state.loadedPage) {
     case AccountPage.None:
       return <Loading />;
+    case AccountPage.Error:
+      return <Error error={ this.state.error ?? '<NO ERROR GIVEN>' } />;
+    case AccountPage.PersonalInformation:
+      return <PersonalInformation userData={this._userData} />;
     default:
       return <p style={{color: 'red', fontSize: '23pt', fontFamily: 'monospace'}}>PAGE NOT IMPLEMENTED</p>;
     }

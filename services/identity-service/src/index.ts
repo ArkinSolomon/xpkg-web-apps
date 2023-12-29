@@ -78,6 +78,7 @@ app.use(pinoHttp({
 
 const authorizeRoutes = [
   '/account/tokenvalidate',
+  '/account/userdata',
   '/oauth/*'
 ];
 

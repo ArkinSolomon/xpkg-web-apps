@@ -105,7 +105,6 @@ export type TokenData = {
   used: Date;
 };
 
-
 import mongoose, { Schema } from 'mongoose';
 
 const tokenSchema = new Schema<TokenData>({

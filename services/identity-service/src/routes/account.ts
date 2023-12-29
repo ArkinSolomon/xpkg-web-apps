@@ -156,4 +156,26 @@ route.post('/tokenvalidate', (req: AuthorizedRequest, res) => {
   return res.sendStatus(204);
 });
 
+route.get('/userdata', async (req: AuthorizedRequest, res) => {
+  const routeLogger = logger.child({
+    ip: req.ip,
+    route: '/account/userdata',
+    requestId: req.id,
+  });
+
+  const settings = await userDatabase.getSettings(req.user!.userId);
+  routeLogger.trace({ userId: req.user!.userId }, 'Got user settings');
+
+  res
+    .status(200)
+    .json({
+      name: req.user!.name,
+      email: req.user!.email,
+      emailVerified: req.user!.emailVerified,
+      userId: req.user!.userId,
+      profilePicture: req.user!.profilePicUrl,
+      isDeveloper: settings.isDeveloper
+    });
+});
+
 export default route;
