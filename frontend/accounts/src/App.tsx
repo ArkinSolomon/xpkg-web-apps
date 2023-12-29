@@ -17,7 +17,9 @@ import './css/reset.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Footer from './components/Footer';
-import Auth from './pages/Auth';
+import Authenticate from './pages/Authenticate';
+import Authorize from './pages/Authorize';
+import Account from './pages/Account';
 
 declare global {
   interface Window {
@@ -30,7 +32,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path='/' element={<Auth />} />
+        <Route path='/authenticate' element={<Authenticate />} />
+        <Route path='/authorize' element={<Authorize />} />
+        <Route path='/account' element={<Account />} />
       </Routes>
       <Footer />
     </Router>

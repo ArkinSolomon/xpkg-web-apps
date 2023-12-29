@@ -12,13 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import React, {JSX} from 'react';
-import '../css/ContentBox.scss';
+import { JSX } from 'react';
+import '../css/HexagonImage.scss';
 
-export default function (props: {children?: JSX.Element[] | JSX.Element}): JSX.Element {  
+export default function ({ src, alt, size }: { src: string; alt?: string; size: string; }): JSX.Element {
   return (
-    <main id='content-box' className='large'>
-      {props.children}
-    </main>
+    <img className='hexagon' src={src} alt={alt} style={{ height: size, width: size}} />
   );
 }

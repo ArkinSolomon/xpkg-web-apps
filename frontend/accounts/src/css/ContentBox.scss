@@ -21,8 +21,8 @@ main#content-box {
 
   margin: 0 auto;
 
-  top: 40%;
-  transform: translateY(-40%);
+  top: 39%;
+  transform: translateY(-39%);
 
   border-radius: 14px;
   z-index: 10;
@@ -30,6 +30,16 @@ main#content-box {
   @include themed() {
     background-color: t('content-box-color');
     border: 1px solid t('main-box-border');
+  }
+
+  &.large {
+    height: 79vh;
+    margin: 0 max(16vw, 40px);
+
+    @media screen and (max-width: $tablet-width) {
+      height: 80vh;
+      margin: 0 2vw;
+    }
   }
 
   &.small {

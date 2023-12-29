@@ -117,4 +117,51 @@ route.post('/authorize',
     }
   });
 
+route.get('/consentinformation',
+  isValidClientId(query('client_id')),
+  async (req: AuthorizedRequest, res) => {
+    const routeLogger = logger.child({
+      ip: req.ip,
+      route: '/account/authorize',
+      requestId: req.id,
+    });
+
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      const message = result.array()[0].msg;
+      routeLogger.trace(`Bad request with message: ${message}`);
+      return res
+        .status(400)
+        .send(message);
+    }
+
+    const { client_id: clientId } = matchedData(req) as {
+      client_id: string;
+    };
+
+    routeLogger.setBindings({
+      clientId
+    });
+    const client = await getClient(clientId);
+    if (!client) {
+      routeLogger.info('Invalid client id (not found in database)');
+      return res
+        .status(400)
+        .send('invalid_client_id');
+    }
+
+    const information = {
+      clientName: client.name,
+      clientIcon: client.icon,
+      clientDescription: client.description,
+      userName: req.user!.name,
+      userPicture: req.user!.profilePicUrl
+    };
+
+    logger.trace(information, 'Retrieved consent request information');
+    res
+      .status(200)
+      .json(information);
+  });
+
 export default route;

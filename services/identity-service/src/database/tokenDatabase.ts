@@ -13,7 +13,7 @@
  * either express or implied limitations under the License.
  */
 import { customAlphabet } from 'nanoid';
-import TokenModel, { TokenData, TokenScope, TokenType } from './models/tokenModel.js';
+import TokenModel, { TokenScope, TokenType } from './models/tokenModel.js';
 import { DateTime, DurationLike } from 'luxon';
 import { createPermissionsNumber, hasPermission } from '../util/permissionNumberUtil.js';
 import { logger } from '@xpkg/backend-util';

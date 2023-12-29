@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2023. Arkin Solomon.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied limitations under the License.
+ */
+@import '_themes.scss';
+@import '_media.scss';
+@import '_fonts.scss';
+
+#sidebar {
+  height: 100%;
+  border-right-style: solid;
+  border-right-width: 0.5px;
+
+  min-width: min-content;
+  padding-top: 10px;
+  width: 27%;
+
+  box-sizing: border-box;
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  @include themed() {
+    border-right-color: t('main-box-border');
+  }
+
+  // @media screen and (max-width: $phone-width) {
+
+  // }
+}
+
+.main-title {
+  font-family: $noto-sans;
+  font-size: 16pt;
+  text-align: center;
+  display: block;
+  width: 100%;
+
+  box-sizing: border-box;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 10px;
+  padding-right: 10px;
+  
+  text-wrap: nowrap;
+  white-space: nowrap;
+
+  @include themed() {
+    color: t('primary-text-color');
+  }
+
+  img {
+    aspect-ratio: 1;
+    height: 45px;
+    display: inline;
+    vertical-align: middle;
+    margin-right: 10px;
+    user-select: none;
+
+    @include themed() {
+      filter: t('primary-text-color-filter');
+    }
+  }
+}

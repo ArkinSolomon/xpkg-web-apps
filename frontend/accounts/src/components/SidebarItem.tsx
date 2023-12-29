@@ -12,13 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import React, {JSX} from 'react';
-import '../css/ContentBox.scss';
+import { JSX, ReactElement } from 'react';
+import '../css/SidebarItem.scss';
 
-export default function (props: {children?: JSX.Element[] | JSX.Element}): JSX.Element {  
+export default function ({ icon, label, onClick }: { icon: ReactElement; label: string; onClick: () => void; }): JSX.Element {
   return (
-    <main id='content-box' className='large'>
-      {props.children}
-    </main>
+    <a className='sidebar-item' onClick={onClick}>
+      <div className='sidebar-icon'>{icon}</div>
+      <span className='sidebar-item-label'>{label}</span>
+    </a>
   );
 }

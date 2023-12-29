@@ -78,7 +78,7 @@ app.use(pinoHttp({
 
 const authorizeRoutes = [
   '/account/tokenvalidate',
-  '/oauth/authorize'
+  '/oauth/*'
 ];
 
 import authorization from './util/authorization.js';

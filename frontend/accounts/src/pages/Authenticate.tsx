@@ -37,7 +37,7 @@ enum Page {
 /**
  * The state of the auth page.
  * 
- * @typedef {Object} AuthState
+ * @typedef {Object} AuthenticateState
  * @property {'light'|'dark'} theme The theme of the ReCaptcha.
  * @property {Page} currentPage The current page that we are on.
  * @property {string} [subtitle] The subtitle of the page.
@@ -54,7 +54,7 @@ enum Page {
  * @property {boolean} ppChecked True if the privacy policy page agreement has been checked.
  * @property {boolean} enableNext True if the next button is enabled.
  */
-type AuthState = {
+type AuthenticateState = {
   theme: 'light' | 'dark';
   currentPage: Page;
   subtitle?: string;
@@ -99,7 +99,8 @@ import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
 import Checkbox from '../components/Checkbox';
 import axios from 'axios';
-import { getCookie, setCookie } from '../scripts/cookies';
+import { setCookie } from '../scripts/cookies';
+import tokenValidityChecker from '../scripts/tokenValidityChecker';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EMPTY_FUNCTION = () => { };
@@ -111,7 +112,7 @@ const CREATE_INSTEAD_TEXT = 'Create an account';
 
 export default class extends Component {
 
-  state: AuthState;
+  state: AuthenticateState;
 
   private _authData: AuthData = {};
   private _isComponentMounted = false;
@@ -151,7 +152,7 @@ export default class extends Component {
           newSearchParams.append('state', searchParams.get('state')!);
         }
         
-        this._redirectUrl = '/authorize' + searchParams.toString();
+        this._redirectUrl = '/authorize?' + searchParams.toString();
         this.state.currentPage = Page.DefaultPage;
       } else {
         this._redirectUrl = '/account';
@@ -162,16 +163,16 @@ export default class extends Component {
       this.state.currentPage = Page.DefaultPage;
     }
 
-    const tokenCookie = getCookie('token');
-    if (tokenCookie) {
-      const expiry = new Date(parseInt(tokenCookie.slice(108), 16) * 1000);
-      
-      if (expiry.getTime() > Date.now()) {
-        if (this.state.currentPage !== Page.ErrorPage) {
-          this.state.currentPage = Page.CurrentLoginPage;
-          this._checkForTokenValidity(tokenCookie);
-        }
-      }
+    if (this.state.currentPage !== Page.ErrorPage) {
+      tokenValidityChecker()
+        .then(status => {
+          if (status === 204) {
+            window.location.href = this._redirectUrl;
+          } else {
+            this._setPageFromIndex(Page.DefaultPage);
+          }
+        })
+        .finally();
     }
     
     this._setPageFromIndex(this.state.currentPage);
@@ -180,7 +181,7 @@ export default class extends Component {
       const theme = v ? 'dark' : 'light';
       
       if (this._isComponentMounted)
-        this.setState({ theme } as Partial<AuthState>);
+        this.setState({ theme } as Partial<AuthenticateState>);
       else
         this.state.theme = theme;
     });
@@ -198,7 +199,6 @@ export default class extends Component {
   }
 
   private async _checkForTokenValidity(token: string) {
-    
     try {
       const data = await axios.post('http://localhost:4819/account/tokenvalidate', {}, {
         headers: {
@@ -222,11 +222,11 @@ export default class extends Component {
    * @param {Page} index The page to set.
    */
   private _setPageFromIndex(index: Page): void {
-    let updateData: Pick<AuthState, | 'showBack' | 'showNext' | 'showLockFooter' | 'backText' | 'nextText' | 'onNext' | 'onBack' | 'onMiddleAnchor'> & {
+    let updateData: Pick<AuthenticateState, | 'showBack' | 'showNext' | 'showLockFooter' | 'backText' | 'nextText' | 'onNext' | 'onBack' | 'onMiddleAnchor'> & {
       // Force explicit declaration of undefined
       middleAnchor: string | typeof undefined;
       subtitle: string | typeof undefined;
-    } & Partial<AuthState>;
+    } & Partial<AuthenticateState>;
     switch (index) {
     case Page.CurrentLoginPage:
       updateData = {
@@ -495,7 +495,7 @@ export default class extends Component {
     
     this.setState({
       enableNext,
-    } as Partial<AuthState>);
+    } as Partial<AuthenticateState>);
   }
 
   /**
@@ -581,12 +581,12 @@ export default class extends Component {
               <p className='explain-text'>By signing up for X-Pkg, you agree to the terms of service and privacy policy. Please read through both documents before creating an account.</p>
               <Checkbox className='mt-4' checked={this.state.tosChecked} name={'tos-checkbox'} onChange={e => this.setState({
                 tosChecked: e.target.checked
-              } as Partial<AuthState>)}>
+              } as Partial<AuthenticateState>)}>
                 <p className='explain-text'>I agree to the <a href='https://cataas.com/cat/gif' target='_blank'>terms of use</a>.</p>
               </Checkbox>
               <Checkbox className='mt-3' checked={this.state.ppChecked} name={'tos-checkbox'} onChange={e => this.setState({
                 ppChecked: e.target.checked
-              } as Partial<AuthState>)}>
+              } as Partial<AuthenticateState>)}>
                 <p className='explain-text'>I agree to the <a href='https://cataas.com/cat/gif' target='_blank'>privacy policy</a>.</p>
               </Checkbox>
             </>

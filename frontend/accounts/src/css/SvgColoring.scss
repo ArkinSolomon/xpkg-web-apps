@@ -12,13 +12,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import React, {JSX} from 'react';
-import '../css/ContentBox.scss';
+@import '_themes.scss';
 
-export default function (props: {children?: JSX.Element[] | JSX.Element}): JSX.Element {  
-  return (
-    <main id='content-box' className='large'>
-      {props.children}
-    </main>
-  );
+svg {
+  .primary-fill {
+    @include themed() {
+      fill: t('primary-text-color');
+    }
+  }
+
+  .primary-stroke {
+    @include themed() {
+      stroke: t('primary-text-color');
+    }
+  }
+
+  .secondary-text-fill {
+    @include themed() {
+      fill: t('secondary-text-color');
+    }
+  }
+
+  .secondary-text-stroke {
+    @include themed() {
+      stroke: t('secondary-text-color');
+    }
+  }
 }

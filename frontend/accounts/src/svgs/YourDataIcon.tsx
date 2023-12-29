@@ -12,13 +12,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import React, {JSX} from 'react';
-import '../css/ContentBox.scss';
+import '../css/SvgColoring.scss';
 
-export default function (props: {children?: JSX.Element[] | JSX.Element}): JSX.Element {  
+export default function YourDataIcon() {
   return (
-    <main id='content-box' className='large'>
-      {props.children}
-    </main>
+    <svg width="800px" height="800px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" stroke-width="3" stroke="#000000" fill="none">
+      <path className="primary-stroke" d="M16.59,30.62C18.13,17,30.37,21.78,30.37,21.78s4.53-8.14,12.24-5.47,6.48,11.08,6.48,11.08a10.86,10.86,0,0,1,7.48,10.37c0,4-2.66,11.22-9.93,11.22H17.43s-10,0-10-10c0-8.21,10.87-9.4,13.45-7.84" stroke-linecap="round" />
+    </svg>
   );
 }
