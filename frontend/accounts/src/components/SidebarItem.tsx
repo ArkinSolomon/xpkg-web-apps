@@ -15,9 +15,9 @@
 import { JSX, ReactElement } from 'react';
 import '../css/SidebarItem.scss';
 
-export default function ({ icon, label, onClick }: { icon: ReactElement; label: string; onClick: () => void; }): JSX.Element {
+export default function ({ icon, label, onClick, active }: { icon: ReactElement; label: string; onClick: () => void; active?: boolean; }): JSX.Element {
   return (
-    <a className='sidebar-item' onClick={onClick}>
+    <a className={'sidebar-item' + (active ? ' active' : '')} onClick={onClick}>
       <div className='sidebar-icon'>{icon}</div>
       <span className='sidebar-item-label'>{label}</span>
     </a>

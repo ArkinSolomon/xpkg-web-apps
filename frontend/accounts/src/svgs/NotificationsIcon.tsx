@@ -16,7 +16,7 @@ import '../css/SvgColoring.scss';
 
 export default function NotificationsIcon() {
   return (
-    <svg width="800px" height="800px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" stroke-width="3" stroke="#000000" fill="none">
+    <svg width="800px" height="800px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" strokeWidth="3" stroke="#000000" fill="none">
       <path className='primary-stroke' d="M13.4,51V46.21s4.83-.24,4.83-4.83V26.1s-.05-12.67,13.63-12.67c12.06,0,15,7,15,12.21V42.23s-.36,4,4.8,4V51Z" />
       <path className='primary-stroke' d="M36.24,13.79V12.47a3.74,3.74,0,0,0-7.48,0v1.2" />
       <path className='primary-stroke' d="M36.33,51a4.57,4.57,0,0,1-9.13,0" />

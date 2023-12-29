@@ -16,10 +16,10 @@ import '../css/SvgColoring.scss';
 
 export default function DeveloperSettingsIcon() {
   return (
-    <svg width="800px" height="800px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" stroke-width="3" stroke="#000000" fill="none">
-      <line className='primary-stroke' x1="36.62" y1="13.05" x2="27.08" y2="50.95" stroke-linecap="round" />
-      <polyline className='primary-stroke' points="22.26 21.98 12.81 32.01 22.26 42.02" stroke-linecap="round" stroke-linejoin="round" />
-      <polyline className='primary-stroke' points="41.74 21.98 51.19 32.01 41.74 42.02" stroke-linecap="round" stroke-linejoin="round" />
+    <svg width="800px" height="800px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" strokeWidth="3" stroke="#000000" fill="none">
+      <line className='primary-stroke' x1="36.62" y1="13.05" x2="27.08" y2="50.95" strokeLinecap="round" />
+      <polyline className='primary-stroke' points="22.26 21.98 12.81 32.01 22.26 42.02" strokeLinecap="round" stroke-linejoin="round" />
+      <polyline className='primary-stroke' points="41.74 21.98 51.19 32.01 41.74 42.02" strokeLinecap="round" stroke-linejoin="round" />
     </svg>
   );
 }

@@ -34,7 +34,7 @@
     margin-top: 12px;
   }
 
-  &:hover {
+  &:hover, &.active {
     @include themed {
       background-color: t('background-color');
     }
@@ -54,6 +54,7 @@
 
 .sidebar-item-label {
   height: 100%;
+  font-size: 11pt;
 
   display: inline-block;
   font-family: $noto-sans;
