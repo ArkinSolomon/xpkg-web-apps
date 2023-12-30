@@ -16,9 +16,11 @@
 @import '_media.scss';
 @import '_fonts.scss';
 
-main {
+#account-wrapper {
   display: flex;
   flex-direction: row;
+  height: 100%;
+  width: 100%;
 }
 
 #sidebar {

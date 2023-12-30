@@ -18,7 +18,6 @@ import UserModel, { UserData } from './models/userModel.js';
 import NoSuchAccountError from '../errors/noSuchAccountError.js';
 import { HydratedDocument } from 'mongoose';
 import { hash } from 'hasha';
-import UserSettingsModel, { UserSettings } from './models/userSettingsModel.js';
 
 /**
  * Create a new user with a random identifier.
@@ -39,11 +38,8 @@ export async function createUser(name: string, email: string, passwordHash: stri
     hash: passwordHash,
     profilePicUrl: 'https://gravatar.com/avatar/' + emailHash
   });
-  const userSettingsDoc = new UserSettingsModel({
-    userId
-  });
 
-  await Promise.all([userDoc.save(), userSettingsDoc.save()]);
+  await userDoc.save();
 
   return userDoc;
 }
@@ -138,27 +134,4 @@ export async function nameOrEmailExists(name: string, email: string): Promise<'e
   if (!foundUser)
     return null;
   return email === foundUser.email ? 'email' : 'name';
-}
-
-/**
- * Get the settings for a specific user.
- * 
- * @async
- * @param {string} userId The id of the user to get the settings of.
- * @returns {Promise<UserSettings>} A promise which resolves to the settings for the specified user.
- * @throws {NoSuchAccountError} Error thrown if no user exists with the given account.
- */
-export async function getSettings(userId: string): Promise<UserSettings> {
-  const userSettings = await UserSettingsModel.findOne({
-    userId
-  })
-    .select({ _id: 0 })
-    .lean()
-    .exec();
-  
-  if (!userSettings) {
-    throw new NoSuchAccountError('userId', userId);
-  }
-
-  return userSettings;
 }

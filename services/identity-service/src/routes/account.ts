@@ -163,19 +163,27 @@ route.get('/userdata', async (req: AuthorizedRequest, res) => {
     requestId: req.id,
   });
 
-  const settings = await userDatabase.getSettings(req.user!.userId);
-  routeLogger.trace({ userId: req.user!.userId }, 'Got user settings');
-
-  res
-    .status(200)
-    .json({
-      name: req.user!.name,
-      email: req.user!.email,
-      emailVerified: req.user!.emailVerified,
-      userId: req.user!.userId,
-      profilePicture: req.user!.profilePicUrl,
-      isDeveloper: settings.isDeveloper
-    });
+  try {
+    res
+      .status(200)
+      .json({
+        name: req.user!.name,
+        created: req.user!.created.toISOString(),
+        email: req.user!.email,
+        emailVerified: req.user!.emailVerified,
+        userId: req.user!.userId,
+        profilePicture: req.user!.profilePicUrl,
+        isDeveloper: req.user!.settings.isDeveloper,
+        nameChangeDate: req.user!.nameChangeDate.toISOString()
+      });
+  } catch (e) {
+    routeLogger.error(e);
+    if (e instanceof NoSuchAccountError) {
+      res.sendStatus(400);
+    } else {
+      res.sendStatus(500);
+    }
+  }
 });
 
 export default route;

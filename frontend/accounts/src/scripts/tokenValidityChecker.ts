@@ -35,7 +35,8 @@ export default async function (): Promise<number> {
   const data = await axios.post('http://localhost:4819/account/tokenvalidate', {}, {
     headers: {
       Authorization: tokenCookie
-    }
+    },
+    validateStatus: () => true
   });
 
   return data.status;

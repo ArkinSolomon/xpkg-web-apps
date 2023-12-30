@@ -197,24 +197,6 @@ export default class extends Component {
   componentWillUnmount(): void {
     this._isComponentMounted = false;
   }
-
-  private async _checkForTokenValidity(token: string) {
-    try {
-      const data = await axios.post('http://localhost:4819/account/tokenvalidate', {}, {
-        headers: {
-          Authorization: token
-        }
-      });
-
-      if (data.status === 204) {
-        window.location.href = this._redirectUrl;
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      this._setPageFromIndex(Page.DefaultPage);
-    }
-  }
   
   /**
    * Update the state to display the current state, as well as modify the state with the proper callbacks.
