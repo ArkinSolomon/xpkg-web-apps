@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,7 @@ app.use(pinoHttp({
 const authorizeRoutes = [
   '/account/tokenvalidate',
   '/account/userdata',
+  '/account/resetpfp',
   '/oauth/*'
 ];
 
@@ -88,10 +89,12 @@ app.use(authorizeRoutes, authorization);
 import account from './routes/account.js';
 import oauth from './routes/oauth.js';
 
-app.use('/account/', account);
-app.use('/oauth/', oauth);
+app.use('/account', account);
+app.use('/oauth', oauth);
 
-app.all('*', (_, res) => res.sendStatus(404));
+app.all('*', (_, res) => {
+  res.sendStatus(404);
+});
 
 const port = process.env.PORT || 4819;
 app.listen(port, () => logger.info(`X-Pkg identity service listening on port ${port}`));

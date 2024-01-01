@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,12 @@ import { hash } from 'hasha';
  */
 export async function createUser(name: string, email: string, passwordHash: string) {
   const userId = nanoid(32);
-  const emailHash = await hash(email, { algorithm: 'sha256' });
   const userDoc = new UserModel({
     userId,
     name,
     email,
     hash: passwordHash,
-    profilePicUrl: 'https://gravatar.com/avatar/' + emailHash
+    profilePicUrl: await generateGravatarUrl(email)
   });
 
   await userDoc.save();
@@ -135,3 +134,44 @@ export async function nameOrEmailExists(name: string, email: string): Promise<'e
     return null;
   return email === foundUser.email ? 'email' : 'name';
 }
+
+/**
+ * Reset a user's profile picture to their Gravatar URL.
+ * 
+ * @async
+ * @param {string} email The email of the user who's profile picture to reset.
+ * @param {string} [currentUrl] The current profile picture url of the author to have an early check.
+ * @returns {Promise} A promise which resolves if the operation completes successfully.
+ * @throws {NoSuchAccountError} Error thrown if no account exists with the given email. 
+ */
+export async function resetUserPfp(email: string, currentUrl?: string): Promise<void> {
+  const url = await generateGravatarUrl(email);
+  if (url === currentUrl) {
+    return;
+  }
+
+  const updated = await UserModel.updateOne({
+    email
+  }, {
+    $set: {
+      profilePicUrl: url
+    }
+  }, { upsert: false })
+    .exec();
+
+  if (!updated.modifiedCount) {
+    throw new NoSuchAccountError('email', email);
+  }
+}
+
+/**
+ * Generate a Gravatar URL.
+ * 
+ * @async
+ * @param {string} email The email for the Gravatar URL.
+ * @returns {Promise<string>} A promise which resolves to the Gravatar URL.
+ */
+async function generateGravatarUrl(email: string): Promise<string> {
+  const emailHash = await hash(email, { algorithm: 'sha256' });
+  return 'https://gravatar.com/avatar/' + emailHash;
+} 

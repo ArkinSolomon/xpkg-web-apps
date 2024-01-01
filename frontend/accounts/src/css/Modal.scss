@@ -46,12 +46,13 @@ dialog#modal {
 
   #modal-content {
     width: 100%;
-    padding: 20px;
+    padding: 14px;
     box-sizing: border-box;
 
     .generic-modal-text {
       font-family: $noto-sans;
       font-size: 12pt;
+      line-height: 17pt;
 
       @include themed() {
         color: t('secondary-text-color');

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,6 +183,24 @@ route.get('/userdata', async (req: AuthorizedRequest, res) => {
     } else {
       res.sendStatus(500);
     }
+  }
+});
+
+route.patch('/resetpfp', async (req: AuthorizedRequest, res) => {
+  const routeLogger = logger.child({
+    ip: req.ip,
+    route: '/account/resetpfp',
+    requestId: req.id,
+  });
+
+  routeLogger.trace('Updated user\'s profile picture to use Gravatar');
+
+  try {
+    await userDatabase.resetUserPfp(req.user!.email, req.user!.profilePicUrl);
+    res.sendStatus(204);
+  } catch (e) {
+    routeLogger.error(e);
+    res.sendStatus(500);
   }
 });
 
