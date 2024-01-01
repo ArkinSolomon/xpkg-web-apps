@@ -74,12 +74,14 @@ export type UserData = {
  * @property {string} pageTitle The title of the currently active page (human-readable).
  * @property {SwitchState} switchState What to do if a user navigates (disallow switching, ask first, or allow switching).
  * @property {string} [error] The error to display on the error page. Does not automatically show the page when set.
+ * @property {ModalProps} [modal] The currently displayed modal. If it doesn't exist, no modal is being displayed. The action property of every button automatically removes the modal from the state.
  */
 type AccountState = {
   loadedPage: AccountPage;
   pageTitle: string;
   switchState: SwitchState;
   error?: string;
+  modal?: ModalProps;
 }
 
 import { Component, ReactNode } from 'react';
@@ -95,15 +97,19 @@ import YourDataIcon from '../svgs/YourDataIcon';
 import Loading from '../components/accountPages/Loading';
 import PersonalInformation from '../components/accountPages/PersonalInformation';
 import axios from 'axios';
-import { getCookie } from '../scripts/cookies';
-import tokenValidityChecker from '../scripts/tokenValidityChecker';
+import { getCookie, setCookie } from '../scripts/cookies';
+import tokenValidityChecker, {getTokenExpiry} from '../scripts/tokenValidityChecker';
 import Error from '../components/accountPages/Error';
+import Modal, { ModalProps } from '../components/Modal';
+import { identifiers } from '@xpkg/validation';
 
-export default class extends Component {
+export default class extends Component<Record<string, never>, AccountState> {
   private _userData?: UserData;
   state: AccountState;
 
   private _isMounted = false;
+
+  private _modalKey?: string;
 
   constructor(props: Record<string, never>) {
     super(props);
@@ -117,7 +123,7 @@ export default class extends Component {
     (async () => {
       const isLoginValid = await tokenValidityChecker();
       if (isLoginValid !== 204) {
-        window.location.href = '/authenticate?next=account';
+        loginAgain();
       }
 
       const response =  await axios.get('http://localhost:4819/account/userdata', {
@@ -140,6 +146,30 @@ export default class extends Component {
       untransformedData.nameChangeDate = new Date(untransformedData.nameChangeDate);
       this._userData = untransformedData as UserData;
       this._changePage(AccountPage.PersonalInformation);
+
+      const expiryDate = getTokenExpiry();
+      const delay = expiryDate.getTime() - Date.now();
+
+      setTimeout(() => {
+        this._modalKey = 'bye-bye';
+        this._setOrUpdateState({ 
+          modal: {
+            title: 'Session expired',
+            children: <p className="generic-modal-text">You are being logged out for your account security. Please login again.</p>,
+            buttons: [
+              {
+                text: 'Ok',
+                action: loginAgain,
+                style: 'primary',
+                autoFocus: true
+              }
+            ]
+          }
+        });
+        setTimeout(() => {
+          loginAgain();
+        }, 5500);
+      }, delay);
     })();
 
     this._toggleSidebar = this._toggleSidebar.bind(this);
@@ -172,7 +202,7 @@ export default class extends Component {
         ...newState
       };
     } else {
-      this.setState(newState);
+      this.setState(newState as AccountState);
     }
   }
 
@@ -239,7 +269,7 @@ export default class extends Component {
       };
     }
 
-    this.setState({
+    this._setOrUpdateState({
       loadedPage: newPage,
       ...pageUpdate
     } as Partial<AccountState>);
@@ -273,7 +303,10 @@ export default class extends Component {
     case AccountPage.Error:
       return <Error error={ this.state.error ?? '<NO ERROR GIVEN>' } />;
     case AccountPage.PersonalInformation:
-      return <PersonalInformation userData={this._userData} />;
+      return <PersonalInformation showModal={modal => {
+        this._modalKey = identifiers.alphanumericNanoid(8);
+        this.setState({ modal });
+      }} userData={this._userData} />;
     default:
       return <p style={{color: 'red', fontSize: '23pt', fontFamily: 'monospace'}}>PAGE NOT IMPLEMENTED</p>;
     }
@@ -281,39 +314,68 @@ export default class extends Component {
   
   render(): ReactNode {
     return (
-      <LargeContentBox>
-        <div id="account-wrapper">
-          <nav id='sidebar' className='closed'>
-            <button id='sidebar-close' className='plus-sign' onClick={this._toggleSidebar}></button>
-            <div id="title-wrapper">
-              <h1 className='main-title'>
-                <img src="/logos/main-logo.png" alt="X-Pkg Logo" />
+      <>
+        {this.state.modal &&
+          <Modal title={this.state.modal!.title} key='account-modal' buttons={this.state.modal.buttons?.map(button => {
+            const oldAction = button.action;
+            const currentKey = this._modalKey!;
+
+            button.action = () => {
+              if (oldAction) {
+                oldAction();
+              }
+              
+              if (this._modalKey === currentKey) {
+                this.setState({ modal: void 0 });
+              }
+            };
+            return button;
+          })}>
+            {this.state.modal!.children}
+          </Modal>
+        }
+        <LargeContentBox>
+          <div id="account-wrapper">
+            <nav id='sidebar' className='closed'>
+              <button id='sidebar-close' className='plus-sign' onClick={this._toggleSidebar}></button>
+              <div id="title-wrapper">
+                <h1 className='main-title'>
+                  <img src="/logos/main-logo.png" alt="X-Pkg Logo" />
             X-Pkg Accounts
-              </h1>
-            </div>
-            <SidebarItem icon={<PersonIcon />} label='Personal Information' onClick={this._createPageChangeFunction(AccountPage.PersonalInformation)} active={this.state.loadedPage === AccountPage.PersonalInformation} />
-            <SidebarItem icon={<NotificationsIcon />} label='Notification Settings' onClick={this._createPageChangeFunction(AccountPage.NotificationSettings)} active={this.state.loadedPage === AccountPage.NotificationSettings}/>
-            <SidebarItem icon={<SecuritySettingsIcon />} label='Security Settings' onClick={this._createPageChangeFunction(AccountPage.SecuritySettings)} active={this.state.loadedPage === AccountPage.SecuritySettings}/>
-            <SidebarItem icon={<YourDataIcon />} label='Your Data' onClick={this._createPageChangeFunction(AccountPage.YourData)} active={this.state.loadedPage === AccountPage.YourData}/>
-            {this._userData?.isDeveloper && 
+                </h1>
+              </div>
+              <SidebarItem icon={<PersonIcon />} label='Personal Information' onClick={this._createPageChangeFunction(AccountPage.PersonalInformation)} active={this.state.loadedPage === AccountPage.PersonalInformation} />
+              <SidebarItem icon={<NotificationsIcon />} label='Notification Settings' onClick={this._createPageChangeFunction(AccountPage.NotificationSettings)} active={this.state.loadedPage === AccountPage.NotificationSettings}/>
+              <SidebarItem icon={<SecuritySettingsIcon />} label='Security Settings' onClick={this._createPageChangeFunction(AccountPage.SecuritySettings)} active={this.state.loadedPage === AccountPage.SecuritySettings}/>
+              <SidebarItem icon={<YourDataIcon />} label='Your Data' onClick={this._createPageChangeFunction(AccountPage.YourData)} active={this.state.loadedPage === AccountPage.YourData}/>
+              {this._userData?.isDeveloper && 
             <>
               <hr />
               <SidebarItem icon={<DeveloperSettingsIcon />} label='Developer Settings' onClick={this._createPageChangeFunction(AccountPage.DeveloperSettings)}active={this.state.loadedPage === AccountPage.DeveloperSettings} />
               <SidebarItem icon={<OAuthClientIcon />} label='OAuth Clients' onClick={this._createPageChangeFunction(AccountPage.OAuthClients)} active={this.state.loadedPage === AccountPage.OAuthClients}/>
             </>
-            }
-          </nav>
-          <section id='page-view'>
-            <header>
-              {!!this.state.pageTitle.length && <button className='plus-sign' onClick={this._toggleSidebar}></button>}
-              <h2>{ this.state.pageTitle }</h2>
-            </header>
-            <div className="p-3">
-              {this._activePage()}
-            </div>
-          </section>
-        </div>
-      </LargeContentBox>
+              }
+            </nav>
+            <section id='page-view'>
+              <header>
+                {!!this.state.pageTitle.length && <button className='plus-sign' onClick={this._toggleSidebar}></button>}
+                <h2>{ this.state.pageTitle }</h2>
+              </header>
+              <div className="p-3">
+                {this._activePage()}
+              </div>
+            </section>
+          </div>
+        </LargeContentBox>
+      </>
     );
   }
+}
+
+/**
+ * Redirect the user to login again.
+ */
+function loginAgain() {
+  setCookie('token', 'null', -1);
+  window.location.href = '/authenticate?next=account';
 }

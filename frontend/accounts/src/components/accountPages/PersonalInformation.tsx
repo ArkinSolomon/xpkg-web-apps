@@ -18,9 +18,11 @@
  * 
  * @typedef {Object} PersonalInformationProps
  * @property {UserData} [userData] The user data provided by the page.
+ * @property {(ModalProps) => void} showModal The callback function which shows the modal.
  */
 type PersonalInformationProps = {
   userData?: UserData;
+  showModal: (modal: ModalProps) => void;
 }
 
 /**
@@ -29,18 +31,21 @@ type PersonalInformationProps = {
  * @typedef {Object} PersonalInformationState
  * @property {boolean} newNameValid True if the new name is valid.
  * @property {boolean} newEmailValid True if the new email is valid.
+ * @property {string} [emailHash] The hash of the email stored on the server. Undefined while computing.
  */
 type PersonalInformationState = {
   newNameValid: boolean;
   newEmailValid: boolean;
+  emailHash?: string;
 }
 
-import { Component } from 'react';
+import { Component, ReactNode } from 'react';
 import { UserData } from '../../pages/Account';
 import '../../css/accountPages/PersonalInformationPage.scss';
 import TextInput from '../TextInput';
 import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
+import { ModalProps } from '../Modal';
 
 export default class PersonalInformation extends Component<PersonalInformationProps, PersonalInformationState> {
 
@@ -49,8 +54,6 @@ export default class PersonalInformation extends Component<PersonalInformationPr
 
   private _originalEmail: string;
   private _newEmail: string;
-
-  private _isGravatar: boolean;
 
   constructor(props: PersonalInformationProps) {
     super(props);
@@ -64,7 +67,41 @@ export default class PersonalInformation extends Component<PersonalInformationPr
     this._newName = props.userData!.name;
     this._originalEmail = props.userData!.email;
     this._newEmail = props.userData!.email;
-    this._isGravatar = this.props.userData!.profilePicture.startsWith('https://gravatar.com/avatar');
+  }
+
+  componentDidMount(): void {
+    ( async () => {
+      this.setState({
+        emailHash: await sha256Hash(this.props.userData!.email)
+      });
+    })();
+  }
+
+  /**
+   * Get the element for the Gravatar button.
+   * 
+   * @returns {ReactNode} The update/use/modify Gravatar button.
+   */
+  private _gravatarButton(): ReactNode {
+    const isGravatar = this.props.userData!.profilePicture.startsWith('https://gravatar.com/avatar');
+    let hash: string;
+    if (isGravatar) {
+      hash = this.props.userData!.profilePicture.replace(/^https:\/\/gravatar.com\/avatar\//, '').split(/[/?]/)[0]!;
+    }
+    
+    if (isGravatar && (!this.state.emailHash || this.state.emailHash === hash!)) {
+      return (
+        <button className="primary-button mt-4" role='link' onClick={() => window.open('https://wordpress.com/log-in/link?client_id=1854&redirect_to=https%3A%2F%2Fpublic-api.wordpress.com%2Foauth2%2Fauthorize%3Fclient_id%3D1854%26response_type%3Dcode%26blog_id%3D0%26state%3D06d58a818e98e88ac66f10ae7dbacad0bc34559c5f776606785532173df4afe8%26redirect_uri%3Dhttps%253A%252F%252Fgravatar.com%252Fconnect%252F%253Faction%253Drequest_access_token%26from-calypso%3D1', '_blank')}>Modify Gravatar</button>
+      ); 
+    } else if (!isGravatar) {
+      return (
+        <button className="primary-button mt-4" role='button' onClick={() => window.alert('Not implemented (use gravatar)')}>Use Gravatar</button>
+      );
+    } else {
+      return (
+        <button className="primary-button mt-4" role='button' onClick={() => window.alert('Not implemented (update gravatar)')}>Update Gravatar</button>
+      );
+    }
   }
 
   render() {  
@@ -73,18 +110,11 @@ export default class PersonalInformation extends Component<PersonalInformationPr
         <div id="pfp-section">
           <img src={this.props.userData!.profilePicture + '?s=256'} alt="Profile Picture" />
           <button className="primary-button mt-4">Upload Image</button>
-          <button className="primary-button mt-4" role={this._isGravatar ? 'link' : 'button'}  onClick={() => {
-            if (this._isGravatar) {
-              window.open('https://wordpress.com/log-in/link?client_id=1854&redirect_to=https%3A%2F%2Fpublic-api.wordpress.com%2Foauth2%2Fauthorize%3Fclient_id%3D1854%26response_type%3Dcode%26blog_id%3D0%26state%3D06d58a818e98e88ac66f10ae7dbacad0bc34559c5f776606785532173df4afe8%26redirect_uri%3Dhttps%253A%252F%252Fgravatar.com%252Fconnect%252F%253Faction%253Drequest_access_token%26from-calypso%3D1', '_blank');
-              return;
-            }
-
-            window.alert('Not implemented');
-          }}>{!this._isGravatar ? 'Use Gravatar' : 'Modify Gravatar'}</button>
+          {this._gravatarButton()}
         </div>
         <div>
           <section className='change-section'>
-            <TextInput name='new-name' placeholder='New Name' label='Name' defaultValue={this._originalName} onChange={async e => {
+            <TextInput name='new-name' id='new-name-input' placeholder='New Name' label='Name' defaultValue={this._originalName} onChange={async e => {
               this._newName = e.target.value;
               const validationResult = await validators.isValidName(body('name')).run({body: { name: this._newName }});
               this.setState({
@@ -93,7 +123,39 @@ export default class PersonalInformation extends Component<PersonalInformationPr
             }} />
             <div className='change-info'>
               <p>Last changed: { this.props.userData!.nameChangeDate.toLocaleDateString('en-us') }<br />You can only change your name once every 30 days.</p>
-              <button className="primary-button" disabled={!this.state.newNameValid}>Change Name</button>
+              <button className="primary-button" disabled={!this.state.newNameValid} onClick={() => {
+                this.props.showModal({
+                  title: 'Change Name',
+                  children: <p className='generic-modal-text'>Are you sure you want to change your name to <b>{this._newName.trim()}</b>. You will not be able to change your name again for 30 days.</p>,
+                  buttons: [
+                    {
+                      text: 'Cancel',
+                      action: () => {
+                        this._newName = this._originalName;
+                        (document.getElementById('new-name-input') as HTMLInputElement).value = this._newName;
+                      },
+                    },
+                    {
+                      text: 'Change',
+                      action: () => {
+                        this.props.showModal({
+                          title: 'Name Changed',
+                          children: <p className='generic-modal-text'>Your name was successfully changed to <b>{this._newName.trim()}</b>.</p>,
+                          buttons: [
+                            {
+                              text: 'Ok',
+                              style: 'primary',
+                              autoFocus: true
+                            }
+                          ]
+                        });
+                      },
+                      style: 'primary',
+                      autoFocus: true
+                    }
+                  ]
+                });
+              }}>Change Name</button>
             </div>
           </section>
           <section className="change-section">
@@ -116,4 +178,17 @@ export default class PersonalInformation extends Component<PersonalInformationPr
       </div>
     );
   }
+}
+
+/**
+ * Get the sha256 hash of a message. See examples at https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest.
+ * 
+ * @param {string} text The text to hash.
+ * @returns {string} The sha256 hash of the given text.
+ */
+async function sha256Hash(text: string) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }

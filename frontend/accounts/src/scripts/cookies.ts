@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 //These functions taken from w3schools (https://www.w3schools.com/js/js_cookies.asp)
 
 /**
- * Set (or update) a cookie by name.
+ * Set (or update) a cookie by name. Use a negative value for {@code exdays} to delete a cookie.
  * 
  * @param {string} cname The name of the cookie.
  * @param {string} cvalue The value of the cookie.
  * @param {number} exdays The number of days until the cookie expires.
  */
-export function setCookie(cname: string, cvalue: string, exdays: number): void {
+export function setCookie(cname: string, cvalue: string, exdays: number) {
   const d = new Date();
   d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
   const expires = 'expires=' + d.toUTCString();

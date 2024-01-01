@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -537,7 +537,7 @@ export default class extends Component {
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterEmailPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Let's get started! Enter your email address. This address will be the primary point of contact between you and X-Pkg.</p>
-              <TextInput className='mt-4' inputType='email' name='email' label='Email Address' placeholder='you@example.com' onChange={this._updateAuthData('email')} />
+              <TextInput className='mt-4' inputType='email' name='create-email' label='Email Address' placeholder='you@example.com' onChange={this._updateAuthData('email')} />
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterNamePage, this.state.currentPage)}>
@@ -549,7 +549,7 @@ export default class extends Component {
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterPasswordPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Type a secure and unique password.</p>
-              <TextInput className='mt-4' inputType='password' name='password' label='Password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('password')}/>
+              <TextInput className='mt-4' inputType='password' name='create-password' label='Password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('password')}/>
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateConfirmPasswordPage, this.state.currentPage)}>
@@ -581,13 +581,13 @@ export default class extends Component {
           <SmallContentBoxPage pageState={getStateFromIndex(Page.LoginEnterEmailPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Welcome back to X-Pkg! Enter the email you used to sign up for your account.</p>
-              <TextInput className='mt-4' inputType='email' name='email' label='Email Address' placeholder='you@example.com' onChange={this._updateAuthData('email')} />
+              <TextInput className='mt-4' inputType='email' name='login-email' label='Email Address' placeholder='you@example.com' onChange={this._updateAuthData('email')} />
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.LoginEnterPasswordPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Enter the password you used when you signed up for your account. <a href='https://cataas.com/cat/gif'>I forgot my password.</a></p>
-              <TextInput className='mt-4' inputType='password' name='password' label='Password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('password')}/>
+              <TextInput className='mt-4' inputType='password' name='login-password' label='Password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('password')}/>
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.LoggingInPage, this.state.currentPage)}>

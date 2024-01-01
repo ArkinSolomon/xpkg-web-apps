@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ export default async function (): Promise<number> {
     return 401;
   }
 
-  const expiry = new Date(parseInt(tokenCookie.slice(108), 16) * 1000);
+  const expiry = getExpiry(tokenCookie);
   if (expiry.getTime() <= Date.now()) {
     return 401;
   }
@@ -40,5 +40,27 @@ export default async function (): Promise<number> {
   });
 
   return data.status;
+}
 
+/**
+ * Get the expiry date of the current token.
+ * 
+ * @returns {Date} The date at which the current token expires, or a Date object that points to the Unix epoch, if the token is undefined.
+ */
+export function getTokenExpiry() {
+  const token = getCookie('token');
+  if (!token) {
+    return new Date(0);
+  }
+  return getExpiry(token);
+}
+
+/**
+ * Get the expiry date of a provided token.
+ * 
+ * @param {string} token The token to get the expiry date of.
+ * @returns {Date} The date at which the provided token expires.
+ */
+function getExpiry(token: string) {
+  return new Date(parseInt(token.slice(108), 16) * 1000);
 }

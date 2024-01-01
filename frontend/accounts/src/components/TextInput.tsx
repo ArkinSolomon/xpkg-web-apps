@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,15 @@ export default function (props: {
   inputType?: HTMLInputTypeAttribute;
   className?: string;
   hasError?: boolean;
+  value?: string;
+  id?: string;
 }) {
   const placeholder = props.placeholder ?? props.name;
-  const id = 'text-input--' + props.name;
+  const id = props.id ?? 'text-input--' + props.name;
   return (
     <div className={'input text-input ' + (props.hasError ? 'error ' : '') + (props.className ?? '')}>
       <label htmlFor={id}>{ props.label }</label>
-      <input key={id} type={props.inputType ?? 'text'} id={id} placeholder={placeholder} defaultValue={props.defaultValue} onChange={props.onChange} />
+      <input key={id} type={props.inputType ?? 'text'} id={id} placeholder={placeholder} defaultValue={props.defaultValue} onChange={props.onChange} value={props.value ?? void 0} />
     </div>
   );
 }
