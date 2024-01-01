@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,15 @@
 #personal-info-page {
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-around;
 
   #pfp-section {
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    margin-bottom: 0.75em;
 
     &>img {
       width: 170px;
@@ -34,10 +40,15 @@
         border: 1px solid t('secondary-text-color');
       }
     }
+
+    &>button {
+      width: 184px;
+    }
   }
 
-  #name-change-section {
+  .change-section {
     min-width: 22vw;
+    height: fit-content;
     flex-grow: 2;
     padding: 14px;
     padding-top: 0;
@@ -47,10 +58,9 @@
       width: 100%;
     }
 
-    #name-change-info {
+    .change-info {
       display: flex;
       flex-direction: row;
-      justify-content: space-between;
       flex-wrap: wrap-reverse;
       gap: 8px;
 
@@ -58,6 +68,7 @@
       margin-top: 8px;
 
       p {
+        display: inline-block;
         font-size: 9pt;
         line-height: 10pt;
 

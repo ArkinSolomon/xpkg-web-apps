@@ -133,12 +133,13 @@
     font-size: 21pt;
     padding: 0 10px;
 
-    @media screen and (min-width: $tablet-width) {
-      display: none;
-    }
-
     @include themed {
       color: t('primary-text-color');
+    }
+
+
+    @media screen and (min-width: $tablet-width) {
+      display: none;
     }
 
     &>h2 {

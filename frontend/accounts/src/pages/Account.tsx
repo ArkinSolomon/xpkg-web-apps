@@ -60,7 +60,7 @@ export type UserData = {
   name: string;
   created: Date; 
   email: string;
-  emailVerified: string;
+  emailVerified: boolean;
   profilePicture: string;
   isDeveloper: boolean;
   nameChangeDate: Date;
