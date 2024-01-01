@@ -169,7 +169,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
             <div className='change-info'>
               <p>{this.props.userData!.emailVerified ? 'Your email has been verified.' : 'You must verify your email.'}</p>
               <div>
-                <button className="primary-button" disabled={this.props.userData!.emailVerified}>Resend Email</button>
+                {!this.props.userData!.emailVerified && <button className="primary-button" disabled={this.props.userData!.emailVerified}>Resend Email</button>}
                 <button className="primary-button ml-2" disabled={!this.state.newEmailValid}>Change Email</button>
               </div>
             </div>
