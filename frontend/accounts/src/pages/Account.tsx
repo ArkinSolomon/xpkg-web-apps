@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,6 +141,8 @@ export default class extends Component {
       this._userData = untransformedData as UserData;
       this._changePage(AccountPage.PersonalInformation);
     })();
+
+    this._toggleSidebar = this._toggleSidebar.bind(this);
   }
 
   componentDidMount(): void {
@@ -151,6 +153,18 @@ export default class extends Component {
     this._isMounted = false;
   }
 
+  /**
+   * Show or hide the sidebar depending on if it is currently hidden.
+   */
+  private _toggleSidebar() {
+    document.getElementById('sidebar')!.classList.toggle('closed');
+  }
+
+  /**
+   * Change the state manually before/after component mount, or automatically choose to update.
+   * 
+   * @param {Partial<AccountState>} newState The properties of the state to update.
+   */
   private _setOrUpdateState(newState: Partial<AccountState>) {    
     if (!this._isMounted) {
       this.state = {
@@ -162,6 +176,11 @@ export default class extends Component {
     }
   }
 
+  /**
+   * Update the state in order to change the page.
+   * 
+   * @param {AccountPage} newPage The page to change to.
+   */
   private _changePage(newPage: AccountPage) {
     let pageUpdate: Pick<AccountState, 'pageTitle' | 'switchState'>;
     switch (newPage) {
@@ -226,6 +245,12 @@ export default class extends Component {
     } as Partial<AccountState>);
   }
 
+  /**
+   * Creates a function to handle changing to a new page. Automatically handles the current switch state.
+   * 
+   * @param {AccountPage} newPage The page to change to.
+   * @returns {() => void} A function which will switch to the new page when executed. Binded to this instance.
+   */
   private _createPageChangeFunction(newPage: AccountPage) {
     return (() => {
       if (this.state.loadedPage === newPage || this.state.switchState === SwitchState.No) {
@@ -236,6 +261,11 @@ export default class extends Component {
     }).bind(this);
   }
 
+  /**
+   * Get a component to render the active page.
+   * 
+   * @returns {ReactNode} The node for the active page.
+   */
   private _activePage() {
     switch (this.state.loadedPage) {
     case AccountPage.None:
@@ -253,7 +283,8 @@ export default class extends Component {
     return (
       <LargeContentBox>
         <div id="account-wrapper">
-          <nav id='sidebar'>
+          <nav id='sidebar' className='closed'>
+            <button id='sidebar-close' className='plus-sign' onClick={this._toggleSidebar}></button>
             <div id="title-wrapper">
               <h1 className='main-title'>
                 <img src="/logos/main-logo.png" alt="X-Pkg Logo" />
@@ -274,6 +305,7 @@ export default class extends Component {
           </nav>
           <section id='page-view'>
             <header>
+              {!!this.state.pageTitle.length && <button className='plus-sign' onClick={this._toggleSidebar}></button>}
               <h2>{ this.state.pageTitle }</h2>
             </header>
             <div className="p-3">

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,46 @@
   width: 100%;
 }
 
+#sidebar-close {
+  width: 3em;
+  transform: rotateZ(45deg);
+  position: absolute;
+  right: 0;
+  aspect-ratio: 1;
+  cursor: pointer;
+
+  @media screen and (min-width: $tablet-width) {
+    display: none;
+  }
+}
+
 #sidebar {
   height: 100%;
   border-right-style: solid;
   border-right-width: 0.5px;
 
   min-width: min-content;
-  padding-top: 10px;
   width: 27%;
 
+  padding-top: 10px;
   box-sizing: border-box;
   overflow-y: scroll;
   overflow-x: hidden;
 
   @include themed() {
     border-right-color: t('main-box-border');
+    background-color: t('content-box-color');
+  }
+
+  @media screen and (max-width: $tablet-width) {
+    transition: transform 200ms ease-in-out;
+
+    &.closed {
+      transform: translateX(-100%);
+    }
+
+    position: absolute;
+    z-index: 1000;
   }
 
   hr {
@@ -50,30 +75,26 @@
     }
   }
 
-  // @media screen and (max-width: $phone-width) {
-
-  // }
-
   .main-title {
     font-family: $noto-sans;
     font-size: 16pt;
     text-align: center;
     display: block;
     width: 100%;
-  
+
     box-sizing: border-box;
     margin-left: auto;
     margin-right: auto;
     padding-left: 10px;
     padding-right: 10px;
-  
+
     text-wrap: nowrap;
     white-space: nowrap;
-  
+
     @include themed() {
       color: t('primary-text-color');
     }
-  
+
     img {
       aspect-ratio: 1;
       height: 45px;
@@ -81,10 +102,14 @@
       vertical-align: middle;
       margin-right: 10px;
       user-select: none;
-  
+
       @include themed() {
         filter: t('primary-text-color-filter');
       }
+    }
+
+    @media screen and (max-width: $tablet-width) {
+      margin-top: 36px;
     }
   }
 }
@@ -98,17 +123,45 @@
 
   header {
     width: 100%;
-    height: 59px;
+    height: 53px;
 
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
 
     font-size: 21pt;
     padding: 0 10px;
 
+    @media screen and (min-width: $tablet-width) {
+      display: none;
+    }
+
     @include themed {
       color: t('primary-text-color');
     }
+
+    &>h2 {
+      height: fit-content;
+    }
+
+    &>button {
+      height: 3em;
+      aspect-ratio: 1;
+      cursor: pointer;
+    }
+  }
+}
+
+.plus-sign {
+  $thickness: 4px;
+
+  @include themed {
+    background-color: t('content-box-color');
+    border: 10px solid t('content-box-color');
+
+    // Modified from Temani Afif's answer at https://stackoverflow.com/questions/55281672/make-plus-symbol-in-css
+    background:
+      conic-gradient(from 90deg at $thickness $thickness, t('content-box-color') 90deg, t('secondary-text-color') 0) calc(100% + $thickness/2) calc(100% + $thickness/2)/ calc(50% + $thickness) calc(50% + $thickness);
   }
 }
