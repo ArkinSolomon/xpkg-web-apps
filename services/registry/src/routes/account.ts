@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -208,7 +208,7 @@ route.get('/packages/:packageId',
     }
 
     const { packageId } = matchedData(req) as {
-      packageId: string
+      packageId: string;
     };
     routeLogger.setBindings({ packageId });
     routeLogger.trace('Author requesting their package data');

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import InputField, { InputFieldProps } from './Input/InputField';
 function PackageInfoFields(props: {
   packageId: string;
   packageName: string;
-  packageType: PackageType
+  packageType: PackageType;
   packageVersion?: string;
 }) {
   const { packageId, packageName, packageType, packageVersion } = props;
@@ -42,14 +42,14 @@ function PackageInfoFields(props: {
     name: 'packageName',
     label: 'Package Name',
     readonly: true,
-    defaultValue: packageName,
+    defaultValue: packageName
   };
 
   const packageIdData: InputFieldProps = {
     name: 'packageId',
     label: 'Package Identifier',
     readonly: true,
-    defaultValue: packageId,
+    defaultValue: packageId
   };
 
   const packageTypeData: InputDropdownProps = {
@@ -64,12 +64,12 @@ function PackageInfoFields(props: {
     name: 'packageVersion',
     label: 'Package Version',
     readonly: true,
-    defaultValue: packageVersion ?? '<you should not see this>',
+    defaultValue: packageVersion ?? '<you should not see this>'
   };
 
   return (
     <section className='input-section'>
-      <InputField {...packageNameData}/>
+      <InputField {...packageNameData} />
       <InputField {...packageIdData} />
       {dispVersion && <InputField {...packageVersionData} />}
       <InputDropdown {...packageTypeData} />

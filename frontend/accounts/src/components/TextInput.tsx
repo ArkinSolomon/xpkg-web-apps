@@ -27,13 +27,14 @@ export default function (props: {
   hasError?: boolean;
   value?: string;
   id?: string;
+  autocomplete?: string;
 }) {
   const placeholder = props.placeholder ?? props.name;
   const id = props.id ?? 'text-input--' + props.name;
   return (
     <div className={'input text-input ' + (props.hasError ? 'error ' : '') + (props.className ?? '')}>
       <label htmlFor={id}>{ props.label }</label>
-      <input key={id} type={props.inputType ?? 'text'} id={id} placeholder={placeholder} defaultValue={props.defaultValue} onChange={props.onChange} value={props.value ?? void 0} />
+      <input key={id} type={props.inputType ?? 'text'} id={id} placeholder={placeholder} defaultValue={props.defaultValue} onChange={props.onChange} value={props.value ?? void 0} autoComplete={props.autocomplete ?? 'on'} />
     </div>
   );
 }

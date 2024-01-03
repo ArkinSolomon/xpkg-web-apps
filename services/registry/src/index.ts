@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ type FullRegistryData = {
       dependencies: [string, string][];
       incompatibilities: [string, string][];
       xplaneSelection: string;
-      platforms: PlatformSupport
+      platforms: PlatformSupport;
     }[];
   }[];
 };
@@ -155,7 +155,7 @@ const requiredAuthRoutes = [
   '/packages/retry',
   '/packages/incompatibilities',
   '/packages/xpselection',
-  '/account/*',
+  '/account/*'
 ];
 const optionalAuthRoutes = [
   '/analytics/*'
@@ -220,7 +220,7 @@ async function updateData(): Promise<void> {
   const allPkgMap = new Map<string, FullRegistryData['packages'][0]>();
   const pkgsWithVersionsMap = new Map<string, FullRegistryData['packages'][0]>();
   const allPackageData = await packageDatabase.getPackageData();
-  for (const pkg of allPackageData) {
+  for (const pkg of allPackageData) 
     allPkgMap.set(pkg.packageId, {
       packageId: pkg.packageId,
       packageName: pkg.packageName,
@@ -230,7 +230,6 @@ async function updateData(): Promise<void> {
       packageType: pkg.packageType,
       versions: []
     });
-  }
 
   const allVersions = await packageDatabase.allPublicProcessedVersions();
   for (const version of allVersions) {

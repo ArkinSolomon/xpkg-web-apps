@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ type PackageInformationState = {
   isLoading: boolean;
   errorMessage?: string;
   currentPackageData?: AuthorPackageData;
-  descriptionErrors: Partial<DescUpdateValues>
+  descriptionErrors: Partial<DescUpdateValues>;
   popupConfig?: ConfirmPopupConfig;
   isPopupVisible: boolean;
   isFormSubmitting: boolean;
@@ -86,7 +86,7 @@ class PackageInformation extends Component {
       descriptionErrors: {},
       isPopupVisible: false,
       isFormSubmitting: false,
-      isDescriptionOriginal: true,
+      isDescriptionOriginal: true
     };
 
     const token = tokenStorage.checkAuth();
@@ -127,7 +127,7 @@ class PackageInformation extends Component {
       } as Partial<PackageInformationState>);
     } catch (e) {
       console.error(e);
-      if (e instanceof RegistryError) {
+      if (e instanceof RegistryError) 
         switch (e.status) {
         case 401:
           tokenStorage.delToken();
@@ -140,7 +140,6 @@ class PackageInformation extends Component {
             errorMessage: 'Package does not exist'
           } as Partial<PackageInformationState>);
         }
-      }
 
       return this.setState({
         isLoading: false,
@@ -200,7 +199,7 @@ class PackageInformation extends Component {
                   no_id: 'no package id.',
                   invalid_type: 'invalid data type.',
                   short_desc: 'description too short.',
-                  long_desc: 'description too long.',
+                  long_desc: 'description too long.'
                 }[res.responseText]
                   ?? `an unknown error occured [${res.responseText}].`;
                 break;
@@ -221,7 +220,10 @@ class PackageInformation extends Component {
                   isPopupVisible: false
                 } as Partial<PackageInformationState>);
               },
-              children: <p className='generic-popup-text'>Could not update description, { errMsg }</p>
+              children: <p className='generic-popup-text'>
+Could not update description,
+                { errMsg }
+              </p>
             };
 
             this.setState({
@@ -257,19 +259,26 @@ class PackageInformation extends Component {
 
         {
           !version.isPublic && 
-            <p><a
-              className='subrow-private-key-link'
-              onClick={e => {
-                e.preventDefault(); 
-                $(e.target).parent().html(`Private key: ${version.privateKey}`);
-              }}>Click to reveal private key</a></p>
+            <p>
+              <a
+                className='subrow-private-key-link'
+                onClick={e => {
+                  e.preventDefault(); 
+                  $(e.target).parent().html(`Private key: ${version.privateKey}`);
+                }}
+              >
+Click to reveal private key
+              </a>
+            </p>
         }
 
         <div className='subrow-top-right'>
           <button
             className='primary-button'
             onClick={() => window.location.href = `/packages/details?packageId=${this.state.currentPackageData?.packageId}&packageVersion=${version.packageVersion}&referrer=package_info`}
-          >Details</button>
+          >
+Details
+          </button>
         </div>
       </div>
     );
@@ -310,7 +319,7 @@ class PackageInformation extends Component {
         subrowRender: this._versionSubrow.bind(this)
       };
 
-      if (this.state.currentPackageData){
+      if (this.state.currentPackageData)
         for (const version of this.state.currentPackageData.versions) {
 
           tableConfig.data.push([
@@ -324,7 +333,6 @@ class PackageInformation extends Component {
 
           tableConfig.subrowData.push(version);
         }
-      }
 
       return (
         <MainContainer>
@@ -347,7 +355,8 @@ class PackageInformation extends Component {
                   description: this.state.currentPackageData?.description
                 } as DescUpdateValues}
                 onSubmit={this._updateDescription}
-              >{({
+              >
+                {({
                   handleChange,
                   handleSubmit
                 }) => {
@@ -376,8 +385,8 @@ class PackageInformation extends Component {
                         <section className='mt-9'>
                           <input
                             className='primary-button float-right'
-                            type="submit"
-                            value="Update"
+                            type='submit'
+                            value='Update'
                             disabled={this.state.isDescriptionOriginal || this.state.isFormSubmitting || !!Object.keys(this.state.descriptionErrors).length}
                           />
                         </section>
@@ -396,7 +405,9 @@ class PackageInformation extends Component {
                 <button
                   className='primary-button float-right'
                   onClick={ () => window.location.href = `/packages/upload?packageId=${this.state.currentPackageData?.packageId}` }
-                >Upload new version</button>
+                >
+Upload new version
+                </button>
               </section>
             </>
           </MainContainerContent>
@@ -413,11 +424,40 @@ class PackageInformation extends Component {
       case VersionStatus.Processed:
         return (
           <>
-            <p>Downloads: <b>{version.downloads}</b></p>
-            <p>Checksum: <b>{version.hash?.toUpperCase()}</b></p>
-            <p>Uploaded: <b>{version.uploadDate.toLocaleString()}</b></p>
-            <p>Package Size: <b>{getBestUnits(version.size)} ({version.size} bytes)</b></p>
-            <p>Installed Size: <b>{getBestUnits(version.installedSize)} ({version.installedSize} bytes)</b></p>
+            <p>
+Downloads:
+              <b>{version.downloads}</b>
+            </p>
+            <p>
+Checksum:
+              <b>{version.hash?.toUpperCase()}</b>
+            </p>
+            <p>
+Uploaded:
+              <b>{version.uploadDate.toLocaleString()}</b>
+            </p>
+            <p>
+Package Size:
+              <b>
+                {getBestUnits(version.size)}
+                {' '}
+(
+                {version.size}
+                {' '}
+bytes)
+              </b>
+            </p>
+            <p>
+Installed Size:
+              <b>
+                {getBestUnits(version.installedSize)}
+                {' '}
+(
+                {version.installedSize}
+                {' '}
+bytes)
+              </b>
+            </p>
           </>
         );
       case VersionStatus.Removed:
@@ -434,15 +474,28 @@ class PackageInformation extends Component {
       case VersionStatus.FailedMACOSX:
         return (<p>You only have a __MACOSX directory in your uploaded zip. Ensure your directory structure is correct, and then try again.</p>);
       case VersionStatus.FailedManifestExists:
-        return (<p>You can not have a file named <b>manifest.json</b> in your zip file root.</p>);
+        return (<p>
+You can not have a file named
+          <b>manifest.json</b>
+          {' '}
+in your zip file root.
+        </p>);
       case VersionStatus.FailedNoFileDir:
-        return (<p>No directory was present with the package identifier, <b>{packageId}</b>. Ensure your directory structure is correct, and then try again.</p>);
+        return (<p>
+No directory was present with the package identifier,
+          <b>{packageId}</b>
+. Ensure your directory structure is correct, and then try again.
+        </p>);
       case VersionStatus.FailedNotEnoughSpace:
         return (<p>You do not own enough storage space to store the package file. Purchase more storage space in order to upload more packages or versions.</p>);
       case VersionStatus.FailedServer:
         return (<p>There was a server error packaging the file.</p>);
       default:
-        return (<p style={{ color: 'red' }}>Invalid meta text invocation. Version status: <b>{version.status}</b>. This may be a bug.</p>);
+        return (<p style={{ color: 'red' }}>
+Invalid meta text invocation. Version status:
+          <b>{version.status}</b>
+. This may be a bug.
+        </p>);
       }
     }
     )();

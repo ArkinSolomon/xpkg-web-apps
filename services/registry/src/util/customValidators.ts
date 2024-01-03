@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,11 @@ export function asPackageType(chain: ValidationChain): ValidationChain {
       })();
       if (!pkgType)
         return false;
-      (chain as ValidationChain & { __xpkgPkgTypeCache: PackageType | null }).__xpkgPkgTypeCache = pkgType;
+      (chain as ValidationChain & { __xpkgPkgTypeCache: PackageType | null; }).__xpkgPkgTypeCache = pkgType;
       return true;
     })
     .bail().withMessage('invalid_pkg_type')
-    .customSanitizer(() => (chain as ValidationChain & { __xpkgPkgTypeCache: PackageType }).__xpkgPkgTypeCache);
+    .customSanitizer(() => (chain as ValidationChain & { __xpkgPkgTypeCache: PackageType; }).__xpkgPkgTypeCache);
 }
 
 /**

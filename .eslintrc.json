@@ -3,10 +3,7 @@
     "browser": true,
     "es2021": true
   },
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
-  ],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "overrides": [],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -14,27 +11,70 @@
     "sourceType": "module"
   },
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "@stylistic",
+    "@stylistic/jsx",
+    "@stylistic/ts"
   ],
   "ignorePatterns": "dist/**",
   "rules": {
-    "indent": [
+    "@stylistic/comma-dangle": ["error", "never"],
+    "@stylistic/dot-location": ["error", "property"],
+    "@stylistic/jsx/jsx-closing-bracket-location": ["error", "line-aligned"],
+    "@stylistic/keyword-spacing": "error",
+    "@stylistic/no-multiple-empty-lines": [
       "error",
-      2
+      {
+        "max": 1
+      }
     ],
-    "linebreak-style": [
+    "@stylistic/no-whitespace-before-property": "error",
+    "@stylistic/object-curly-spacing": ["error", "always"],
+    "@stylistic/object-property-newline": [
       "error",
-      "unix"
+      {
+        "allowAllPropertiesOnSameLine": true
+      }
     ],
-    "quotes": [
+    "@stylistic/semi": ["error", "always"],
+    "@stylistic/space-in-parens": ["error", "never"],
+    "@stylistic/ts/member-delimiter-style": [
       "error",
-      "single"
+      {
+        "multiline": {
+          "delimiter": "semi",
+          "requireLast": true
+        },
+        "singleline": {
+          "delimiter": "semi",
+          "requireLast": true
+        }
+      }
     ],
-    "semi": [
-      "error",
-      "always"
-    ],
+    "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
-    "space-infix-ops": ["warn"]
+    "@stylistic/jsx-props-no-multi-spaces": "error",
+    "@stylistic/jsx-quotes": ["error", "prefer-single"],
+    "@stylistic/jsx/jsx-self-closing-comp": [
+      "error",
+      {
+        "component": true,
+        "html": true
+      }
+    ],
+    "@stylistic/jsx-tag-spacing": [
+      "error",
+      {
+        "closingSlash": "never",
+        "beforeSelfClosing": "proportional-always",
+        "afterOpening": "never",
+        "beforeClosing": "never"
+      }
+    ],
+    "curly": ["warn", "multi"],
+    "indent": ["error", 2],
+    "linebreak-style": ["error", "unix"],
+    "quotes": ["error", "single"],
+    "space-infix-ops": ["error"]
   }
 }

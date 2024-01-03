@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ const codeSchema = new Schema<CodeData>({
   collection: 'codes'
 });
 
-const tokensDB = mongoose.connection.useDb('tokens');
+const tokensDB = mongoose.connection.useDb('oauth');
 const CodeModel = tokensDB.model<CodeData>('code', codeSchema);
 
 tokensDB.collection('codes').createIndex({

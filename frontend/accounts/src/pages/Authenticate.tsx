@@ -134,12 +134,12 @@ export default class extends Component {
       onMiddleAnchor: EMPTY_FUNCTION,
       tosChecked: false,
       ppChecked: false,
-      enableNext: true,
+      enableNext: true
     };
 
     const searchParams = new URLSearchParams(window.location.search);
     const nextText = searchParams.get('next')?.toLowerCase();
-    if (nextText === 'authorize') {
+    if (nextText === 'authorize') 
       if (searchParams.has('client_id') && searchParams.has('scope') && searchParams.has('redirect_uri') && searchParams.has('response_type') && searchParams.has('code_challenge')) {
         const newSearchParams = new URLSearchParams();
         newSearchParams.append('client_id', searchParams.get('client_id')!);
@@ -148,9 +148,8 @@ export default class extends Component {
         newSearchParams.append('response_type', searchParams.get('response_type')!);
         newSearchParams.append('code_challenge', searchParams.get('code_challenge')!);
 
-        if (searchParams.has('state')) {
+        if (searchParams.has('state')) 
           newSearchParams.append('state', searchParams.get('state')!);
-        }
         
         this._redirectUrl = '/authorize?' + searchParams.toString();
         this.state.currentPage = Page.DefaultPage;
@@ -158,22 +157,21 @@ export default class extends Component {
         this._redirectUrl = '/account';
         this.state.currentPage = Page.ErrorPage;
       }
-    } else {
+    else {
       this._redirectUrl = '/account';
       this.state.currentPage = Page.DefaultPage;
     }
 
-    if (this.state.currentPage !== Page.ErrorPage) {
+    if (this.state.currentPage !== Page.ErrorPage) 
       tokenValidityChecker()
         .then(status => {
-          if (status === 204) {
+          if (status === 204) 
             window.location.href = this._redirectUrl;
-          } else {
+          else 
             this._setPageFromIndex(Page.DefaultPage);
-          }
+          
         })
         .finally();
-    }
     
     this._setPageFromIndex(this.state.currentPage);
 
@@ -314,9 +312,8 @@ export default class extends Component {
                 validation: recaptchaToken
               }); 
 
-              if (result.status !== 200) {
+              if (result.status !== 200) 
                 throw 'Error: status ' + result.status;
-              }
 
               setCookie('token', result.data.token, 1);
               window.location.href = this._redirectUrl;
@@ -358,7 +355,7 @@ export default class extends Component {
         showLockFooter: true,
         onNext: () => this._setPageFromIndex(Page.LoginEnterPasswordPage),
         onBack: () => this._setPageFromIndex(Page.DefaultPage),
-        onMiddleAnchor: () => this._setPageFromIndex(Page.CreateEnterEmailPage),
+        onMiddleAnchor: () => this._setPageFromIndex(Page.CreateEnterEmailPage)
       };
       break;
     case Page.LoginEnterPasswordPage:
@@ -380,9 +377,8 @@ export default class extends Component {
                 validation: recaptchaToken
               }); 
 
-              if (result.status !== 200) {
+              if (result.status !== 200) 
                 throw 'Error: status ' + result.status;
-              }
               
               setCookie('token', result.data.token, 1);
               window.location.href = this._redirectUrl;
@@ -394,7 +390,7 @@ export default class extends Component {
           this._setPageFromIndex(Page.LoggingInPage);
         },
         onBack: () => this._setPageFromIndex(Page.LoginEnterEmailPage),
-        onMiddleAnchor: () => this._setPageFromIndex(Page.CreateEnterEmailPage),
+        onMiddleAnchor: () => this._setPageFromIndex(Page.CreateEnterEmailPage)
       };
       break;
     case Page.LoggingInPage:
@@ -408,7 +404,7 @@ export default class extends Component {
         showLockFooter: true,
         onNext: EMPTY_FUNCTION,
         onBack: EMPTY_FUNCTION,
-        onMiddleAnchor: EMPTY_FUNCTION,
+        onMiddleAnchor: EMPTY_FUNCTION
       };
       break;
     default:
@@ -471,12 +467,11 @@ export default class extends Component {
       break;
     }
 
-    if (enableNext == this.state.enableNext) {
+    if (enableNext == this.state.enableNext) 
       return;
-    }
     
     this.setState({
-      enableNext,
+      enableNext
     } as Partial<AuthenticateState>);
   }
 
@@ -510,12 +505,13 @@ export default class extends Component {
                 <img src='/icons/lock.png' alt='Lock Icon' />
               </div>
               <div className='right'>
-                <p>Ensure you are only submitting your credentials to <b>accounts.xpkg.net</b>. Do not login from suspicious links.</p>
+                <p>Ensure you are only submitting your credentials to<b>accounts.xpkg.net</b>. Do not login from suspicious links.</p>
               </div>
             </div>
           }
         </>
-      }>
+      }
+      >
         <>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CurrentLoginPage, this.state.currentPage)}>
             <>
@@ -537,25 +533,25 @@ export default class extends Component {
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterEmailPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Let's get started! Enter your email address. This address will be the primary point of contact between you and X-Pkg.</p>
-              <TextInput className='mt-4' inputType='email' name='create-email' label='Email Address' placeholder='you@example.com' onChange={this._updateAuthData('email')} />
+              <TextInput className='mt-4' inputType='email' name='create-email' label='Email Address' placeholder='you@example.com' autocomplete='email' onChange={this._updateAuthData('email')} />
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterNamePage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Enter a unique name. It can contain spaces, and does not have to be your real name. This will be public.</p>
-              <TextInput className='mt-4' inputType='text' name='text' label='Name' placeholder='John Doe' onChange={this._updateAuthData('name')}/>
+              <TextInput className='mt-4' inputType='text' name='text' label='Name' placeholder='John Doe' autocomplete='name' onChange={this._updateAuthData('name')} />
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateEnterPasswordPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Type a secure and unique password.</p>
-              <TextInput className='mt-4' inputType='password' name='create-password' label='Password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('password')}/>
+              <TextInput className='mt-4' inputType='password' name='create-password' label='Password' autocomplete='new-password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('password')} />
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateConfirmPasswordPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Retype your password.</p>
-              <TextInput className='mt-4' inputType='password' name='confirmPassword' label='Password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('confirmPassword')}/>
+              <TextInput className='mt-4' inputType='password' name='confirmPassword' label='Password' autocomplete='new-password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('confirmPassword')} />
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.CreateTermsPage, this.state.currentPage)}>
@@ -563,12 +559,14 @@ export default class extends Component {
               <p className='explain-text'>By signing up for X-Pkg, you agree to the terms of service and privacy policy. Please read through both documents before creating an account.</p>
               <Checkbox className='mt-4' checked={this.state.tosChecked} name={'tos-checkbox'} onChange={e => this.setState({
                 tosChecked: e.target.checked
-              } as Partial<AuthenticateState>)}>
+              } as Partial<AuthenticateState>)}
+              >
                 <p className='explain-text'>I agree to the <a href='https://cataas.com/cat/gif' target='_blank'>terms of use</a>.</p>
               </Checkbox>
               <Checkbox className='mt-3' checked={this.state.ppChecked} name={'tos-checkbox'} onChange={e => this.setState({
                 ppChecked: e.target.checked
-              } as Partial<AuthenticateState>)}>
+              } as Partial<AuthenticateState>)}
+              >
                 <p className='explain-text'>I agree to the <a href='https://cataas.com/cat/gif' target='_blank'>privacy policy</a>.</p>
               </Checkbox>
             </>
@@ -581,13 +579,13 @@ export default class extends Component {
           <SmallContentBoxPage pageState={getStateFromIndex(Page.LoginEnterEmailPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Welcome back to X-Pkg! Enter the email you used to sign up for your account.</p>
-              <TextInput className='mt-4' inputType='email' name='login-email' label='Email Address' placeholder='you@example.com' onChange={this._updateAuthData('email')} />
+              <TextInput className='mt-4' inputType='email' name='login-email' label='Email Address' placeholder='you@example.com' autocomplete='email' onChange={this._updateAuthData('email')} />
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.LoginEnterPasswordPage, this.state.currentPage)}>
             <>
               <p className='explain-text'>Enter the password you used when you signed up for your account. <a href='https://cataas.com/cat/gif'>I forgot my password.</a></p>
-              <TextInput className='mt-4' inputType='password' name='login-password' label='Password' placeholder='P@ssw0rd!' onChange={this._updateAuthData('password')}/>
+              <TextInput className='mt-4' inputType='password' name='login-password' label='Password' placeholder='P@ssw0rd!' autocomplete='current-password' onChange={this._updateAuthData('password')} />
             </>
           </SmallContentBoxPage>
           <SmallContentBoxPage pageState={getStateFromIndex(Page.LoggingInPage, this.state.currentPage)}>

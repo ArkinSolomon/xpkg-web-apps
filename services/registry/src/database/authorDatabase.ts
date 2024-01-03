@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ export async function getAuthorFromEmail(authorEmail: string) {
  */
 export async function getPasswordAndId(authorEmail: string): Promise<[string, string]> {
   const author = await AuthorModel.findOne({
-    authorEmail,
+    authorEmail
   }, 'authorId password')
     .lean()
     .exec();
@@ -87,7 +87,7 @@ export async function getPasswordAndId(authorEmail: string): Promise<[string, st
  */
 export async function getSession(authorId: string): Promise<string> {
   const author = await AuthorModel.findOne({
-    authorId,
+    authorId
   }, 'session')
     .lean()
     .exec();
@@ -108,7 +108,7 @@ export async function getSession(authorId: string): Promise<string> {
  */
 export async function getAuthor(authorId: string): Promise<AuthorData> {
   const author = await AuthorModel.findOne({
-    authorId,
+    authorId
   }, '-password -session -tokens -__v -_id')
     .lean()
     .exec();
@@ -128,7 +128,7 @@ export async function getAuthor(authorId: string): Promise<AuthorData> {
  */
 export async function getAuthorDoc(authorId: string) {
   const author = await AuthorModel.findOne({
-    authorId,
+    authorId
   }, '-password')
     .exec();
   

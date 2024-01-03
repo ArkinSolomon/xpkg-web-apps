@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,10 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import React, {JSX} from 'react';
+import React, { JSX } from 'react';
 import '../css/ContentBox.scss';
 
-export default function (props: {children?: JSX.Element[] | JSX.Element}): JSX.Element {  
+export default function (props: { children?: JSX.Element[] | JSX.Element; }): JSX.Element {  
   return (
     <main id='content-box' className='large'>
       {props.children}

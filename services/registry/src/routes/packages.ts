@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,10 @@ const route = Router();
 
 const UPLOAD_PATH = path.resolve(os.tmpdir(), 'xpkg-downloads');
 
-if (isMainThread) {
+if (isMainThread) 
   if (fs.existsSync(UPLOAD_PATH))
     await rm(UPLOAD_PATH, { recursive: true, force: true });
-}
+
 const upload = multer({ dest: UPLOAD_PATH });
 
 const FILE_PROCESSOR_WORKER_PATH = path.resolve('.', 'dist', 'workers', 'fileProcessor.js');
@@ -69,9 +69,9 @@ route.get('/info/:packageId/:packageVersion',
       return res.sendStatus(400);
 
     const { packageId, packageVersion, privateKey } = matchedData(req) as {
-      packageVersion: Version,
-      packageId: string,
-      privateKey?: string
+      packageVersion: Version;
+      packageId: string;
+      privateKey?: string;
     };
 
     try {
@@ -477,7 +477,7 @@ route.post('/retry',
         accessConfig: {
           isPublic: versionData.isPublic,
           isPrivate: !versionData.isPublic,
-          isStored: versionData.isStored,
+          isStored: versionData.isStored
         },
         xpSelection: versionData.xpSelection,
         platforms: versionData.platforms

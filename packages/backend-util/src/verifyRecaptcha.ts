@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,11 +53,10 @@ export default async function (token: string, ip: string, action: string, thresh
 
     const valid = response.success && response.score >= threshold && response.action === action;
 
-    if (!valid) {
+    if (!valid) 
       logger.info({ ...response, ip, expectedAction: action, threshold }, 'Unsuccessful reCAPTCHA validation');
-    } else {
+    else 
       logger.trace({ ...response, ip, expectedAction: action, threshold }, 'Successful reCAPTCHA response');
-    }
 
     return valid;
   } catch (e) {

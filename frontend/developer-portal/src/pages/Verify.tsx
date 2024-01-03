@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ type VerifyProps = {
   params: {
     verificationToken?: string;
   };
- }
+ };
 
 import { Component, ReactNode } from 'react';
 import MainContainer from '../components/Main Container/MainContainer';
@@ -104,7 +104,7 @@ class Verify extends Component {
       doneLoading: true
     } as Partial<VerifyState>);
 
-    if (response) {
+    if (response) 
       switch (response.status) {
       case 204:
         return;
@@ -131,13 +131,12 @@ class Verify extends Component {
         errorMessage = 'An unknown error occured.';
         break;
       }
-    }
 
     this.setState({ errorMessage } as Partial<VerifyState>);
   }
 
   render(): ReactNode {
-    if (this.state.submitted) {
+    if (this.state.submitted) 
       return (
         <MainContainer>
           {
@@ -172,7 +171,6 @@ class Verify extends Component {
           }
         </MainContainer>
       );
-    }
 
     return (
       <MainContainer>
@@ -193,4 +191,4 @@ class Verify extends Component {
 }
 
 // Since useParams is a state hook, we need a function, so we wrap the class, for some reason params={useParams()} does not work with TypeScript
-export default () => <Verify {...{params: useParams()}}></Verify>;
+export default () => <Verify {...{ params: useParams() }} />;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,11 @@ type ConsentInformation = {
   clientDescription: string;
   userName: string;
   userPicture: string;
-}
+};
 
 import { JSX, useEffect, useState } from 'react';
 import SmallContentBox from '../components/SmallContentBox';
 import HexagonImage from '../components/HexagonImage';
-
 import tokenValidityChecker from '../scripts/tokenValidityChecker';
 import axios from 'axios';
 import { getCookie } from '../scripts/cookies';
@@ -47,17 +46,16 @@ export default function (): JSX.Element {
   useEffect(() => {
     (async () => { 
       const searchParams = new URLSearchParams(window.location.search);
-      if (!searchParams.has('client_id')) {
+      if (!searchParams.has('client_id')) 
         return setError('missing client id.');
-      } else if (!searchParams.has('scope')) {
+      else if (!searchParams.has('scope')) 
         return setError('missing scope.');
-      } else if (!searchParams.has('redirect_uri')) {
+      else if (!searchParams.has('redirect_uri')) 
         return setError('missing redirect URI.');
-      } else if (!searchParams.has('response_type')) {
+      else if (!searchParams.has('response_type')) 
         return setError('missing response type.');
-      } else if (!searchParams.has('code_challenge')) {
+      else if (!searchParams.has('code_challenge')) 
         return setError('missing code challenge.');
-      }
 
       const isLoginValid = await tokenValidityChecker();
       if (isLoginValid !== 204) {
@@ -74,41 +72,41 @@ export default function (): JSX.Element {
         validateStatus: () => true
       });
 
-      if (response.status !== 200) {
+      if (response.status !== 200) 
         return setError(`an error occured while fetching information (${response.data}).`);
-      }
 
       setConsentInfo(response.data);
     })();
   }, []);
 
-  if (error) {
+  if (error) 
     return (
       <SmallContentBox>
-        <p className="explain-text">Invalid/malformed request: {error}</p>
+        <p className='my-4 mx-1 explain-text'>
+Invalid/malformed request:
+          {error}
+        </p>
       </SmallContentBox>
     );
-  }
 
-  if (!consentInfo) {
+  if (!consentInfo) 
     return (
       <SmallContentBox>
-        <p className="explain-text">Loading details...</p>
+        <p className='my-4 mx-1 explain-text'>Loading details...</p>
       </SmallContentBox>
     );
-  }
   
   return (
     <SmallContentBox>
       <>
-        <div className="w-10/12 mt-4 mx-auto flex gap-2">
+        <div className='w-10/12 mt-4 mx-auto flex gap-2'>
           <div className='inline-block flex-none'>
             <HexagonImage size='64px' alt='Application' src={consentInfo.clientIcon} />
           </div>
-          <div className="flex-1 self-center">
+          <div className='flex-1 self-center'>
             <ConnectArrows />
           </div>
-          <div className="flex-none">
+          <div className='flex-none'>
             <HexagonImage size='64px' alt='Application' src={consentInfo.userPicture} />
           </div>
         </div>

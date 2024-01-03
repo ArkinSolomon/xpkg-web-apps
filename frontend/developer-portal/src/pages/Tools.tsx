@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ export default class Tools extends Component {
             {
               text: 'Version Testing',
               action: () => this.setCurrentPage(ToolPages.VersionStrings)
-            },
+            }
             // {
             //   text: 'Hidden Packages',
             //   action: () => this.setCurrentPage(ToolPages.HiddenPackages)
@@ -180,9 +180,10 @@ export default class Tools extends Component {
               initialValues={{
                 testVersion: '',
                 testVersionSelection: ''
-              }as VersionTesterValues}
+              } as VersionTesterValues}
               onSubmit={() => void (0)}
-            >{({ handleChange }) => {
+            >
+              {({ handleChange }) => {
                 const testVersionField: InputFieldProps = {
                   label: 'Version',
                   name: 'testVersion',
@@ -205,7 +206,7 @@ export default class Tools extends Component {
 
                 return (
                   <>
-                    <p id='version-selection-output' dangerouslySetInnerHTML={{__html: this.state.versionTesterOutput}}></p>
+                    <p id='version-selection-output' dangerouslySetInnerHTML={{ __html: this.state.versionTesterOutput }} />
                     <section className='input-section no-border my-6'>
                       <div className='left-half'>
                         <InputField {...testVersionField} />

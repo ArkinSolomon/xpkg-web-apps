@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ type AccountState = {
  */
 type NameChangeValues = {
   name: string;
-}
+};
 
 import { Component, ReactElement } from 'react';
 import MainContainer from '../components/Main Container/MainContainer';
@@ -159,7 +159,7 @@ class Account extends Component {
   // TODO swtich this and loading page to new component
   error(error: string): ReactElement {
     return (
-      <div className="error-screen">
+      <div className='error-screen'>
         <h3>There was an error</h3>
         <p>{ error }</p>
       </div>
@@ -193,7 +193,7 @@ class Account extends Component {
       verificationButtonText = 'Verification sent';
 
     return (
-      <MainContainerContent title="Basic Information">
+      <MainContainerContent title='Basic Information'>
         <div className='account-page'>
           <Formik
             validate={this.validateNameChange}
@@ -223,14 +223,14 @@ class Account extends Component {
                       } as AccountState, () => this.updateRendered(this.basicInformation()));
       
                       httpRequest(`${window.REGISTRY_URL}/account/changename`, HTTPMethod.PATCH, tokenStorage.checkAuth() as string, {
-                        newName: this.state.nameValue as string,
+                        newName: this.state.nameValue as string
                       }, (err, res) => {
                         if (err)
                           return console.error(err);
                       
                         let nameChangeError: string | undefined = void (0);
                         let popupConfig: ConfirmPopupConfig | undefined = void (0);
-                        if (res?.status !== 204) {
+                        if (res?.status !== 204) 
                           switch (res?.status) {
                           case 400:
                             nameChangeError = 'Invalid username';
@@ -239,7 +239,7 @@ class Account extends Component {
                             nameChangeError = 'You changed your username within the last 30 days';
                             break;
                           }
-                        } else {
+                        else {
 
                           popupConfig = {
                             title: 'Name changed successfully',
@@ -258,11 +258,18 @@ class Account extends Component {
                           nameChangeError,
                           popupConfig,
                           isPopupOpen: popupConfig !== void(0), 
-                          isSubmitting: false,
+                          isSubmitting: false
                         } as AccountState, () => this.updateRendered(this.basicInformation()));
                       });
                     },
-                    children: <p className='generic-popup-text'>Are you sure you want to change your name from <b>{ this.state.accountData?.name }</b> to <b>{this.state.nameValue}</b>. Your name can not be changed again for 30 days.</p>
+                    children: <p className='generic-popup-text'>
+Are you sure you want to change your name from
+                      <b>{ this.state.accountData?.name }</b>
+                      {' '}
+to
+                      <b>{this.state.nameValue}</b>
+. Your name can not be changed again for 30 days.
+                    </p>
                   },
                   nameValue: values.name,
                   isSubmitting: false
@@ -270,7 +277,8 @@ class Account extends Component {
                   setSubmitting(false);
                 }); 
               }
-            }>
+            }
+          >
             {({
               handleChange,
               handleSubmit,
@@ -287,11 +295,11 @@ class Account extends Component {
 
               return (
                 <div className='inline-block float-left w-1/2'>
-                  <form className="account-form" onSubmit={handleSubmit}>
+                  <form className='account-form' onSubmit={handleSubmit}>
                     <InputField {...nameChangeFieldData} />
                     <input
-                      type="submit"
-                      value="Change"
+                      type='submit'
+                      value='Change'
                       disabled={isSubmitting || this.state.isSubmitting || !this.state.invalidNameChangeForm}
                     />
                     {this.state.nameChangeError && <p className='error-text'>{this.state.nameChangeError}</p>}
@@ -301,7 +309,10 @@ class Account extends Component {
             }} 
           </Formik>
           <div className='inline-block float-right w-1/2'>
-            <p>Verification status: {this.state.accountData?.isVerified ? 'YES' : 'NO'}</p>
+            <p>
+Verification status:
+              {this.state.accountData?.isVerified ? 'YES' : 'NO'}
+            </p>
             <button disabled={this.state.accountData?.isVerified || this.state.verificationSent || this.state.sendingVerification} className='reverify-button mt-3' onClick={async () => {
               this.setState({
                 sendingVerification: true
@@ -323,7 +334,7 @@ class Account extends Component {
                     onClose: () =>
                       this.setState({
                         isPopupOpen: false
-                      } as Partial<AccountState>),
+                      } as Partial<AccountState>)
                   }
                 } as Partial<AccountState>, () => this.updateRendered(this.basicInformation()));
                 return;
@@ -348,10 +359,13 @@ class Account extends Component {
                   onClose: () =>
                     this.setState({
                       isPopupOpen: false
-                    } as Partial<AccountState>),
+                    } as Partial<AccountState>)
                 }
               } as Partial<AccountState>);
-            }}>{verificationButtonText}</button>
+            }}
+            >
+              {verificationButtonText}
+            </button>
           </div>
         </div>
       </MainContainerContent>
@@ -359,11 +373,11 @@ class Account extends Component {
   }
 
   updateRendered(newElement: ReactElement) {
-    if (this.mounted) {
+    if (this.mounted) 
       return this.setState({
         rendered: newElement
       });
-    } 
+     
     (this.state as AccountState).rendered = newElement;
   }
 
@@ -410,7 +424,8 @@ class Account extends Component {
                     window.location.href = '/';
                   }
                 }
-              ]} />
+              ]}
+              />
             )
           }
           right={
@@ -419,7 +434,8 @@ class Account extends Component {
                 {(this.state as AccountState).rendered}
               </>
             )
-          } />
+          }
+        />
       </>
     );
   }

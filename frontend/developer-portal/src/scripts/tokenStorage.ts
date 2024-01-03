@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ export function checkAuth(): string | null {
 export function saveToken(token: string, rememberMe: boolean): void {
   Cookies.set(COOKIE_NAME, token, {
     // secure: true, // Make sure this is true in production
-    expires: rememberMe ? DateTime.now().plus({ hours: 6 }).toJSDate() : void 0,
+    expires: rememberMe ? DateTime.now().plus({ hours: 6 }).toJSDate() : void 0
   });
 }
 

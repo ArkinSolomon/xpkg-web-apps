@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,4 +67,15 @@ export function createPermissionsNumber(...scopes: TokenScope[]): TokenScope {
  */
 export function hasPermission(permissionsNumber: bigint, scope: TokenScope): boolean { 
   return (permissionsNumber & scope) > 0n;
+}
+
+/**
+ * Determine if a permissions number contains any of the token scopes.
+ * 
+ * @param {bigint} permissionsNumber The permissions number to check.
+ * @param {...TokenScope} scopes The scopes to check for.
+ * @returns {boolean} True if the number contains any of the specified scopes.
+ */
+export function hasAnyPermission(permissionsNumber: bigint, ...scopes: TokenScope[]): boolean { 
+  return (permissionsNumber & (scopes.reduce((p, c) => p | c))) > 0n;
 }

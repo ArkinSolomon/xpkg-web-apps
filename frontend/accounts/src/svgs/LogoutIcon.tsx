@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
  */
 import '../css/SvgColoring.scss';
 
-export default function YourDataIcon() {
+export default function LogoutIcon() {
   return (
-    <svg width='800px' height='800px' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg' strokeWidth='3' stroke='#000000' fill='none'>
-      <path className='primary-stroke' d='M16.59,30.62C18.13,17,30.37,21.78,30.37,21.78s4.53-8.14,12.24-5.47,6.48,11.08,6.48,11.08a10.86,10.86,0,0,1,7.48,10.37c0,4-2.66,11.22-9.93,11.22H17.43s-10,0-10-10c0-8.21,10.87-9.4,13.45-7.84' strokeLinecap='round' />
+    <svg width='800px' height='800px' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg' stroke-width='3' stroke='#000000' fill='none'>
+      <polyline className='primary-stroke' points='46.02 21.95 55.93 31.86 46.02 41.77' />
+      <line className='primary-stroke' x1='55.93' y1='31.86' x2='19.59' y2='31.86' />
+      <path className='primary-stroke' d='M40,38.18V52a2.8,2.8,0,0,1-2.81,2.8H12A2.8,2.8,0,0,1,9.16,52V11.77A2.8,2.8,0,0,1,12,9H37.19A2.8,2.8,0,0,1,40,11.77V25' />
     </svg>
   );
 }

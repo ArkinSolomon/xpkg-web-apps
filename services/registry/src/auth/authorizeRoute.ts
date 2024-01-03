@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,12 +46,11 @@ export default function (optional = false) {
       if (author.session !== authToken.session)
         throw null;
 
-      else if (authToken.tokenSession) {
+      else if (authToken.tokenSession) 
         if (!author.tokens.find(t => t.tokenSession === authToken.tokenSession))
           throw null;
-      }
 
-     req.user = authToken;
+      req.user = authToken;
 
       next();
     } catch (e) {

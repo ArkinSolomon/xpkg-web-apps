@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import HeaderButton from './HeaderButton';
 function Header() {
   return (
     <header>
-      <img id='header-logo' src='/box-logo.png' alt='X-Pkg Box Logo' className='inline'/>
+      <img id='header-logo' src='/box-logo.png' alt='X-Pkg Box Logo' className='inline' />
       <h1>X-Pkg Developer Portal</h1>
 
       <div id='header-buttons'>

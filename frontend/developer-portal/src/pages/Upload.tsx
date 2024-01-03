@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ type UploadValues = {
   macOS: boolean;
   windows: boolean;
   linux: boolean;
-}
+};
 
 /**
  * The state of the upload object.
@@ -70,7 +70,7 @@ type UploadState = {
   incompatibilities: [string, string][];
   dependencyErr: boolean;
   incompatibilityErr: boolean;
-}
+};
 
 import { Component } from 'react';
 import * as tokenStorage from '../scripts/tokenStorage';
@@ -191,7 +191,7 @@ class Upload extends Component {
       } as Partial<UploadState>);
     } catch (e) {
       console.error(e);
-      if (e instanceof RegistryError) {
+      if (e instanceof RegistryError) 
         switch (e.status) {
         case 401:
           tokenStorage.delToken();
@@ -204,7 +204,6 @@ class Upload extends Component {
             errorMessage: 'Package does not exist'
           } as Partial<UploadState>);
         }
-      }
 
       return this.setState({
         isLoading: false,
@@ -237,7 +236,7 @@ class Upload extends Component {
     this.setState({
       errors,
       uploadError: void 0,
-      uploadErrorEffectsButton: true,
+      uploadErrorEffectsButton: true
     } as Partial<UploadState>);
 
     return {};
@@ -281,7 +280,7 @@ class Upload extends Component {
           this.setState({
             uploadProgress: e.progress
           } as Partial<UploadState>);
-        },
+        }
       });
 
       sessionStorage.setItem('success_message', 'Uploaded new package version successfully');
@@ -290,7 +289,7 @@ class Upload extends Component {
       let errorMessage = 'An unknown error occured.';
       let shouldAutoEnable = true;
 
-      if (e instanceof AxiosError) {
+      if (e instanceof AxiosError) 
         switch (e.response?.status) {
         case 400: 
           shouldAutoEnable = false;
@@ -312,17 +311,15 @@ class Upload extends Component {
           errorMessage = 'An internal server error occured.';
           break;
         }
-      }
 
-      if (shouldAutoEnable) {
+      if (shouldAutoEnable) 
         setTimeout(() => {
-          if (this.state.uploadError && this.state.uploadErrorEffectsButton) {
+          if (this.state.uploadError && this.state.uploadErrorEffectsButton) 
             this.setState({
               uploadErrorEffectsButton: false
             });
-          }
+          
         }, 5000);
-      }
 
       this.setState({
         uploadError: errorMessage,
@@ -389,7 +386,8 @@ class Upload extends Component {
                   isStored: true,
                   ...this._defaultPlatformSupport
                 } as UploadValues}
-                onSubmit={ this._submit.bind(this) }>
+                onSubmit={ this._submit.bind(this) }
+              >
                 {({
                   values,
                   handleChange,
@@ -405,7 +403,7 @@ class Upload extends Component {
                     defaultValue: this._defaultVersion,
                     minLength: 1,
                     maxLength: 15,
-                    error: this.state.errors.packageVersion,
+                    error: this.state.errors.packageVersion
                   };
 
                   const fileUploadProps: InputFileProps = {
@@ -492,17 +490,20 @@ class Upload extends Component {
                                 v.isPublic = !v.isPublic;
                                 handleChange(e);
                                 checkboxUpdated(v);
-                              }} checked={values.isPublic} />
+                              }} checked={values.isPublic}
+                              />
                               <InputCheckbox name='isPrivate' title='Private' onChange={e => {
                                 v.isPrivate = !v.isPrivate;
                                 handleChange(e);
                                 checkboxUpdated(v);
-                              }} checked={values.isPrivate} />
+                              }} checked={values.isPrivate}
+                              />
                               <InputCheckbox name='isStored' title='Is Saved' onChange={e => {
                                 v.isStored = !v.isStored;
                                 handleChange(e);
                                 checkboxUpdated(v);
-                              }} checked={values.isStored} disabled={values.isPublic} />
+                              }} checked={values.isStored} disabled={values.isPublic}
+                              />
                             </div>
                             <label className='triple-config-label mt-6'>Platform Support</label>
                             <div className='checkboxes'>

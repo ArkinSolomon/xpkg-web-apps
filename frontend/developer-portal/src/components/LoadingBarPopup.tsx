@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ export type LoadingPopupConfig = {
   progress: number;
   title: string;  
   text: string;
-}
+};
 
 import { ReactNode } from 'react';
 import Popup from 'reactjs-popup';
@@ -44,22 +44,23 @@ function LoadingBarPopup(props: LoadingPopupConfig & { open: boolean; }) {
       nested
       closeOnDocumentClick={false}
       key={key}
-    >{(() => {  
-      return (
-        <div className='popup-dialog loading-popup'>
-          <h2>{props.title}</h2>
-          <div className='popup-children'> 
-            <div>
-              <label htmlFor={id} className='generic-popup-text'>{props.text}</label>
-              <progress id={id} className='popup-progress-bar' value={props.progress} max="1"></progress>
+    >
+      {(() => {  
+        return (
+          <div className='popup-dialog loading-popup'>
+            <h2>{props.title}</h2>
+            <div className='popup-children'> 
+              <div>
+                <label htmlFor={id} className='generic-popup-text'>{props.text}</label>
+                <progress id={id} className='popup-progress-bar' value={props.progress} max='1' />
+              </div>
             </div>
           </div>
-        </div>
-      );
+        );
         
       // We need this or else TypeScript gets angry, even thought it's written
       // in the docs that you can do this, also see #315 on reactjs-popup 
-    }) as unknown as ReactNode}
+      }) as unknown as ReactNode}
     </Popup>
   );
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
  * @property {ReactElement} children The elements to go within the modal.
  */
 export type ConfirmPopupConfig = {
-  title: string
+  title: string;
   confirmText?: string;
   showClose?: boolean;
   closeText?: string;
@@ -65,51 +65,52 @@ function ConfirmPopup(props: ConfirmPopupConfig & { open: boolean; }) {
       modal
       nested
       closeOnDocumentClick={false}
-    >{((close: () => void) => {
+    >
+      {((close: () => void) => {
       
-      const closeButtonClicked = props.onCancel ? () => {
-        close();
-        onClose();
-        props.onCancel?.();
-      } : () => {
-        close();
-        onClose();
-      };
+        const closeButtonClicked = props.onCancel ? () => {
+          close();
+          onClose();
+          props.onCancel?.();
+        } : () => {
+          close();
+          onClose();
+        };
         
-      const confirmButtonClicked = props.onConfirm ? () => {
-        close();
-        onClose();
-        props.onConfirm?.();
-      } : () => {
-        close();
-        onClose();
-      };
+        const confirmButtonClicked = props.onConfirm ? () => {
+          close();
+          onClose();
+          props.onConfirm?.();
+        } : () => {
+          close();
+          onClose();
+        };
       
-      return (
-        <div className='popup-dialog'>
-          <h2>{props.title}</h2>
-          <div className='popup-children'>
-            {props.children}
-          </div>
-          <div className='buttons'>
-            {
-              (props.confirmText || props.onConfirm) &&
+        return (
+          <div className='popup-dialog'>
+            <h2>{props.title}</h2>
+            <div className='popup-children'>
+              {props.children}
+            </div>
+            <div className='buttons'>
+              {
+                (props.confirmText || props.onConfirm) &&
                 <button className='primary-button mx-4' onClick={confirmButtonClicked}> 
                   {props.confirmText ?? 'Confirm'}
                 </button>
-            }
-            {showClose &&
+              }
+              {showClose &&
                 <button className='secondary-button' onClick={closeButtonClicked}>
                   {props.closeText ?? 'Close'}
                 </button>
-            }
+              }
+            </div>
           </div>
-        </div>
-      );
+        );
         
       // We need this or else TypeScript gets angry, even thought it's written
       // in the docs that you can do this, also see #315 on reactjs-popup 
-    }) as unknown as ReactNode}
+      }) as unknown as ReactNode}
     </Popup>
   );
 }

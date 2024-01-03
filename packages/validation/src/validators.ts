@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,10 @@ import profaneWords from './profaneWords.js';
 export function isProfane(text: string): boolean {
   const parts = text.split(/[\s._]/);
   
-  for (const part of parts) {
-    if (profaneWords.includes(part.toLowerCase())) {
+  for (const part of parts) 
+    if (profaneWords.includes(part.toLowerCase())) 
       return true;
-    }
-  }
-
+    
   return false;
 }
 
@@ -195,9 +193,34 @@ export function asVersionSelection(chain: ValidationChain): ValidationChain {
       const selection = new VersionSelection(value);
       if (!selection.isValid)
         return false;
-      (chain as ValidationChain & { __xpkgSelectionCache: VersionSelection }).__xpkgSelectionCache = selection;
+      (chain as ValidationChain & { __xpkgSelectionCache: VersionSelection; }).__xpkgSelectionCache = selection;
       return true;
     })
     .bail().withMessage('invalid_selection')
-    .customSanitizer(() => (chain as ValidationChain & { __xpkgSelectionCache: VersionSelection }).__xpkgSelectionCache);
+    .customSanitizer(() => (chain as ValidationChain & { __xpkgSelectionCache: VersionSelection; }).__xpkgSelectionCache);
+}
+
+/**
+ * Ensure that a provided value is a validly formatted X-Pkg token.
+ * 
+ * @returns {ValidationChain} The validation chain provided to an Express route, or used for further modification.
+ * @param {ValidationChain} chain The source of the value to validate.
+ */
+export function isValidTokenFormat(chain: ValidationChain): ValidationChain {
+  return chain
+    .notEmpty().bail().withMessage('invalid_or_empty_str')
+    .isLength({
+      min: 116,
+      max: 116
+    }).bail().withMessage('bad_len').custom(token => {
+      if (!token.startsWith('xpkg_')) 
+        return false;
+
+      try {
+        parseInt(token.slice(108), 16);
+      } catch {
+        return false;
+      }
+      return true;
+    }).bail().withMessage('bad_token');
 }

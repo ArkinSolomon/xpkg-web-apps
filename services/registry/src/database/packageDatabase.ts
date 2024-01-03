@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -393,7 +393,7 @@ export async function updateDescription(packageId: string, newDescription: strin
 export async function getAuthorPackages(authorId: string): Promise<PackageData[]> {
   return PackageModel
     .find({
-      authorId,
+      authorId
     })
     .lean()
     .select('-_id -__v')

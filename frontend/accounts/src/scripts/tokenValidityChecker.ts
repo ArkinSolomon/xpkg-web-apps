@@ -19,18 +19,16 @@ import { getCookie } from './cookies';
  * Check to see if the token stored in the cookie is valid.
  * 
  * @async
- * @returns The status code from the server (which is 204 on success, and typically 401 on failure), or 401 if there is a reason the request shouldn't be made.
+ * @returns {Promise<number>} A promise which resolves to the status code from the server (which is 204 on success, and typically 401 on failure), or 401 if there is a reason the request shouldn't be made.
  */
 export default async function (): Promise<number> {
   const tokenCookie = getCookie('token');
-  if (!tokenCookie) {
+  if (!tokenCookie) 
     return 401;
-  }
 
   const expiry = getExpiry(tokenCookie);
-  if (expiry.getTime() <= Date.now()) {
+  if (expiry.getTime() <= Date.now()) 
     return 401;
-  }
 
   const data = await axios.post('http://localhost:4819/account/tokenvalidate', {}, {
     headers: {
@@ -49,9 +47,9 @@ export default async function (): Promise<number> {
  */
 export function getTokenExpiry() {
   const token = getCookie('token');
-  if (!token) {
+  if (!token) 
     return new Date(0);
-  }
+  
   return getExpiry(token);
 }
 
@@ -61,6 +59,6 @@ export function getTokenExpiry() {
  * @param {string} token The token to get the expiry date of.
  * @returns {Date} The date at which the provided token expires.
  */
-function getExpiry(token: string) {
+export function getExpiry(token: string) {
   return new Date(parseInt(token.slice(108), 16) * 1000);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
   errorMessage: string;
   recaptchaToken?: string;
   errors: Partial<CreateValues>;
-}
+};
 
 /**
  * The values in the form.
@@ -45,7 +45,7 @@ type CreateValues = {
   checkPassword: string;
   rememberMe: boolean;
   agree: boolean;
-}
+};
 
 import { Component } from 'react';
 import { Formik, FormikErrors } from 'formik';
@@ -76,7 +76,7 @@ class Create extends Component {
       if (possibleRedir) {
         sessionStorage.removeItem('post-auth-redirect');
         window.location.href = possibleRedir;
-      }else 
+      } else 
         window.location.href = '/packages';
     }
     
@@ -220,11 +220,12 @@ class Create extends Component {
           rememberMe: false,
           agree: false
         } as CreateValues}
-        onSubmit={this._submit}>
+        onSubmit={this._submit}
+      >
         {({
           handleChange,
           handleSubmit,
-          isSubmitting,
+          isSubmitting
         }) => {
           const linkDisabled = isSubmitting ? 'linkDisabled' : '';
           const errorMessageActive = this.state.errorMessage !== '';
@@ -276,8 +277,8 @@ class Create extends Component {
               errorMessgae={this.state.errorMessage}
             >
               <InputField {...emailFieldData} />
-              <InputField {...nameFieldData}/>
-              <InputField {...passwordFieldData}/>
+              <InputField {...nameFieldData} />
+              <InputField {...passwordFieldData} />
               <InputField {...checkPasswordFieldData} />
               
               <div className='flex justify-center my-4'>
@@ -296,7 +297,7 @@ class Create extends Component {
             </AuthBox>
           );
         }}
-      </Formik >
+      </Formik>
     );
   }
 }

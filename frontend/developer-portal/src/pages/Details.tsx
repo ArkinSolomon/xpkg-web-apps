@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ import { AuthorSingleVersionPackageData, PackageType, VersionStatus, getAuthorPa
 import RegistryError from '../scripts/registryError';
 import VersionSelection from '../scripts/versionSelection';
 import PackageInformation from './PackageInformation';
-import {getAnalytics, AnalyticsData, TimeChartData, formatAnalyticsDataToDays } from '../scripts/analytics';
+import { getAnalytics, AnalyticsData, TimeChartData, formatAnalyticsDataToDays } from '../scripts/analytics';
 import { Line }  from 'react-chartjs-2';
 import { DateTime, Duration } from 'luxon';
 import 'chartjs-adapter-luxon';
@@ -86,7 +86,7 @@ import {
   PointElement,
   Legend,
   Filler,
-  TimeScale,
+  TimeScale
 } from 'chart.js';
 
 ChartJS.register(
@@ -96,7 +96,7 @@ ChartJS.register(
   PointElement,
   Legend,
   Filler,
-  TimeScale,
+  TimeScale
 );
 
 const DOWNLOADS_CHART_COLOR = '#1f222a';
@@ -173,11 +173,10 @@ class Details extends Component {
       break;
     }
 
-    if (!Version.fromString(version)) {
+    if (!Version.fromString(version)) 
       return this.setState({
         errorMessage: 'Invalid version provided.'
       } as Partial<DetailsState>);
-    }
 
     try {
       let analytics: AnalyticsData[];
@@ -185,10 +184,10 @@ class Details extends Component {
       [this._data, analytics, lastAnalyticsData] = await Promise.all([
         getAuthorPackageVersion(packageId, version),
         getAnalytics(packageId, version, this._minDate),
-        getAnalytics(packageId, version, this._minDate.minus({weeks: 2}), this._minDate)
+        getAnalytics(packageId, version, this._minDate.minus({ weeks: 2 }), this._minDate)
       ]);
 
-      lastAnalyticsData.forEach(d => d.timestamp = d.timestamp.plus({weeks: 2}));
+      lastAnalyticsData.forEach(d => d.timestamp = d.timestamp.plus({ weeks: 2 }));
       
       this._originalSelection = this._data.versionData.xpSelection.toString();
       this._originalIncompatibilities = JSON.stringify(this._data.versionData.incompatibilities);
@@ -198,12 +197,12 @@ class Details extends Component {
         dependencies: this._data.versionData.dependencies,
         incompatibilities: this._data.versionData.incompatibilities,
         xpSelectionStr: this._data?.versionData.xpSelection.toString(),
-        downloadsData: formatAnalyticsDataToDays(analytics, this._minDate, this._maxDate),
+        downloadsData: formatAnalyticsDataToDays(analytics, this._minDate, this._maxDate)
       } as Partial<DetailsState>);
     } catch (e) {
       console.error(e);
       let errorMessage = 'An unknown error occured.';
-      if (e instanceof RegistryError) {
+      if (e instanceof RegistryError) 
         switch (e.status) {
         case 400:
           errorMessage = 'Invalid package identifier or version provided.';
@@ -224,7 +223,6 @@ class Details extends Component {
           errorMessage = 'Internal server error. Please try again later.';
           break;  
         }
-      }
 
       this.setState({ errorMessage } as Partial<DetailsState>);
     }
@@ -258,14 +256,14 @@ class Details extends Component {
           this.setState({
             uploadProgress: e.progress
           } as Partial<DetailsState>);
-        },
+        }
       });
 
       window.location.reload();
     } catch (e) {
       let errorMessage = 'An unknown error occured.';
       
-      if (e instanceof AxiosError) {
+      if (e instanceof AxiosError) 
         switch (e.response?.status) {
         case 400:
           errorMessage = {
@@ -282,7 +280,6 @@ class Details extends Component {
           errorMessage = 'An internal server error occured.';
           break;
         }
-      }
 
       this.setState({
         uploadError: errorMessage,
@@ -324,7 +321,9 @@ class Details extends Component {
               className='primary-button'
               disabled={!this.state.file || this.state.isSubmitting}
               onClick={() => this._reuploadFailed()}
-            >Upload</button>
+            >
+Upload
+            </button>
           </div>
         </section>
       );
@@ -343,13 +342,12 @@ class Details extends Component {
       isSubmitting: true
     } as Partial<DetailsState>);
 
-    if (!this.state.xpSelection.isValid) {
+    if (!this.state.xpSelection.isValid) 
       return this.setState({
         popupTitle: 'X-Plane Version Selection Update Error',
         popupText: 'Invalid X-Plane selection provided.',
         isSubmitting: false
       } as Partial<DetailsState>);
-    }
 
     let response;
     try {
@@ -372,7 +370,7 @@ class Details extends Component {
       return this.setState({
         popupTitle: 'X-Plane Version Selection Updated',
         popupText: 'Successfully updated the X-Plane version selection.',
-        popupAction: () => window.location.reload(),
+        popupAction: () => window.location.reload()
       } as Partial<DetailsState>);
     case 400: {
       const humanReadableText = {
@@ -440,24 +438,23 @@ class Details extends Component {
         return this.setState({
           popupTitle: 'Incompatibility Update Error',
           popupText: 'Package version can not be incompatible with itself.',
-          isSubmitting: false,
+          isSubmitting: false
         } as Partial<DetailsState>);
       
-      if (dependencyIds.includes(incompatibilityId) || dependencyIds.includes(originalId)) {
+      if (dependencyIds.includes(incompatibilityId) || dependencyIds.includes(originalId)) 
         return this.setState({
           popupTitle: 'Incompatibility Update Error',
           popupText: 'Can not have a package in both the dependency and incompatibility lists. Publish a new package with a narrower dependency selection instead.',
           isSubmitting: false
         } as Partial<DetailsState>);
-      }
 
-      if (incompatibilities.length > 128) {
+      if (incompatibilities.length > 128) 
         return this.setState({
           popupTitle: 'Incompatibility Update Error',
           popupText: 'Too many incompatibilities submitted. Please contact support.',
           isSubmitting: false
         } as Partial<DetailsState>);
-      }
+      
     }
 
     let response;
@@ -481,7 +478,7 @@ class Details extends Component {
       return this.setState({
         popupTitle: 'Incompatibilities Updated',
         popupText: 'Successfully updated incompatibilities.',
-        popupAction: () => window.location.reload(),
+        popupAction: () => window.location.reload()
       } as Partial<DetailsState>);
     case 400: {
       const humanReadableText = {
@@ -536,7 +533,7 @@ class Details extends Component {
   }
 
   render(): ReactNode {
-    if (this.state.errorMessage) {
+    if (this.state.errorMessage) 
       return (
         <MainContainer>
           <MainContainerError
@@ -546,15 +543,15 @@ class Details extends Component {
           />
         </MainContainer>
       );
-    }
-    else if (this.state.isLoading) {
+    
+    else if (this.state.isLoading) 
       return (
         <MainContainer>
           <MainContainerLoading loadingMessage='Fetching version data' />
         </MainContainer>
       );
-    } else {
-      if (!this._data?.versionData ) {
+    else {
+      if (!this._data?.versionData) {
         this.setState({
           errorMessage: 'Version data not found on client'
         } as Partial<DetailsState>);
@@ -647,11 +644,15 @@ class Details extends Component {
                         <button
                           onClick={() => downloadFile(this._data?.versionData.loc as string, `${this._data?.packageId}@${this._data?.versionData.packageVersion}`)}
                           className='primary-button'
-                        >Download Package File</button>
+                        >
+Download Package File
+                        </button>
                         <button
                           onClick={() => downloadInstallationFile(this._data!.packageId, this._data!.versionData.packageVersion.toString()!, this._data?.versionData.privateKey)}
                           className='primary-button'
-                        >Download Installation File</button>
+                        >
+Download Installation File
+                        </button>
                       </>
                       }
                     </aside>
@@ -663,7 +664,7 @@ class Details extends Component {
                       maintainAspectRatio: false,
                       elements: {
                         point: {
-                          radius: 0,
+                          radius: 0
                         }
                       },
                       scales: {
@@ -672,7 +673,7 @@ class Details extends Component {
                           min: this._minDate.valueOf(),
                           max: this._maxDate.valueOf(),
                           time: {
-                            minUnit: 'day',
+                            minUnit: 'day'
                           }
                         },
                         y: {
@@ -699,7 +700,9 @@ class Details extends Component {
                       className='primary-button mt-6 float-right'
                       disabled={this.state.isSubmitting || !this.state.xpSelection.isValid || this._originalSelection === this.state.xpSelection.toString()}
                       onClick={this._updateXpSelection}
-                    >Update X-Plane Selection</button>
+                    >
+Update X-Plane Selection
+                    </button>
                   </div>
                 </section>
                 <section className='mt-11'>     
@@ -716,7 +719,9 @@ class Details extends Component {
                       className='primary-button'
                       disabled={this._originalIncompatibilities === JSON.stringify(this.state.incompatibilities) || this.state.incompatibilityErr || this.state.isSubmitting}
                       onClick={this._updateIncompatibilities}
-                    >Update Incompatibilities</button>
+                    >
+Update Incompatibilities
+                    </button>
                   </div>
                 </section>
               </>

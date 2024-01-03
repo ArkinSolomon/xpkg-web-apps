@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ const clientSchema = new Schema<ClientData>({
     type: String,
     required: true,
     index: true,
-    unique: true,
+    unique: true
   },
   secretHash: {
     type: String,
@@ -79,12 +79,12 @@ const clientSchema = new Schema<ClientData>({
   permissionsNumber: {
     type: BigInt,
     required: true
-  },
+  }
 }, {
   collection: 'clients'
 });
 
-const clientsDB = mongoose.connection.useDb('clients');
+const clientsDB = mongoose.connection.useDb('oauth');
 const ClientModel = clientsDB.model<ClientData>('client', clientSchema);
 
 export default ClientModel;

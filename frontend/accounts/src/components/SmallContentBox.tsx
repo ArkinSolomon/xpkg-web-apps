@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  */
 import '../css/ContentBox.scss';
 
-export default function (props: {children?: React.JSX.Element, subtitle?: string, footer?: React.JSX.Element}): React.JSX.Element {  
+export default function (props: { children?: React.JSX.Element; subtitle?: string; footer?: React.JSX.Element; }): React.JSX.Element {  
   return (
     <main id='content-box' className='small'>
 
       <h1 className='main-title'>
-        <img src="/logos/main-logo.png" alt="X-Pkg Logo" />
+        <img src='/logos/main-logo.png' alt='X-Pkg Logo' />
             X-Pkg Accounts
       </h1>
       {

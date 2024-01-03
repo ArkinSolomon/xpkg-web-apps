@@ -64,7 +64,7 @@ export type UserData = {
   profilePicture: string;
   isDeveloper: boolean;
   nameChangeDate: Date;
-}
+};
 
 /**
  * The state of the Account page.
@@ -82,7 +82,7 @@ type AccountState = {
   switchState: SwitchState;
   error?: string;
   modal?: ModalProps;
-}
+};
 
 import { Component, ReactNode } from 'react';
 import LargeContentBox from '../components/LargeContentBox';
@@ -98,10 +98,11 @@ import Loading from '../components/accountPages/Loading';
 import PersonalInformation from '../components/accountPages/PersonalInformation';
 import axios from 'axios';
 import { getCookie, setCookie } from '../scripts/cookies';
-import tokenValidityChecker, {getTokenExpiry} from '../scripts/tokenValidityChecker';
+import tokenValidityChecker, { getTokenExpiry } from '../scripts/tokenValidityChecker';
 import Error from '../components/accountPages/Error';
 import Modal, { ModalProps } from '../components/Modal';
 import { identifiers } from '@xpkg/validation';
+import LogoutIcon from '../svgs/LogoutIcon';
 
 export default class extends Component<Record<string, never>, AccountState> {
   private _userData?: UserData;
@@ -121,31 +122,38 @@ export default class extends Component<Record<string, never>, AccountState> {
     };
 
     (async () => {
-      const isLoginValid = await tokenValidityChecker();
-      if (isLoginValid !== 204) {
-        loginAgain();
-      }
-
-      const response =  await axios.get('http://localhost:4819/account/userdata', {
-        headers: {
-          Authorization: getCookie('token')!
-        },
-        validateStatus: () => true
-      });
-
-      if (response.status !== 200) {
+      try {
+        const isLoginValid = await tokenValidityChecker();
+        if (isLoginValid !== 204) 
+          loginAgain();
+        
+      } catch (e) {
+        console.error(e);
         this._setOrUpdateState({
-          error: 'An unknown error occured',
+          error: 'Could not connect to the server'
         });
-
         return this._changePage(AccountPage.Error);
       }
-      
-      const untransformedData: UserData | { created: string; nameChangeDate: string; } = response.data;
-      untransformedData.created = new Date(untransformedData.created);
-      untransformedData.nameChangeDate = new Date(untransformedData.nameChangeDate);
-      this._userData = untransformedData as UserData;
-      this._changePage(AccountPage.PersonalInformation);
+
+      try {
+        const response = await axios.get('http://localhost:4819/account/userdata', {
+          headers: {
+            Authorization: getCookie('token')!
+          }
+        });
+
+        const untransformedData: UserData | { created: string; nameChangeDate: string; } = response.data;
+        untransformedData.created = new Date(untransformedData.created);
+        untransformedData.nameChangeDate = new Date(untransformedData.nameChangeDate);
+        this._userData = untransformedData as UserData;
+        this._changePage(AccountPage.PersonalInformation);
+      } catch (e) {
+        console.error(e);
+        this._setOrUpdateState({
+          error: 'An unknown error occured'
+        });
+        return this._changePage(AccountPage.Error);
+      }
 
       const expiryDate = getTokenExpiry();
       const delay = expiryDate.getTime() - Date.now();
@@ -155,7 +163,7 @@ export default class extends Component<Record<string, never>, AccountState> {
         this._setOrUpdateState({ 
           modal: {
             title: 'Session expired',
-            children: <p className="generic-modal-text">You are being logged out for your account security. Please login again.</p>,
+            children: <p className='generic-modal-text'>You are being logged out for your account security. Please login again.</p>,
             buttons: [
               {
                 text: 'Ok',
@@ -196,14 +204,14 @@ export default class extends Component<Record<string, never>, AccountState> {
    * @param {Partial<AccountState>} newState The properties of the state to update.
    */
   private _setOrUpdateState(newState: Partial<AccountState>) {    
-    if (!this._isMounted) {
+    if (!this._isMounted) 
       this.state = {
         ...this.state,
         ...newState
       };
-    } else {
+    else 
       this.setState(newState as AccountState);
-    }
+    
   }
 
   /**
@@ -283,9 +291,8 @@ export default class extends Component<Record<string, never>, AccountState> {
    */
   private _createPageChangeFunction(newPage: AccountPage) {
     return (() => {
-      if (this.state.loadedPage === newPage || this.state.switchState === SwitchState.No) {
+      if (this.state.loadedPage === newPage || this.state.switchState === SwitchState.No) 
         return;
-      }
 
       this._changePage(newPage);
     }).bind(this);
@@ -306,9 +313,10 @@ export default class extends Component<Record<string, never>, AccountState> {
       return <PersonalInformation showModal={modal => {
         this._modalKey = identifiers.alphanumericNanoid(8);
         this.setState({ modal });
-      }} userData={this._userData} />;
+      }} userData={this._userData}
+      />;
     default:
-      return <p style={{color: 'red', fontSize: '23pt', fontFamily: 'monospace'}}>PAGE NOT IMPLEMENTED</p>;
+      return <p style={{ color: 'red', fontSize: '23pt', fontFamily: 'monospace' }}>PAGE NOT IMPLEMENTED</p>;
     }
   }
   
@@ -321,47 +329,49 @@ export default class extends Component<Record<string, never>, AccountState> {
             const currentKey = this._modalKey!;
 
             button.action = () => {
-              if (oldAction) {
+              if (oldAction) 
                 oldAction();
-              }
               
-              if (this._modalKey === currentKey) {
+              if (this._modalKey === currentKey) 
                 this.setState({ modal: void 0 });
-              }
+              
             };
             return button;
-          })}>
+          })}
+          >
             {this.state.modal!.children}
           </Modal>
         }
         <LargeContentBox>
-          <div id="account-wrapper">
+          <div id='account-wrapper'>
             <nav id='sidebar' className='closed'>
-              <button id='sidebar-close' className='plus-sign' onClick={this._toggleSidebar}></button>
-              <div id="title-wrapper">
+              <button id='sidebar-close' className='plus-sign' onClick={this._toggleSidebar} />
+              <div id='title-wrapper'>
                 <h1 className='main-title'>
-                  <img src="/logos/main-logo.png" alt="X-Pkg Logo" />
+                  <img src='/logos/main-logo.png' alt='X-Pkg Logo' />
             X-Pkg Accounts
                 </h1>
               </div>
               <SidebarItem icon={<PersonIcon />} label='Personal Information' onClick={this._createPageChangeFunction(AccountPage.PersonalInformation)} active={this.state.loadedPage === AccountPage.PersonalInformation} />
-              <SidebarItem icon={<NotificationsIcon />} label='Notification Settings' onClick={this._createPageChangeFunction(AccountPage.NotificationSettings)} active={this.state.loadedPage === AccountPage.NotificationSettings}/>
-              <SidebarItem icon={<SecuritySettingsIcon />} label='Security Settings' onClick={this._createPageChangeFunction(AccountPage.SecuritySettings)} active={this.state.loadedPage === AccountPage.SecuritySettings}/>
-              <SidebarItem icon={<YourDataIcon />} label='Your Data' onClick={this._createPageChangeFunction(AccountPage.YourData)} active={this.state.loadedPage === AccountPage.YourData}/>
+              <SidebarItem icon={<NotificationsIcon />} label='Notification Settings' onClick={this._createPageChangeFunction(AccountPage.NotificationSettings)} active={this.state.loadedPage === AccountPage.NotificationSettings} />
+              <SidebarItem icon={<SecuritySettingsIcon />} label='Security Settings' onClick={this._createPageChangeFunction(AccountPage.SecuritySettings)} active={this.state.loadedPage === AccountPage.SecuritySettings} />
+              <SidebarItem icon={<YourDataIcon />} label='Your Data' onClick={this._createPageChangeFunction(AccountPage.YourData)} active={this.state.loadedPage === AccountPage.YourData} />
               {this._userData?.isDeveloper && 
             <>
               <hr />
-              <SidebarItem icon={<DeveloperSettingsIcon />} label='Developer Settings' onClick={this._createPageChangeFunction(AccountPage.DeveloperSettings)}active={this.state.loadedPage === AccountPage.DeveloperSettings} />
-              <SidebarItem icon={<OAuthClientIcon />} label='OAuth Clients' onClick={this._createPageChangeFunction(AccountPage.OAuthClients)} active={this.state.loadedPage === AccountPage.OAuthClients}/>
+              <SidebarItem icon={<DeveloperSettingsIcon />} label='Developer Settings' onClick={this._createPageChangeFunction(AccountPage.DeveloperSettings)} active={this.state.loadedPage === AccountPage.DeveloperSettings} />
+              <SidebarItem icon={<OAuthClientIcon />} label='OAuth Clients' onClick={this._createPageChangeFunction(AccountPage.OAuthClients)} active={this.state.loadedPage === AccountPage.OAuthClients} />
             </>
               }
+              <hr className='mt-auto' />
+              <SidebarItem icon={<LogoutIcon />} label='Logout' onClick={loginAgain} active={this.state.loadedPage === AccountPage.OAuthClients} />
             </nav>
             <section id='page-view'>
               <header>
-                {!!this.state.pageTitle.length && <button className='plus-sign' onClick={this._toggleSidebar}></button>}
+                {!!this.state.pageTitle.length && <button className='plus-sign' onClick={this._toggleSidebar} />}
                 <h2>{ this.state.pageTitle }</h2>
               </header>
-              <div className="p-3">
+              <div className='p-3'>
                 {this._activePage()}
               </div>
             </section>

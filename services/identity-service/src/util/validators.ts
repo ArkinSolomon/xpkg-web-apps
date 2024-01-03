@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,24 +43,19 @@ export function isValidOAuthScope(chain: ValidationChain): ValidationChain {
       const scopeNumbers: TokenScope[] = [];
       const scopeArr = scopes.split(' ');
 
-      for (const i in scopeArr) {
-        if (scopeArr.indexOf(scopeArr[i]) !== ~~i) {
+      for (const i in scopeArr) 
+        if (scopeArr.indexOf(scopeArr[i]) !== ~~i) 
           return false;
-        }
-      }
 
       for (const scope of scopeArr) {
-        if (!/^[a-z]+$/i.test(scope)) {
+        if (!/^[a-z]+$/i.test(scope)) 
           return false;
-        }
 
-        if (scope === 'Identity') {
+        if (scope === 'Identity') 
           return false;
-        }
 
-        if (!Object.hasOwn(TokenScope, scope)) {
+        if (!Object.hasOwn(TokenScope, scope)) 
           return false;
-        }
 
         scopeNumbers.push(TokenScope[scope as keyof typeof TokenScope]);
       }

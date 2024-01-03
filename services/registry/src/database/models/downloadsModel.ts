@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ export type DownloadEntry = {
   packageVersion: string;
   timestamp: Date;
   downloads: number;
-}
+};
 
 import mongoose, { Schema } from 'mongoose';
 
@@ -40,7 +40,7 @@ const downloadsSchema = new Schema<DownloadEntry>({
   packageVersion: {
     type: String,
     required: true,
-    index: true,
+    index: true
   },
   timestamp: {
     type: Date,

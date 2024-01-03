@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ export enum JobType {
 export type JobData = {
   jobType: JobType;
   info: PackagingInfo | ResourceInfo;
-}
+};
 
 /**
  * Information about a packaging job.
@@ -49,7 +49,7 @@ export type JobData = {
 export type PackagingInfo = {
   packageId: string;
   packageVersion: string;
-}
+};
 
 /**
  * Information about a resource job.
@@ -145,12 +145,12 @@ export default class JobsServiceManager {
         this._logger.warn(`Forcefully disconnected from jobs service, will abort job (${reason})`);
         await this._abort();
       }
-      else if (!this._aborted) {
+      else if (!this._aborted) 
         if (!this._done)
           this._logger.error(`Unexpectedly disconnected from jobs service (${reason})`);
         else
           this._logger.trace(`Gracefully disconnected from jobs service (${reason})`);
-      } else 
+      else 
         this._logger.warn(`Disconnected from jobs service, job aborted (${reason})`);
       
       // Terrible way to do this, but we need the logs to finish (and logger.flush doesn't work :/)

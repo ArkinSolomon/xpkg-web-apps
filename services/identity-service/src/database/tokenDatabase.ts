@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,14 +12,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import { customAlphabet } from 'nanoid';
+import { identifiers } from '@xpkg/validation';
 import TokenModel, { TokenScope, TokenType } from './models/tokenModel.js';
 import { DateTime, DurationLike } from 'luxon';
-import { createPermissionsNumber, hasPermission } from '../util/permissionNumberUtil.js';
+import { createPermissionsNumber, hasAnyPermission, hasPermission } from '../util/permissionNumberUtil.js';
 import { logger } from '@xpkg/backend-util';
 import { XIS_CLIENT_ID } from './clientDatabase.js';
-
-const alphanumeric = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
 
 /**
  * Create an access token for a user to interact with the X-Pkg identity service. Invalidates any remaining tokens.
@@ -30,90 +28,15 @@ const alphanumeric = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
  */
 export async function createXisToken(userId: string): Promise<string> {
   const permissions = createPermissionsNumber(TokenScope.Identity);
-  return createOrUpdateToken(userId, XIS_CLIENT_ID, '[identity-internal-token]', TokenType.Identity, permissions, { minutes: 30 });
-}
 
-/**
- * Create a new token. Optionally update any old token of the same type.
- * 
- * @async
- * @param {string} userId The id of the user this token is for.
- * @param {string} clientId The id of the client that issued this token.
- * @param {string} tokenName The name of the token.
- * @param {TokenType} tokenType The type of the token.
- * @param {bigint} permissionsNumber The permissions number of the token.
- * @param {DurationLike} expiresIn How long until the token expires.
- * @param {Object} opts Aditional options for the token. 
- * @param {string} [opts.description] An optional description, defaults to undefined.
- * @param {number} [max=1] The maximum amount of tokens that a singular client id can have. If max is exceeded, the oldest tokens are deleted first, and then the most recent token is updated.
- * @returns {Promise<string>} A promise which resolves to the the access token.
- */
-async function createOrUpdateToken(userId: string, clientId: string, tokenName: string, tokenType: TokenType, permissionsNumber: bigint, expiresIn: DurationLike, { tokenDescription, max }: { tokenDescription?: string; max: number; } = { max: 1 }): Promise<string> {
-  if (max <= 0) {
-    throw new Error('Max must be a non-zero positive integer (>0)');
-  }
-
-  const existingTokens = await TokenModel.find({ userId, clientId })
-    .sort({ updated: 1 })
-    .select({
-      _id: 0,
-      tokenId: 1,
-    })
+  // Only one identity token at a time is permitted
+  await TokenModel.deleteMany({
+    userId,
+    tokenType: TokenType.Identity
+  })
     .exec();
 
-  const initialCount = existingTokens.length;
-  const toDelete: string[] = [];
-  while (existingTokens.length > max) {
-    toDelete.push(existingTokens.shift()!.tokenId);
-  }
-
-  if (toDelete.length > 0) {
-    logger.info({
-      userId,
-      deleteCount: toDelete,
-      initialCount,
-      max
-    }, 'Token maximum exceeded, deleting extra tokens');
-    TokenModel.deleteMany({
-      tokenId: {
-        $in: toDelete
-      }
-    }).then(() => logger.trace('Extra tokens deleted')).catch(logger.error);
-  }
-
-  // Create a new token, unless one already exists
-  const tokenId = existingTokens.shift()?.tokenId ?? alphanumeric(32);
-  const tokenSecret = alphanumeric(71);
-
-  const tokenSecretHash = await Bun.password.hash(tokenSecret, {
-    algorithm: 'bcrypt',
-    cost: 12
-  });
-
-  const created = DateTime.utc();
-  const expiry = created.plus(expiresIn);
-  await TokenModel.updateOne({
-    userId,
-    clientId,
-  }, {
-    $set: {
-      userId,
-      clientId,
-      tokenId,
-      tokenSecretHash,
-      regenerated: created,
-      expiry,
-      tokenName,
-      tokenDescription,
-      tokenType,
-      permissionsNumber
-    },
-    $setOnInsert: {
-      created
-    }
-  }, { upsert: true });
-
-  return `xpkg_${tokenId}${tokenSecret}${expiry.toUnixInteger().toString(16).padStart(8, '0')}`;
+  return createToken(userId, XIS_CLIENT_ID, '[identity-internal-token]', TokenType.Identity, permissions, { minutes: 30 });
 }
 
 /**
@@ -124,49 +47,60 @@ async function createOrUpdateToken(userId: string, clientId: string, tokenName: 
  * @returns {Promise<string | null>} A promise which resolves to the id of the user, or null if the token is not valid.
  */
 export async function validateXisToken(token: string): Promise<string | null> {
-  const [tokenId, tokenSecret, expiry] = deconstructToken(token);
-  if (expiry < DateTime.now()) {
-    return null;
-  }
+  const tokenDoc = await validateToken(token);
 
-  const tokenData = await TokenModel.findOne({
-    tokenId,
-    clientId: XIS_CLIENT_ID
+  if (!tokenDoc)
+    return null;
+
+  if (!hasPermission(tokenDoc.permissionsNumber, TokenScope.Identity))
+    return null;
+
+  return tokenDoc.userId;
+}
+
+/**
+ * Create a new validation token and invalidate all others.
+ * 
+ * @param {string} userId The id of the user who's validation token is being created.
+ * @param {string} email The email address of the user's validation token. 
+ * @returns {string} The new validation token.
+ */
+export async function createEmailVerificationToken(userId: string, email: string): Promise<string> {
+  const permissionsNumber = createPermissionsNumber(TokenScope.EmailVerification);
+  await TokenModel.deleteMany({
+    userId,
+    tokenType: TokenType.Action,
+    permissionsNumber
   })
-    .select({
-      _id: 0,
-      tokenId: 1,
-      tokenSecretHash: 1,
-      expiry: 1,
-      userId: 1,
-      permissionsNumber: 1
-    })
     .exec();
 
-  if (!tokenData) {
+  return createToken(userId, XIS_CLIENT_ID, '[email-verification-internal-token]', TokenType.Action, permissionsNumber, { days: 1 }, { data: email });
+}
+
+/**
+ * Delete a token and get it's data
+ * 
+ * @async
+ * @param {string} token The action token to consume.
+ * @returns {Promise<{userId: string; data?: string;}|null>} A promise which resolves to the token's data and the user id, or null if the token is invalid.
+ */
+export async function consumeActionToken(token: string): Promise<{ userId: string; data?: string; } | null> {
+  const tokenDoc = await validateToken(token);
+
+  if (!tokenDoc)
+    return null;
+
+  if (!hasAnyPermission(tokenDoc.permissionsNumber, TokenScope.PasswordReset, TokenScope.EmailVerification, TokenScope.EmailChangeRevoke)) {
+    logger.trace('Invalid action token: not action token');
     return null;
   }
 
-  // Recheck expiry in case the token has been tampered with
-  if (DateTime.fromJSDate(tokenData.expiry) < DateTime.now()) {
-    return null;
-  }
+  await tokenDoc.deleteOne();
 
-  if (!hasPermission(tokenData.permissionsNumber, TokenScope.Identity)) {
-    return null;
-  }
-
-  const hashValid = await Bun.password.verify(tokenSecret, tokenData.tokenSecretHash, 'bcrypt');
-  if (hashValid) {
-
-    updateTokenUsedDate(tokenId, tokenData.userId)
-      .then(() => logger.trace({ tokenId, userId: tokenData.userId }, 'Updated last used date of token'))
-      .catch(e => logger.error({ tokenId, userId: tokenData.userId }, e));
-
-    return tokenData.userId;
-  }
-
-  return null;
+  return {
+    userId: tokenDoc.userId,
+    data: tokenDoc.data
+  };
 }
 
 /**
@@ -187,6 +121,87 @@ export async function updateTokenUsedDate(tokenId: string, userId: string): Prom
     }
   })
     .exec();
+}
+
+/**
+ * Create a token on the database.
+ * 
+ * @async
+ * @param {string} userId The id of the user this token is for.
+ * @param {string} clientId The id of the client that issued this token.
+ * @param {string} tokenName The name of the token.
+ * @param {TokenType} tokenType The type of the token.
+ * @param {bigint} permissionsNumber The permissions number of the token.
+ * @param {DurationLike} expiresIn How long until the token expires.
+ * @param {Object} opts Aditional options for the token. 
+ * @param {string} [opts.description] An optional description, defaults to undefined.
+ * @param {string} [opts.data] The optional data to store with the token.
+ * @returns {Promise<string>} A promise which resolves to the the new token.
+ */
+async function createToken(userId: string, clientId: string, tokenName: string, tokenType: TokenType, permissionsNumber: bigint, expiresIn: DurationLike, { tokenDescription, data }: { tokenDescription?: string; data?: string; } = {}) {
+  const tokenId = identifiers.alphanumericNanoid(32);
+  const tokenSecret = identifiers.alphanumericNanoid(71);
+
+  const tokenSecretHash = await Bun.password.hash(tokenSecret, {
+    algorithm: 'bcrypt',
+    cost: 12
+  });
+
+  const created = DateTime.utc();
+  const expiry = created.plus(expiresIn);
+  const newToken = new TokenModel({
+    userId,
+    clientId,
+    tokenId,
+    tokenSecretHash,
+    regenerated: created,
+    expiry,
+    tokenName,
+    tokenDescription,
+    tokenType,
+    permissionsNumber,
+    data,
+    created
+  });
+  await newToken.save();
+
+  return `xpkg_${tokenId}${tokenSecret}${expiry.toUnixInteger().toString(16).padStart(8, '0')}`;
+}
+
+/**
+ * Validate a token by checking its expiry.
+ * 
+ * @async
+ * @param {string} token The token to validate.
+ * @returns The document of the token, or null if the token is invalid.
+ */
+async function validateToken(token: string) {
+  const [tokenId, tokenSecret, expiry] = deconstructToken(token);
+  if (expiry < DateTime.now()) {
+    logger.trace('Invalid action token: expired token');
+    return null;
+  }
+
+  const tokenDoc = await TokenModel.findOne({
+    tokenId
+  })
+    .exec();
+
+  if (!tokenDoc) {
+    logger.trace('Invalid action token: not found');
+    return null;
+  }
+
+  if (DateTime.fromJSDate(tokenDoc.expiry) < DateTime.now()) {
+    logger.trace('Invalid action token: database expired');
+    return null;
+  }
+
+  const hashValid = await Bun.password.verify(tokenSecret, tokenDoc.tokenSecretHash, 'bcrypt');
+  if (!hashValid)
+    return null;
+
+  return tokenDoc;
 }
 
 /**

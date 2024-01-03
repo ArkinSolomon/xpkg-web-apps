@@ -12,7 +12,7 @@
     },
     "lint": {
       "cache": true,
-      "inputs": ["src-files", "package-json"]
+      "inputs": ["src-files", "package-json", "{workspaceRoot}/.eslintrc.json"]
     }, 
     "check-lint": {
       "cache": false,

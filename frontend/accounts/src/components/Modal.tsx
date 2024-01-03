@@ -27,14 +27,14 @@
  */
 export type ModalProps = {
   title: string;
-  children: ReactNode | ReactNode[]
+  children: ReactNode | ReactNode[];
   buttons?: {
     text: string;
     action?: () =>  void;
     style?: 'primary' | 'secondary';
     autoFocus?: boolean;
   }[];
-}
+};
 
 import { JSX, ReactNode, useEffect } from 'react';
 import '../css/Modal.scss';
@@ -48,21 +48,24 @@ export default function Modal(props: ModalProps): JSX.Element {
     (document.getElementById('modal') as HTMLDialogElement).showModal();
   }, []);
 
-  for (const button of props.buttons ?? []) {
+  for (const button of props.buttons ?? []) 
     buttons.push(<button className={ (button.style ?? 'secondary') + '-button' } onClick={() => {
-      if (button.action) {
+      if (button.action) 
         button.action();
-      }
-    }} key={identifiers.alphanumericNanoid(5)}>{button.text}</button>);
-  }
+      
+    }} key={identifiers.alphanumericNanoid(5)}
+    >
+      {button.text}
+    </button>);
 
+  // Note that we don't allow the dialog to close, we just delete it when we don't need it
   return (
-    <dialog id='modal' aria-modal>
+    <dialog id='modal' onClose={e => e.preventDefault()} aria-modal>
       <h3 id='modal-title'>{props.title}</h3>
-      <div id="modal-content">
+      <div id='modal-content'>
         {props.children}
       </div>
-      <div id="modal-buttons">
+      <div id='modal-buttons'>
         {buttons}
       </div>
     </dialog>

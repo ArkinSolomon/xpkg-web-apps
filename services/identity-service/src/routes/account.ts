@@ -15,11 +15,16 @@
 import { Router } from 'express';
 import { body, matchedData, validationResult } from 'express-validator';
 import { validators } from '@xpkg/validation';
-import { logger, verifyRecaptcha } from '@xpkg/backend-util';
+import { logger, sendEmail, verifyRecaptcha } from '@xpkg/backend-util';
 import * as tokenDatabase from '../database/tokenDatabase.js';
 import * as userDatabase from '../database/userDatabase.js';
 import NoSuchAccountError from '../errors/noSuchAccountError.js';
 import { AuthorizedRequest } from '../util/authorization.js';
+import { isValidEmail, isValidName, isValidTokenFormat } from '@xpkg/validation/src/validators.js';
+import { XIS_CLIENT_ID } from '../database/clientDatabase.js';
+import { alphaNanoid } from '@xpkg/validation/src/identifiers.js';
+import { TokenScope, TokenType } from '../database/models/tokenModel.js';
+import { createPermissionsNumber } from '../util/permissionNumberUtil.js';
 
 const route = Router();
 
@@ -29,16 +34,10 @@ route.post('/create',
   validators.isValidPassword(body('password')),
   body('validation').notEmpty(),
   async (req, res) => {
-    const routeLogger = logger.child({
-      ip: req.ip,
-      route: '/account/create',
-      requestId: req.id
-    });
-
     const result = validationResult(req);
     if (!result.isEmpty()) {
       const message = result.array()[0].msg;
-      routeLogger.trace(`Bad request with message: ${message}`);
+      req.logger.trace(`Bad request with message: ${message}`);
       return res
         .status(400)
         .send(message);
@@ -53,14 +52,14 @@ route.post('/create',
 
     try {
       if (!validation || !(await verifyRecaptcha(validation, req.ip || 'unknown', 'create', 0))) {
-        routeLogger.trace('ReCAPTCHA validation failed');
+        req.logger.trace('ReCAPTCHA validation failed');
         return res.sendStatus(418);
       }
 
       const isInUse = await userDatabase.nameOrEmailExists(name, email);
 
       if (isInUse) {
-        routeLogger.info(`Key already in use: ${isInUse}`);
+        req.logger.info(`Key already in use: ${isInUse}`);
         return res
           .status(403)
           .send(isInUse);
@@ -76,16 +75,18 @@ route.post('/create',
         hash
       );
 
-      routeLogger.setBindings({
+      req.logger.setBindings({
         newUserId: user.userId
       });
-      routeLogger.trace('New author account registered in database');
+      req.logger.trace('New author account registered in database');
       const token = await tokenDatabase.createXisToken(user.userId);
 
+      await sendVerificationEmail(user.userId, user.name, user.email);
+
       res.json({ token });
-      routeLogger.info('New author account created');
+      req.logger.info('New author account created');
     } catch (e) {
-      routeLogger.error(e);
+      req.logger.error(e);
       return res.sendStatus(500);
     }
   });
@@ -95,16 +96,10 @@ route.post('/login',
   validators.isValidPassword(body('password')),
   body('validation').notEmpty(),
   async (req, res) => {
-    const routeLogger = logger.child({
-      ip: req.ip,
-      route: '/account/login',
-      requestId: req.id,
-    });
-
     const result = validationResult(req);
     if (!result.isEmpty()) {
       const message = result.array()[0].msg;
-      routeLogger.trace(`Bad request with message: ${message}`);
+      req.logger.trace(`Bad request with message: ${message}`);
       return res
         .status(400)
         .send(message);
@@ -114,55 +109,43 @@ route.post('/login',
 
     try {
       if (!validation || !(await verifyRecaptcha(validation, req.ip || 'unknown', 'login', 0))) {
-        routeLogger.info('ReCAPTCHA validation failed');
+        req.logger.info('ReCAPTCHA validation failed');
         return res.sendStatus(418);
       }
 
       const user = await userDatabase.getUserFromEmail(email);
 
-      routeLogger.setBindings({ userId: user.userId });
+      req.logger.setBindings({ userId: user.userId });
 
       const isValid = await Bun.password.verify(password, user.hash);
       if (!isValid) {
-        routeLogger.info('Wrong password');
+        req.logger.info('Wrong password');
         return res.sendStatus(401);
       }
 
-      routeLogger.trace('Login credentials valid');
+      req.logger.trace('Login credentials valid');
       const token = await tokenDatabase.createXisToken(user.userId);
-      routeLogger.info('Successful login, token generated');
+      req.logger.info('Successful login, token generated');
 
       res.json({ token });
     } catch (e) {
       if (e instanceof NoSuchAccountError) {
-        routeLogger.info('No account with email');
+        req.logger.info('No account with email');
         return res.sendStatus(401);
       }
 
-      routeLogger.error(e);
+      req.logger.error(e);
       res.sendStatus(500);
     }
   });
 
 route.post('/tokenvalidate', (req: AuthorizedRequest, res) => {
-  const routeLogger = logger.child({
-    ip: req.ip,
-    route: '/account/tokenvalidate',
-    requestId: req.id,
-  });
-
   // Since this route is protected by middleware, if it gets to this point, the user has already been authorized
-  routeLogger.info({ userId: req.user?.userId ?? '<NO USER ID>' }, 'Token is valid for this user!');
+  req.logger.info({ userId: req.user?.userId ?? '<NO USER ID>' }, 'Token is valid for this user!');
   return res.sendStatus(204);
 });
 
 route.get('/userdata', async (req: AuthorizedRequest, res) => {
-  const routeLogger = logger.child({
-    ip: req.ip,
-    route: '/account/userdata',
-    requestId: req.id,
-  });
-
   try {
     res
       .status(200)
@@ -177,31 +160,147 @@ route.get('/userdata', async (req: AuthorizedRequest, res) => {
         nameChangeDate: req.user!.nameChangeDate.toISOString()
       });
   } catch (e) {
-    routeLogger.error(e);
-    if (e instanceof NoSuchAccountError) {
+    req.logger.error(e);
+    if (e instanceof NoSuchAccountError) 
       res.sendStatus(400);
-    } else {
+    else 
       res.sendStatus(500);
-    }
+    
+  }
+});
+
+route.post('/verify', isValidTokenFormat(body('token')), async (req, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    const message = result.array()[0].msg;
+    req.logger.info(`Bad request with message: ${message}`);
+    return res
+      .status(400)
+      .send(message);
+  }
+
+  const { token } = matchedData(req) as { token: string; };
+  const consumedToken = await tokenDatabase.consumeActionToken(token);
+  if (!consumedToken) {
+    req.logger.info('Invalid or expired token provided');
+    return res.sendStatus(401);
+  } 
+  req.logger.trace('Email verification token consumed');
+
+  try {
+    await userDatabase.verifyEmail(consumedToken.userId);
+    req.logger.trace('User marked as verified in database, sending email...');
+    await sendEmail(consumedToken.data!, 'Thanks for verifying your email address!', 'Your email address has been successfully verified.');
+    res.sendStatus(204);
+  } catch (e) {
+    req.logger.error(e);
+    res.sendStatus(500);
+  }
+});
+
+route.post('/resend', async (req: AuthorizedRequest, res) => {
+  if (req.user!.emailVerified) {
+    req.logger.info('Can not resend verification email, already verified');
+    return res.sendStatus(400);
+  }
+
+  try {
+    await sendVerificationEmail(req.user!.userId, req.user!.name, req.user!.email);
+    req.logger.trace('Resent verification email');
+    return res.sendStatus(204);
+  } catch (e) {
+    req.logger.error(e);
+    return res.sendStatus(500);
   }
 });
 
 route.patch('/resetpfp', async (req: AuthorizedRequest, res) => {
-  const routeLogger = logger.child({
-    ip: req.ip,
-    route: '/account/resetpfp',
-    requestId: req.id,
-  });
-
-  routeLogger.trace('Updated user\'s profile picture to use Gravatar');
-
   try {
     await userDatabase.resetUserPfp(req.user!.email, req.user!.profilePicUrl);
+    req.logger.trace('Updated user\'s profile picture to use Gravatar');
     res.sendStatus(204);
   } catch (e) {
-    routeLogger.error(e);
+    req.logger.error(e);
     res.sendStatus(500);
   }
 });
+
+route.patch('/name', isValidName(body('newName')), async (req: AuthorizedRequest, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    const message = result.array()[0].msg;
+    req.logger.trace(`Bad request with message: ${message}`);
+    return res
+      .status(400)
+      .send(message);
+  }
+
+  const { newName } = matchedData(req) as { newName: string; };
+
+  if (req.user!.nameChangeDate.getTime() + 30 * 24 * 60 * 60 > Date.now()) {
+    req.logger.trace('Can not change name, it has been less than 30 days');
+    return res
+      .status(400)
+      .send('too_soon');
+  }
+
+  if (req.user!.name === newName) 
+    return res
+      .status(400)
+      .send('no_change');
+
+  try {
+    await userDatabase.changeName(req.user!.userId, newName);
+    req.logger.trace({
+      userId: req.user!.userId,
+      name: req.user!.name,
+      newName
+    }, 'Changed name successfully');
+
+    res.sendStatus(204);
+  } catch (e) {
+    logger.error(e);
+    res.sendStatus(500);
+  }
+});
+
+route.patch('/email', isValidEmail(body('newEmail')), async (req: AuthorizedRequest, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    const message = result.array()[0].msg;
+    req.logger.trace(`Bad request with message: ${message}`);
+    return res
+      .status(400)
+      .send(message);
+  }
+
+  const { newEmail } = matchedData(req) as { newEmail: string; };
+
+  try {
+    await userDatabase.changeEmail(req.user!.userId, newEmail);
+    req.logger.trace({
+      userId: req.user!.userId
+    }, 'Changed email successfully');
+
+    res.sendStatus(204);
+  } catch (e) {
+    logger.error(e);
+    res.sendStatus(500);
+  }
+});
+
+/**
+ * Send a verification email to the user.
+ * 
+ * @async
+ * @param {string} userId The id of the user to send the verification email to.
+ * @param {string} name The name of the user.
+ * @param {string} email The email of the user to send the verification email to.
+ * @returns {Promise<void>} A promise which resolves when the operation completes successfully.
+ */
+async function sendVerificationEmail(userId: string, name: string, email: string): Promise<void> {
+  const verificationToken = await tokenDatabase.createEmailVerificationToken(userId, email);
+  return sendEmail(email, 'Verify X-Pkg Email Address', `Hello ${name},\n\nVerify your email address by clicking the following link: http://127.0.0.1:3000/verify?token=${verificationToken}`);
+}
 
 export default route;

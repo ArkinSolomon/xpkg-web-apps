@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,7 @@ export type AuthorVersionData = {
     macOS: boolean;
     windows: boolean;
     linux: boolean;
-  }
+  };
 };
 
 // When only one version is retrieved, the 'versions' key is replaced with 'versionData', and contains only the data for one version.
@@ -139,7 +139,7 @@ export type AuthorSingleVersionPackageData = Omit<AuthorPackageData, 'versions'>
 // The data retrieved from the registry which needs to be parsed
 type RegistryPackageData = Omit<AuthorPackageData, 'versions'> & {
   versions: RegistryVersionData[];
-}
+};
 type RegistryVersionData = Omit<Omit<Omit<AuthorVersionData, 'packageVersion'>, 'xpSelection'>, 'uploadDate'> & {
   packageVersion: string;
   xpSelection: string;

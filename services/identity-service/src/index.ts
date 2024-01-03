@@ -12,12 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import { logger, atlasConnect } from '@xpkg/backend-util';
+import { logger, expressLogger, atlasConnect } from '@xpkg/backend-util';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { customAlphabet } from 'nanoid';
-import { pinoHttp } from 'pino-http';
-import Express, { Request } from 'express';
+import Express from 'express';
 
 if (!process.env.NODE_ENV) {
   logger.fatal('NODE_ENV not defined');
@@ -55,31 +54,21 @@ app.use(function (_, res, next) {
 
 let currentRequest = 0;
 const maxRequest = 9999;
-app.use(pinoHttp({
-  logger,
-  genReqId: function (_, res): string {
-    if (currentRequest >= maxRequest)
-      currentRequest = 0;
+app.use(expressLogger(() => {
+  if (currentRequest >= maxRequest)
+    currentRequest = 0;
 
-    const requestId = serverIdHash + Date.now().toString(16) + currentRequest.toString().padStart(4, '0') + alphaNumericNanoid(8);
-    res.setHeader('X-Request-Id', requestId);
-    ++currentRequest;
-    return requestId;
-  },
-  serializers: {
-    req: (req: Request) => ({
-      id: req.id,
-      method: req.method,
-      url: req.url,
-      ip: req.ip
-    })
-  }
+  const requestId = serverIdHash + Date.now().toString(16) + currentRequest.toString().padStart(4, '0') + alphaNumericNanoid(8);
+  ++currentRequest;
+  return requestId;
 }));
 
 const authorizeRoutes = [
   '/account/tokenvalidate',
   '/account/userdata',
   '/account/resetpfp',
+  '/account/name',
+  '/account/resend',
   '/oauth/*'
 ];
 

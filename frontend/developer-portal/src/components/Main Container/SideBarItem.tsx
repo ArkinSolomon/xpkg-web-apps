@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * either express or implied limitations under the License.
  */
 
-import { Component} from 'react';
+import { Component } from 'react';
 import * as SideBar from './SideBar';
 
 class SideBarItem extends Component {

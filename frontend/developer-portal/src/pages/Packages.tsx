@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ export type PackageData = {
   authorName: string;
   description: string;
   packageType: PackageType;
-  versions: VersionData[]
+  versions: VersionData[];
 };
 
 /**
@@ -98,7 +98,7 @@ type PackagesState = {
   isLoading: boolean;
   errorMessage?: string;
   successMessage?: string;
-}
+};
 
 import { Component, ReactElement, ReactNode } from 'react';
 import MainContainer from '../components/Main Container/MainContainer';
@@ -161,7 +161,7 @@ class Packages extends Component {
   private _packagesPage(): JSX.Element {
     const data: string[][] = [];
     
-    for (const pkg of this._packageData!) {
+    for (const pkg of this._packageData!) 
       if (!pkg.versions.length)
         data.push([
           pkg.packageName,
@@ -177,7 +177,6 @@ class Packages extends Component {
           pkg.versions.length.toString(),
           pkg.description.slice(0, 9) + '...'
         ]);
-    }
 
     // Columns and their percentage of width
     const columns = {
@@ -196,7 +195,7 @@ class Packages extends Component {
       subrowRender: (pkg: AuthorPackageData): ReactElement => {
 
         const versions: JSX.Element[] = [];
-        if (pkg.versions.length){
+        if (pkg.versions.length)
           for (const version of pkg.versions) {
 
             const uploadDate = new Date(version.uploadDate);
@@ -207,13 +206,17 @@ class Packages extends Component {
                 <td>{version.downloads}</td>
                 <td>{version.isPublic ? 'Yes' : 'No'}</td>
                 <td>{version.isStored ? 'Yes' : 'No'}</td>
-                <td>{uploadDate.toLocaleDateString()} { uploadDate.toLocaleTimeString() }</td>
+                <td>
+                  {uploadDate.toLocaleDateString()} 
+                  {' '}
+                  { uploadDate.toLocaleTimeString() }
+                </td>
                 <td>{getStatusTextShort(version.status)}</td>
                 <td><a className='subtable-link' href={`/packages/details?packageId=${pkg.packageId}&packageVersion=${versionStr}`}>Details</a></td>
               </tr>
             );
           }
-        } else {
+        else 
           versions.push(
             <tr key={nanoid()}>
               <td colSpan={7}>
@@ -221,7 +224,6 @@ class Packages extends Component {
               </td>
             </tr>
           );
-        }
 
         return (
           <div className='package-subrow'>
@@ -231,7 +233,9 @@ class Packages extends Component {
             <button
               className='subrow-top-right primary-button'
               onClick={() => window.location.href = '/packages/package?packageId=' + pkg.packageId}
-            >Package Information</button>
+            >
+Package Information
+            </button>
 
             <p className='package-description'>{pkg.description.length > 1024 ? pkg.description.substring(0, 1021) + '...' : pkg.description}</p>
             
@@ -264,7 +268,10 @@ class Packages extends Component {
       <MainContainerContent title='Packages'>
         <>
           {this.state.successMessage && <p className='success-message'>{this.state.successMessage}</p>}
-          <button className='primary-button' onClick={() => window.location.href = '/packages/new'}><span className='leading-4 text-[24pt]'>+</span>&nbsp;Create a new package</button>
+          <button className='primary-button' onClick={() => window.location.href = '/packages/new'}>
+            <span className='leading-4 text-[24pt]'>+</span>
+&nbsp;Create a new package
+          </button>
 
           {this._storageBar()}
           <Table {...tableParams} />
@@ -339,7 +346,7 @@ class Packages extends Component {
         right={
           // We wrap this in a function just to use regular JS stuff
           ((): ReactNode => {
-            if (this.state.errorMessage) {
+            if (this.state.errorMessage) 
               return (
                 <MainContainerError
                   message={this.state.errorMessage}
@@ -347,13 +354,13 @@ class Packages extends Component {
                   link='/packages'
                 />
               );
-            } else if (this.state.isLoading) {
+            else if (this.state.isLoading) 
               return (
-                <MainContainerLoading loadingMessage='Loading Packages and Resources'/>
+                <MainContainerLoading loadingMessage='Loading Packages and Resources' />
               );
-            } else if (isPackagePageActive) 
+            else if (isPackagePageActive) 
               return this._packagesPage();
-            else if (isResourcesPageActive) {
+            else if (isResourcesPageActive) 
               return (
 
                 // Resources page
@@ -361,7 +368,7 @@ class Packages extends Component {
                   <p>Resources</p>
                 </MainContainerContent>
               );
-            } else {
+            else 
               return (
 
                 // Reports page
@@ -369,7 +376,7 @@ class Packages extends Component {
                   <p>Reports</p>
                 </MainContainerContent>
               );
-            }
+            
           })()
         }
       />

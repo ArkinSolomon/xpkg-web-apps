@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ route.get('/:packageId/:packageVersion',
     const difference = before.valueOf() - after.valueOf();
     if (difference < ONE_HOUR_MS) {
       routeLogger.info({
-        difference: `${difference}ms`,
+        difference: `${difference}ms`
       }, 'Time difference is less than one hour (short_diff)');
       return res
         .status(400)
@@ -90,7 +90,7 @@ route.get('/:packageId/:packageVersion',
 
     if (before.valueOf() - after.valueOf() > THIRTY_DAYS_MS) {
       routeLogger.info({
-        difference: `${difference}ms`,
+        difference: `${difference}ms`
       }, 'Time difference is greater than 30 days (long_diff)');
       return res
         .status(400)

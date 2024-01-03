@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ export enum JobType {
 type JobData = {
   jobType: JobType;
   info: PackagingInfo | ResourceInfo;
-}
+};
 
 /**
  * Information about a packaging job.
@@ -46,7 +46,7 @@ type JobData = {
 type PackagingInfo = {
   packageId: string;
   packageVersion: string;
-}
+};
 
 /**
  * Information about a resource job.
@@ -76,7 +76,7 @@ import VersionModel from './versionModel.js';
 const packagingDatabase = new JobDatabase<PackagingInfo>(JobType.Packaging, async j => {
   const failLogger = logger.child({
     packageId: j.packageId,
-    packageVersion: j.packageVersion,
+    packageVersion: j.packageVersion
   });
   failLogger.trace('Failing packaging job');
   await VersionModel
@@ -97,7 +97,7 @@ const app = Express();
 const [key, cert, ca] = await Promise.all([
   fs.readFile(process.env.HTTPS_KEY_PATH as string, 'utf8'),
   fs.readFile(process.env.HTTPS_CERT_PATH as string, 'utf8'),
-  fs.readFile(process.env.HTTPS_CHAIN_PATH as string, 'utf8'),
+  fs.readFile(process.env.HTTPS_CHAIN_PATH as string, 'utf8')
 ]);
 const server = https.createServer({
   key, cert, ca
@@ -234,7 +234,8 @@ io.on('connection', client => {
       jobData: {
         jobType,
         info: jobInfo
-      }, client
+      },
+      client
     });
     clientLogger.info('Job registered on database');
     client.emit('job_data_recieived');
@@ -342,7 +343,7 @@ server.listen(port, () => {
  */
 function createJobAborter<T extends object>(jobType: JobType, abortDatabase: JobDatabase<T>, comparer: (job1: T, job2: T) => boolean): () => Promise<void> {
   return async function () {
-    const jobs = await abortDatabase.getAllJobsWithTime() as (T & { startTime?: Date })[];
+    const jobs = await abortDatabase.getAllJobsWithTime() as (T & { startTime?: Date; })[];
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const abortJobs = jobs.filter(({ startTime: t }) => t!.getTime() < Date.now() - THREE_HOUR_MS);

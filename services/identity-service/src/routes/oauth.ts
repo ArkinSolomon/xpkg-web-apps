@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,24 +37,18 @@ route.post('/authorize',
   query('code_challenge').isString().notEmpty().withMessage('bad_challenge'),
   query('code_challenge_method').isString().custom(v => v === 'S256').withMessage('bad_code_method'),
   async (req: AuthorizedRequest, res) => {
-    const routeLogger = logger.child({
-      ip: req.ip,
-      route: '/account/authorize',
-      requestId: req.id,
-    });
-
     const result = validationResult(req);
     if (!result.isEmpty()) {
       const mapped = result.mapped();
       if (mapped['scope']) {
-        routeLogger.trace(`Invalid scope in request, with message: ${mapped['scope']}`);
+        req.logger.trace(`Invalid scope in request, with message: ${mapped['scope']}`);
         return res
           .status(400)
           .send('invalid_scope');
       }
 
       const message = result.array()[0].msg;
-      routeLogger.trace(`Bad request with message: ${message}`);
+      req.logger.trace(`Bad request with message: ${message}`);
       return res
         .status(400)
         .send('invalid_request');
@@ -78,19 +72,19 @@ route.post('/authorize',
       code_challenge: string;
     };
 
-    routeLogger.setBindings({
+    req.logger.setBindings({
       clientId, redirectUri
     });
     const client = await getClient(clientId);
     if (!client) {
-      routeLogger.info('Invalid client id (not found in database)');
+      req.logger.info('Invalid client id (not found in database)');
       return res
         .status(400)
         .send('invalid_request');
     }
 
     if (!client.redirectURIs.includes(redirectUri)) {
-      routeLogger.info('Invalid redirect URI');
+      req.logger.info('Invalid redirect URI');
       return res
         .status(400)
         .send('invalid_request');
@@ -98,7 +92,7 @@ route.post('/authorize',
 
     const tokenExpiry = DateTime.now().plus({ seconds: expiresIn }).toJSDate();
     if (responseType === 'id_token') {
-      routeLogger.warn('id_token not implemented');
+      req.logger.warn('id_token not implemented');
       return res
         .status(400)
         .send('unsupported_response_type');
@@ -112,7 +106,7 @@ route.post('/authorize',
       // } else if (responseType === 'token') {
 
     } else {
-      routeLogger.error(`UNKNOWN RESPONSE_TYPE: ${responseType} not implemented.`);
+      req.logger.error(`UNKNOWN RESPONSE_TYPE: ${responseType} not implemented.`);
       return res.sendStatus(500);
     }
   });
@@ -120,16 +114,10 @@ route.post('/authorize',
 route.get('/consentinformation',
   isValidClientId(query('client_id')),
   async (req: AuthorizedRequest, res) => {
-    const routeLogger = logger.child({
-      ip: req.ip,
-      route: '/account/authorize',
-      requestId: req.id,
-    });
-
     const result = validationResult(req);
     if (!result.isEmpty()) {
       const message = result.array()[0].msg;
-      routeLogger.trace(`Bad request with message: ${message}`);
+      req.logger.trace(`Bad request with message: ${message}`);
       return res
         .status(400)
         .send(message);
@@ -139,12 +127,12 @@ route.get('/consentinformation',
       client_id: string;
     };
 
-    routeLogger.setBindings({
+    req.logger.setBindings({
       clientId
     });
     const client = await getClient(clientId);
     if (!client) {
-      routeLogger.info('Invalid client id (not found in database)');
+      req.logger.info('Invalid client id (not found in database)');
       return res
         .status(400)
         .send('invalid_client_id');

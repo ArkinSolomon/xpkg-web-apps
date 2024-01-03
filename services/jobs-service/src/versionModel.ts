@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ const versionSchema = new Schema({
   },
   status: {
     type: String,
-    required: true,
-  },
+    required: true
+  }
 }, {
   collection: 'versions'
 });

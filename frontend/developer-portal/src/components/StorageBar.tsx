@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * either express or implied limitations under the License.
  */
 
-import {getBestUnits} from '../scripts/displayUtil';
+import { getBestUnits } from '../scripts/displayUtil';
 import '../css/StorageBar.scss';
 
 function StorageBar(props: {
@@ -28,11 +28,20 @@ function StorageBar(props: {
 
   return (
     <div className='storage-bar'>
-      <p><b>{getBestUnits(props.usedStorage)}</b> of <b>{getBestUnits(props.totalStorage)}</b> used</p>
-      <div className={'progress ' + storageUsageClass} >
+      <p>
+        <b>{getBestUnits(props.usedStorage)}</b>
+        {' '}
+of 
+        {' '}
+        <b>{getBestUnits(props.totalStorage)}</b>
+        {' '}
+used
+      </p>
+      <div className={'progress ' + storageUsageClass}>
         <div style={{
-          width: (props.usedStorage / props.totalStorage) * 100 + '%',
-        }}></div>
+          width: (props.usedStorage / props.totalStorage) * 100 + '%'
+        }}
+        />
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,8 @@ export default function InputFile(props: InputFileProps): JSX.Element {
           
             setFileName(fileName);
             props.onChange(e);
-          }} /> 
+          }}
+        /> 
         Upload file
       </label>
       <span>{ fileName }</span>

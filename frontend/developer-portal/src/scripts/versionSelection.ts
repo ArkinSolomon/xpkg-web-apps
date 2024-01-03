@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@
 // Note: Big.js is used to get the precision needed for large numbers, without
 // floating point errors. If speed becomes a problem, it might be worth looking
 // into performing these operations using native numbers.
-
 
 /**
  * This is a specific range from one version to another. If the values of min and max are equal, it represents a single version range.
@@ -257,7 +256,7 @@ export default class VersionSelection {
     if (!this._ranges.length) 
       return '<empty version select>';
 
-    for (const range of this._ranges) {
+    for (const range of this._ranges) 
       if (range.minVersion.equals(range.maxVersion))
         rangeStrings.push(range.minVersion.asMinString());
       else if (range.minVersion.equals(Version.MIN_VERSION) && range.maxVersion.equals(Version.MAX_VERSION))
@@ -270,7 +269,6 @@ export default class VersionSelection {
       }
       else
         rangeStrings.push(`${range.minVersion.asMinString()}-${range.maxVersion.asMaxString()}`);
-    }
 
     return rangeStrings.join(',');
   }

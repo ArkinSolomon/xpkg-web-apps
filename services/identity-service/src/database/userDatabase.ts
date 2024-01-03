@@ -146,9 +146,8 @@ export async function nameOrEmailExists(name: string, email: string): Promise<'e
  */
 export async function resetUserPfp(email: string, currentUrl?: string): Promise<void> {
   const url = await generateGravatarUrl(email);
-  if (url === currentUrl) {
+  if (url === currentUrl) 
     return;
-  }
 
   const updated = await UserModel.updateOne({
     email
@@ -159,9 +158,81 @@ export async function resetUserPfp(email: string, currentUrl?: string): Promise<
   }, { upsert: false })
     .exec();
 
-  if (!updated.modifiedCount) {
+  if (!updated.modifiedCount) 
     throw new NoSuchAccountError('email', email);
-  }
+  
+}
+
+/**
+ * Change the name of a user.
+ * 
+ * @async
+ * @param {string} userId The id of the user who's name to update.
+ * @param {string} newName The new name of the user.
+ * @returns {Promise} A promise which resolves if the operation completes successfully.
+ * @throws {NoSuchAccountError} Error thrown if no account exists with the given user id. 
+ */
+export async function changeName(userId: string, newName: string): Promise<void> {
+  const updated = await UserModel.updateOne({
+    userId
+  }, {
+    $set: {
+      name: newName,
+      nameChangeDate: new Date()
+    }
+  }, { upsert: false })
+    .exec();
+
+  if (!updated.modifiedCount) 
+    throw new NoSuchAccountError('userId', userId);
+  
+}
+
+/**
+ * Change a user's email and reset them to being unverified.
+ * 
+ * @async
+ * @param {string} userId The id of the user who's email to update.
+ * @param {string} newEmail The new email of the user.
+ * @returns {Promise} A promise which resolves if the operation completes successfully.
+ * @throws {NoSuchAccountError} Error thrown if no account exists with the given user id. 
+ */
+export async function changeEmail(userId: string, newEmail: string): Promise<void> {
+  const updated = await UserModel.updateOne({
+    userId
+  }, {
+    $set: {
+      email: newEmail,
+      emailVerified: false
+    }
+  }, { upsert: false })
+    .exec();
+
+  if (!updated.modifiedCount) 
+    throw new NoSuchAccountError('userId', userId);
+  
+}
+
+/**
+ * Set a user's email to be verified.
+ * 
+ * @async
+ * @param {string} userId The id of the user who's verification status to update.
+ * @returns {Promise} A promise which resolves if the operation completes successfully.
+ * @throws {NoSuchAccountError} Error thrown if no account exists with the given user id. 
+ */
+export async function verifyEmail(userId: string): Promise<void> {
+  const updated = await UserModel.updateOne({
+    userId
+  }, {
+    $set: {
+      emailVerified: true
+    }
+  }, { upsert: false })
+    .exec();
+
+  if (!updated.matchedCount) 
+    throw new NoSuchAccountError('userId', userId);
 }
 
 /**

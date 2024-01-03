@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import Footer from './components/Footer';
 import Authenticate from './pages/Authenticate';
 import Authorize from './pages/Authorize';
 import Account from './pages/Account';
+import Verify from './pages/Verify';
 
 declare global {
   interface Window {
@@ -35,6 +36,7 @@ function App() {
         <Route path='/authenticate' element={<Authenticate />} />
         <Route path='/authorize' element={<Authorize />} />
         <Route path='/account' element={<Account />} />
+        <Route path='/verify' element={<Verify />} />
       </Routes>
       <Footer />
     </Router>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ class NewPackage extends Component {
     super(props);
 
     this.state = {
-      errors: {},
+      errors: {}
     };
 
     const token = checkAuth();
@@ -114,12 +114,12 @@ class NewPackage extends Component {
   
     this.setState({
       errors,
-      submissionError: '',
+      submissionError: ''
     } as Partial<NewPackageState>);
     return {};
   }
 
-  private async _submit(values: NewPackageValues, { setSubmitting } : {setSubmitting: (isSubmitting: boolean) => void}) {
+  private async _submit(values: NewPackageValues, { setSubmitting } : { setSubmitting: (isSubmitting: boolean) => void; }) {
     setSubmitting(true);
 
     this.setState({
@@ -151,11 +151,11 @@ class NewPackage extends Component {
       sessionStorage.setItem('success_message', 'Your package is being processed');
       window.location.href = '/packages';
     } catch (e){
-      if (!(e instanceof AxiosError)) {
+      if (!(e instanceof AxiosError)) 
         this.setState({
           submissionError: 'An unkown error occured.'
         });
-      } else {
+      else 
         switch (e.response?.status) {
         case 400:
           this.setState({
@@ -184,15 +184,15 @@ class NewPackage extends Component {
           break;
         case 500:
           this.setState({
-            submissionError: 'Internal server error, try again',
+            submissionError: 'Internal server error, try again'
           } as Partial<NewPackageState>);
           break;
         default:
           this.setState({
-            submissionError: 'An unknown error occured',
+            submissionError: 'An unknown error occured'
           } as Partial<NewPackageState>);
         }
-      }
+      
     } finally {
       setSubmitting(false);
     }
@@ -214,13 +214,14 @@ class NewPackage extends Component {
               packageName: '',
               packageId: '',
               packageType: '',
-              description: '',
+              description: ''
             } as NewPackageValues}
-            onSubmit={ this._submit.bind(this) }>
+            onSubmit={ this._submit.bind(this) }
+          >
             {({
               handleChange,
               handleSubmit,
-              isSubmitting,
+              isSubmitting
             }) => {
 
               // We need this due to TypeScript being weird
@@ -261,7 +262,7 @@ class NewPackage extends Component {
                     onKeyDown={e => e.key === 'Enter' && e.preventDefault()}
                   >
                     <section className='input-section'>
-                      <InputField {...packageNameData}/>
+                      <InputField {...packageNameData} />
                       <InputField {...packageIdData} />
                       <InputDropdown
                         name='packageType'
@@ -276,8 +277,8 @@ class NewPackage extends Component {
                     <section className='mt-9'>
                       <input
                         className='primary-button float-right'
-                        type="submit"
-                        value="Submit"
+                        type='submit'
+                        value='Submit'
                         disabled={isSubmitting || !!Object.keys(this.state.errors).length || !!this.state.submissionError}
                       />
                     </section>

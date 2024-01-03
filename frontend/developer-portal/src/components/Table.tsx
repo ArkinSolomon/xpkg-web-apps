@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,9 @@ export type TableProps<T> = {
 type TableState<T> = {
   currentSubrowData?: T;
   r?: number;
-}
+};
 
-import {Component, ReactElement, ReactNode} from 'react';
+import { Component, ReactElement, ReactNode } from 'react';
 import '../css/Table.scss';
 import $ from 'jquery';
 import { nanoid } from 'nanoid';
@@ -69,18 +69,18 @@ class Table<T> extends Component {
 
     $('.expand-button').on('click', function () {
       const index = parseInt(this.getAttribute('data-index') as string, 10);
-      if (that.state.r !== index) {
+      if (that.state.r !== index) 
 
         that.setState({
           currentSubrowData: (that.props as TableProps<T>).subrowData[index],
           r: index
         } as Partial<TableState<T>>);
-      } else {
+      else 
         that.setState({
           currentSubrowData: void (0),
           r: void (0)
         } as Partial<TableState<T>>);
-      }
+      
     });
   }
 
@@ -123,7 +123,7 @@ class Table<T> extends Component {
     if (typeof this.state.currentSubrowData !== 'undefined') {
       const subrow = props.subrowRender(this.state.currentSubrowData);
       tableData.splice(this.state.r as number + 1, 0, (
-        <tr key="table-subrow">
+        <tr key='table-subrow'>
           <td className='table-subrow' colSpan={Object.keys(props.columns).length + 1}>
             {subrow}
           </td>

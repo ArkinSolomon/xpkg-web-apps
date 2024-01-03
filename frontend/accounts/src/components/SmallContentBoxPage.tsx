@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ export enum PageState {
 
 import '../css/SmallContentBoxPage.scss';
 
-export default function (props: { pageState: PageState; children: React.JSX.Element }) {
+export default function (props: { pageState: PageState; children: React.JSX.Element; }) {
   let stateClass: string;
   switch (props.pageState) {
   case PageState.Before:

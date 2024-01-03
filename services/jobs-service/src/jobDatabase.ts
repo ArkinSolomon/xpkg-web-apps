@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ export default class JobDatabase<T extends object> {
   async removeJob(jobData: T): Promise<void> {
     this._dbLogger.trace(jobData, 'Removing job');
     await this._JobModel.findOneAndDelete({
-      jobData,
+      jobData
     }).exec();
     this._dbLogger.trace(jobData, 'Removed job');
   }

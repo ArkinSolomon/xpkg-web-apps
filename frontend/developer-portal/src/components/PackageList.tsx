@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,7 +159,9 @@ class PackageList extends Component {
                 props.list.splice(index, 1);
                 this._onChangeCaller();
               }}
-            ><span /></button>
+            >
+              <span />
+            </button>
           </div>}
         </div>
       );
@@ -173,7 +175,7 @@ class PackageList extends Component {
   }
 
   render(): ReactNode {
-    const {list, title, noneText, readonly} = this.props as PackageListProps;
+    const { list, title, noneText, readonly } = this.props as PackageListProps;
 
     return (
       <>
@@ -191,7 +193,9 @@ class PackageList extends Component {
                 list.push(['', '']);
                 this._onChangeCaller();
               }}
-            >+</button>
+            >
++
+            </button>
           </div>
         }
       </>

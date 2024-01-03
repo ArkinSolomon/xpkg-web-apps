@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ export default class JobClaimer<T extends object> {
     this._jobComparer = jobComparer;
     this._jobList = jobList;
 
-    if (this._jobList.length) {
+    if (this._jobList.length) 
       setTimeout(async () => {
         this._locked = true;
 
@@ -68,7 +68,7 @@ export default class JobClaimer<T extends object> {
           }
         }
       }, 60000);
-    }
+    
   }
 
   /**

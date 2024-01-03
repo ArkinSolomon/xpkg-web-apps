@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ let originalUnzippedRoot: string;
 const logger = loggerBase.child({
   packageId,
   packageVersion: packageVersion.toString(),
-  tempId,
+  tempId
 });
 
 logger.info({
@@ -243,7 +243,6 @@ try {
     useDefaultScript('upgrade.ska', packageType, unzippedFileLoc, files)
   ]);
 
-
   // We need to make the parent so that zipping doesn't fail
   const parent = path.resolve(xpkgFileLoc, '..');
   await fs.mkdir(parent, { recursive: true });
@@ -285,7 +284,7 @@ try {
     await Promise.all([
       fs.rm(xpkgFileLoc, { force: true }),
       packageDatabase.updateVersionStatus(packageId, packageVersion, VersionStatus.FailedNotEnoughSpace),
-      sendFailureEmail(VersionStatus.FailedNotEnoughSpace),
+      sendFailureEmail(VersionStatus.FailedNotEnoughSpace)
     ]);
     logger.trace('Deleted xpkg file, updated database, and notified author');
     process.exit(0);
@@ -334,7 +333,7 @@ try {
     const request: objectStorage.requests.CreatePreauthenticatedRequestRequest = {
       namespaceName: namespace,
       bucketName: TEMPORARY_BUCKET_NAME,
-      createPreauthenticatedRequestDetails: preAuthReqDetails,
+      createPreauthenticatedRequestDetails: preAuthReqDetails
     };
     const preAuthReqResp = await client.createPreauthenticatedRequest(request);
     objectUrl = preAuthReqResp.preauthenticatedRequest.fullPath;

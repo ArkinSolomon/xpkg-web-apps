@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ class InputField extends Component {
   render() {
     const props = this.props as InputFieldProps;
 
-    let {maxLength} = props;
+    let { maxLength } = props;
     if (maxLength && props.extendOnSlash && this.state.currentValue.includes('/'))
       maxLength += 9;
 
@@ -159,7 +159,9 @@ class InputField extends Component {
           <span className={lengthError ? 'error' : void(0)}>
             {this.state.currentValue.length}
           </span>
-          /{maxLength}</p>}
+          /
+          {maxLength}
+        </p>}
       </div>
     );
   }

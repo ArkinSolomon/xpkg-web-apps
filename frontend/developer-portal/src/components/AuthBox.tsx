@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,11 @@ function AuthBox(props: {
             <p className='auth-box-error'>{ props.errorMessgae }</p>
             {props.children}
           </div>
-          <input type="submit" value="Submit" disabled={props.isSubmitting || !props.submitEnabled} />
+          <input type='submit' value='Submit' disabled={props.isSubmitting || !props.submitEnabled} />
         </form>
       </div>
     </div>
   );
-
 
 }
 

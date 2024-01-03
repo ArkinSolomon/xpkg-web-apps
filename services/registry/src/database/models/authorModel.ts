@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ export type AuthTokenPayload = {
   id: string;
   name: string;
   session: string;
-}
+};
 
 /**
  * The payload of the JWT tokens used for account validation.
@@ -111,7 +111,7 @@ export type AuthTokenPayload = {
  */
 export type AccountValidationPayload = {
   id: string;
-}
+};
 
 import mongoose, { Schema } from 'mongoose';
 import { sendEmail } from '@xpkg/backend-util';
@@ -122,7 +122,7 @@ import * as packageDatabase from '../packageDatabase.js';
 const tokenInformationSchema = new Schema<TokenInformation>({
   tokenSession: {
     type: String,
-    required: true,
+    required: true
   },
   tokenName: {
     type: String,
@@ -237,7 +237,7 @@ const authorSchema = new Schema<DatabaseAuthor>({
       this.authorName = newName;
       await Promise.all([
         this.save(),
-        packageDatabase.updateAuthorName(this.authorId, newName),
+        packageDatabase.updateAuthorName(this.authorId, newName)
       ]);
     },
     registerNewToken: async function (token: AuthToken, tokenExpiry: number, tokenName: string, description?: string): Promise<void> {
@@ -250,12 +250,11 @@ const authorSchema = new Schema<DatabaseAuthor>({
       descriptionUpdatePackages ??= [];
       updateVersionDataPackages ??= [];
 
-      if (this.tokens.findIndex(t => t.tokenName.toLowerCase() === tokenName.toLowerCase() || t.tokenSession === tokenSession) > 0) {
+      if (this.tokens.findIndex(t => t.tokenName.toLowerCase() === tokenName.toLowerCase() || t.tokenSession === tokenSession) > 0) 
         throw new Error('Token name or session already exists');
-      }
 
       await AuthorModel.updateOne({
-        authorId: this.authorId,
+        authorId: this.authorId
       }, {
         $push: {
           tokens: {

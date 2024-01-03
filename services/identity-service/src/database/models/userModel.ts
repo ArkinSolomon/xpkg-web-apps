@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ export type UserData = {
  */
 export type UserSettings = {
   isDeveloper: boolean;
-}
+};
 
 import mongoose, { Schema } from 'mongoose';
 
@@ -101,7 +101,7 @@ const userSchema = new Schema<UserData>({
   nameChangeDate: {
     type: Date,
     required: true,
-    default: Date.now,
+    default: Date.now
   },
   settings: {
     type: userSettingsSchema,

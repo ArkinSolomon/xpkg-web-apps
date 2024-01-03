@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ export type AuthTokenPayload = {
   updateVersionDataPackages: string[]; 
   viewAnalyticsPackages: string[];
   tokenSession?: string;
-}
+};
 
 import { logger } from '@xpkg/backend-util';
 import * as jwtPromise from '../util/jwtPromise.js';

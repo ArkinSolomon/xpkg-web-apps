@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023. Arkin Solomon.
+ * Copyright (c) 2022-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ type LoginState = {
   errorMessage: string;
   errors: Partial<LoginValues>;
   recaptchaToken?: string;
-}
+};
 
 /**
  * The values in the form.
@@ -39,7 +39,7 @@ type LoginValues = {
   email: string;
   password: string;
   rememberMe: boolean;
-}
+};
 
 import { Component } from 'react';
 import { Formik, FormikErrors } from 'formik';
@@ -70,7 +70,7 @@ class Login extends Component {
       if (possibleRedir) {
         sessionStorage.removeItem('post-auth-redirect');
         window.location.href = possibleRedir;
-      }else 
+      } else 
         window.location.href = '/packages';
     }
 
@@ -191,7 +191,8 @@ class Login extends Component {
           password: '',
           rememberMe: false
         } as LoginValues}
-        onSubmit={ this._submit }>
+        onSubmit={ this._submit }
+      >
         {({
           handleChange,
           handleSubmit,
@@ -239,16 +240,17 @@ class Login extends Component {
               <Checkbox
                 name='rememberMe'
                 title='Remember Me'
-                onChange={handleChange} />
-              <div className="help-links">
-                <a href="/create" className={linkDisabled}>Create account</a>
-                <a href="/forgot" className={linkDisabled}>Forgot Password</a>
+                onChange={handleChange}
+              />
+              <div className='help-links'>
+                <a href='/create' className={linkDisabled}>Create account</a>
+                <a href='/forgot' className={linkDisabled}>Forgot Password</a>
               </div>
             </AuthBox>
           );
         }
         }
-      </Formik >
+      </Formik>
     );
   }
 }

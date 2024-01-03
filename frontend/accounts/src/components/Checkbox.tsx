@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,15 +33,15 @@ type CheckboxProps = {
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   children?: JSX.Element;
   key?: string;
-}
+};
 
 import { ChangeEvent, JSX } from 'react';
 
 export default function Checkbox({ checked, name, label, onChange, children, ...props }: CheckboxProps) {
   const key = props.key ?? name;
-  if (!label && !children) {
+  if (!label && !children) 
     throw new Error('Neither children nor label is provided');
-  }
+  
   return (
     <div className={'input checkbox ' + (props.className ?? '')}>
       <input
