@@ -34,6 +34,7 @@ type PersonalInformationProps = {
  * @property {string} [emailHash] The hash of the email stored on the server. Undefined while computing.
  * @property {boolean} resendButtonEnabled True if the resend email button is enabled (disabled means it is shown, but greyed out).
  * @property {string} resendText The text next to the resend button.
+ * @property {boolean} changeEmailEnabled True if the change email button should be enabled.
  */
 type PersonalInformationState = {
   newNameValid: boolean;
@@ -41,6 +42,7 @@ type PersonalInformationState = {
   emailHash?: string;
   resendButtonEnabled: boolean;
   resendText: string;
+  changeEmailEnabled: boolean;
 };
 
 import { Component, ReactNode } from 'react';
@@ -58,9 +60,6 @@ export default class PersonalInformation extends Component<PersonalInformationPr
   private _originalName: string;
   private _newName: string;
 
-  private _originalEmail: string;
-  private _newEmail: string;
-
   constructor(props: PersonalInformationProps) {
     super(props);
 
@@ -68,13 +67,12 @@ export default class PersonalInformation extends Component<PersonalInformationPr
       newNameValid: false,
       newEmailValid: false,
       resendButtonEnabled: true,
-      resendText: props.userData!.emailVerified ? 'Your email has been verified.' : 'You must verify your email.'
+      resendText: props.userData!.emailVerified ? 'Your email has been verified.' : 'You must verify your email.',
+      changeEmailEnabled: true
     };
 
     this._originalName = props.userData!.name;
     this._newName = props.userData!.name;
-    this._originalEmail = props.userData!.email;
-    this._newEmail = props.userData!.email;
 
     this._resetNameField = this._resetNameField.bind(this);
     this._resetPfp = this._resetPfp.bind(this);
@@ -97,14 +95,6 @@ export default class PersonalInformation extends Component<PersonalInformationPr
   private _resetNameField() {
     this._newName = this._originalName;
     (document.getElementById('new-name-input') as HTMLInputElement).value = this._newName;
-  }
-
-  /**
-   * Reset the name field back to the original text.
-   */
-  private _resetEmailField() {
-    this._newEmail = this._originalEmail;
-    (document.getElementById('new-email-input') as HTMLInputElement).value = this._newName;
   }
 
   /**
@@ -174,11 +164,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
   private _changeName() {
     this.props.showModal({
       title: 'Change Name',
-      children: <p className='generic-modal-text'>
-Are you sure you want to change your name to
-        <b>{this._newName.trim()}</b>
-. You will not be able to change your name again for 30 days.
-      </p>,
+      children: <p className='generic-modal-text'>Are you sure you want to change your name to <b>{this._newName.trim()}</b>. You will not be able to change your name again for 30 days.</p>,
       buttons: [
         {
           text: 'Cancel',
@@ -189,11 +175,7 @@ Are you sure you want to change your name to
           action: async () => {
             this.props.showModal({
               title: 'Change Name',
-              children: <p className='generic-modal-text'>
-Changing your name to
-                <b>{this._newName.trim()}</b>
-.
-              </p>
+              children: <p className='generic-modal-text'>Changing your name to<b>{this._newName.trim()}</b>.</p>
             });
 
             try {
@@ -241,34 +223,31 @@ Changing your name to
    * Send an email change request for the user.
    */
   private _changeEmail() {
+    this.setState({
+      changeEmailEnabled: false
+    });
     this.props.showModal({
       title: 'Request Email Change',
-      children: <p className='generic-modal-text'>
-Are you sure you want to change your email to
-        <b>{this._newName.trim()}</b>
-. You will need to verify that you requested this change. Any previous requests will immediately expire.
-      </p>,
+      children: <p className='generic-modal-text'>This will send an email change request to your inbox. If you do not have access to your old email, contact support.</p>,
       buttons: [
         {
           text: 'Cancel',
-          action: this._resetEmailField
+          action: () => {
+            this.setState({
+              changeEmailEnabled: true
+            });
+          }
         },
         {
           text: 'Change',
           action: async () => {
             this.props.showModal({
               title: 'Request Email Change',
-              children: <p className='generic-modal-text'>
-Creating your email change request. New email:
-                <b>{this._newEmail.trim()}</b>
-.
-              </p>
+              children: <p className='generic-modal-text'>Creating your email change request. </p>
             });
 
             try {
-              const result = await axios.patch('http://localhost:4819/account/email', {
-                newEmail: this._newEmail
-              }, {
+              const result = await axios.post('http://localhost:4819/account/email/changeemail', {}, {
                 headers: {
                   Authorization: getCookie('token')
                 }
@@ -279,15 +258,7 @@ Creating your email change request. New email:
 
               this.props.showModal({
                 title: 'Request Email Change',
-                children: <p className='generic-modal-text'>
-Your request to change your email to
-                  <b>{this._newEmail.trim()}</b>
-                  {' '}
-has been created. Check the inbox of
-                  <b>{this._originalEmail}</b>
-                  {' '}
-to complete. You will not see a change if you do not complete the request. The request expires in 1 hour.
-                </p>,
+                children: <p className='generic-modal-text'>Your request to change your email has been created. Check the inbox of <b>{this.props.userData!.email}</b> to complete. You will not see a change if you do not complete the request. The request expires in 1 hour.</p>,
                 buttons: [
                   {
                     text: 'Okay',
@@ -307,10 +278,14 @@ to complete. You will not see a change if you do not complete the request. The r
                 children: <p className='generic-modal-text'>{ error }</p>,
                 buttons: [
                   {
-                    text: 'Ok',
+                    text: 'Okay',
                     style: 'primary',
                     autoFocus: true,
-                    action: this._resetEmailField
+                    action: () => {
+                      this.setState({
+                        changeEmailEnabled: true
+                      });
+                    }
                   }
                 ]
               });
@@ -335,7 +310,7 @@ to complete. You will not see a change if you do not complete the request. The r
     });
 
     try {
-      await axios.post('http://localhost:4819/account/resend', {}, {
+      await axios.post('http://localhost:4819/account/email/resend', {}, {
         headers: {
           Authorization: getCookie('token')
         }
@@ -405,29 +380,17 @@ to complete. You will not see a change if you do not complete the request. The r
             }}
             />
             <div className='change-info'>
-              <p>
-Last changed:
-                { this.props.userData!.nameChangeDate.toLocaleDateString('en-us') }
-                <br />
-You can only change your name once every 30 days.
-              </p>
+              <p>Last changed: { this.props.userData!.nameChangeDate.toLocaleDateString('en-us') }<br />You can only change your name once every 30 days.</p>
               <button className='primary-button' disabled={!this.state.newNameValid} onClick={this._changeName}>Change Name</button>
             </div>
           </section>
           <section className='change-section'>
-            <TextInput name='new-email' placeholder='New Email' label='Email' defaultValue={this._originalEmail} onChange={async e => {
-              this._newEmail = e.target.value;
-              const validationResult = await validators.isValidEmail(body('email')).run({ body: { email: this._newEmail } });
-              this.setState({
-                newEmailValid: this._originalEmail !== this._newEmail.trim() && validationResult.isEmpty()
-              });
-            }}
-            />
+            <TextInput disabled name='new-email' placeholder='New Email' label='Email' value={this.props.userData!.email} />
             <div className='change-info'>
               <p>{ this.state.resendText }</p>
               <div>
                 {!this.props.userData!.emailVerified && <button className='primary-button' disabled={!this.state.resendButtonEnabled} onClick={this._resendVerificationEmail}>Resend Email</button>}
-                <button className='primary-button ml-2' disabled={!this.state.newEmailValid} onClick={this._changeEmail}>Change Email</button>
+                <button className='secondary-button ml-2' onClick={this._changeEmail} disabled={!this.state.changeEmailEnabled}>Change Email</button>
               </div>
             </div>
           </section>

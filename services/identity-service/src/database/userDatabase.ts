@@ -18,6 +18,12 @@ import UserModel, { UserData } from './models/userModel.js';
 import NoSuchAccountError from '../errors/noSuchAccountError.js';
 import { HydratedDocument } from 'mongoose';
 import { hash } from 'hasha';
+import EmailChangeModel, { EmailChangeData } from './models/emailChangeModel.js';
+import { ClientSession } from 'mongoose';
+import genericSessionFunction from './genericSessionFunction.js';
+import NoSuchRequestError from '../errors/noSuchRequestError.js';
+import XpkgError from '../errors/xpkgError.js';
+import { numericNanoid } from '@xpkg/validation/src/identifiers.js';
 
 /**
  * Create a new user with a random identifier.
@@ -146,7 +152,7 @@ export async function nameOrEmailExists(name: string, email: string): Promise<'e
  */
 export async function resetUserPfp(email: string, currentUrl?: string): Promise<void> {
   const url = await generateGravatarUrl(email);
-  if (url === currentUrl) 
+  if (url === currentUrl)
     return;
 
   const updated = await UserModel.updateOne({
@@ -158,9 +164,9 @@ export async function resetUserPfp(email: string, currentUrl?: string): Promise<
   }, { upsert: false })
     .exec();
 
-  if (!updated.modifiedCount) 
+  if (!updated.modifiedCount)
     throw new NoSuchAccountError('email', email);
-  
+
 }
 
 /**
@@ -183,34 +189,9 @@ export async function changeName(userId: string, newName: string): Promise<void>
   }, { upsert: false })
     .exec();
 
-  if (!updated.modifiedCount) 
+  if (!updated.modifiedCount)
     throw new NoSuchAccountError('userId', userId);
-  
-}
 
-/**
- * Change a user's email and reset them to being unverified.
- * 
- * @async
- * @param {string} userId The id of the user who's email to update.
- * @param {string} newEmail The new email of the user.
- * @returns {Promise} A promise which resolves if the operation completes successfully.
- * @throws {NoSuchAccountError} Error thrown if no account exists with the given user id. 
- */
-export async function changeEmail(userId: string, newEmail: string): Promise<void> {
-  const updated = await UserModel.updateOne({
-    userId
-  }, {
-    $set: {
-      email: newEmail,
-      emailVerified: false
-    }
-  }, { upsert: false })
-    .exec();
-
-  if (!updated.modifiedCount) 
-    throw new NoSuchAccountError('userId', userId);
-  
 }
 
 /**
@@ -219,20 +200,156 @@ export async function changeEmail(userId: string, newEmail: string): Promise<voi
  * @async
  * @param {string} userId The id of the user who's verification status to update.
  * @returns {Promise} A promise which resolves if the operation completes successfully.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @throws {NoSuchAccountError} Error thrown if no account exists with the given user id. 
  */
-export async function verifyEmail(userId: string): Promise<void> {
-  const updated = await UserModel.updateOne({
-    userId
-  }, {
-    $set: {
-      emailVerified: true
-    }
-  }, { upsert: false })
+export async function verifyEmail(userId: string, session?: ClientSession): Promise<void> {
+  return genericSessionFunction(async session => {
+    const updated = await UserModel.updateOne({
+      userId
+    }, {
+      $set: {
+        emailVerified: true
+      }
+    }, { upsert: false })
+      .session(session)
+      .exec();
+
+    if (!updated.matchedCount)
+      throw new NoSuchAccountError('userId', userId);
+  }, session);
+}
+
+/**
+ * Create a new email change request, and overwrite any existing requests.
+ * 
+ * @async
+ * @param {string} userId The user who made this request.
+ * @param {string} oldEmail The old email that is being changed.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
+ * @returns {Promise<string>} A promise which resolves to the change request's id.
+ */
+export async function createEmailChangeRequest(userId: string, originalEmail: string, session?: ClientSession): Promise<string> {
+  return genericSessionFunction(async session => {
+    await EmailChangeModel.deleteMany({
+      userId
+    }, { session });
+
+    const newRequest = new EmailChangeModel({
+      userId,
+      originalEmail
+    });
+    newRequest.save({ session });
+
+    return newRequest.requestId;
+  }, session);
+}
+
+/**
+ * Get the data for an email change request.
+ * 
+ * @async
+ * @param {string} userId The id of the user that this request belongs to.
+ * @param {string} requestId The id of the request.
+ * @returns {Promise<EmailChangeData>} A promise which resolves to the request data.
+ * @throws {NoSuchRequestError} If no request exists with the given user id and request id. 
+ */
+export async function getEmailChangeRequestData(userId: string, requestId: string): Promise<Omit<EmailChangeData, 'newCodeHash'>> {
+  const data = await EmailChangeModel.findOne({
+    userId,
+    requestId
+  })
+    .select({
+      _id: 0,
+      newCodeHash: 0,
+      expiry: 0
+    })
+    .lean()
     .exec();
 
-  if (!updated.matchedCount) 
-    throw new NoSuchAccountError('userId', userId);
+  if (!data)
+    throw new NoSuchRequestError(requestId);
+
+  return data;
+}
+
+/**
+ * Add the new email to a user's change request.
+ * 
+ * @async
+ * @param {string} userId The id of the user that wants to change their email.
+ * @param {string} requestId The change request id.
+ * @param {string} newEmail The new email of the user.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
+ * @returns {Promise<string>} A promise which resolves to the new code required by the user.
+ * @throws {NoSuchRequestError} If no request exists with the given user id and request id.
+ * @throws {XpkgError} If a new email has already been assigned.
+ */
+export async function addNewEmailToChangeRequest(userId: string, requestId: string, newEmail: string, session?: ClientSession): Promise<string> {
+  return genericSessionFunction(async session => {
+    const requestDoc = await EmailChangeModel.findOne({ userId, requestId }).exec();
+    if (!requestDoc)
+      throw new NoSuchRequestError(requestId);
+
+    if (requestDoc.newEmail || requestDoc.newCodeHash)
+      throw new XpkgError('Step already completed once');
+
+    const code = numericNanoid(6);
+    const codeHash = await Bun.password.hash(code, 'bcrypt');
+
+    requestDoc.newEmail = newEmail;
+    requestDoc.newCodeHash = codeHash;
+    await requestDoc.save({ session });
+
+    return code;
+  }, session);
+}
+
+/**
+ * Change the email of a user to their request if the provided code is valid. A database write only occurs if the code is valid, and no error is thrown.
+ * 
+ * @async
+ * @param {string} userId The id of the user that wants to change their email.
+ * @param {string} requestId The change request id.
+ * @param {number} code The code to validate which is sent to the new email.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
+ * @returns {Promise<{ valid: boolean; originalEmail?: string; newEmail?: string; name?: string; }>} A promise which resolves to true if the code is valid, or false if the code is invalid. Also returns the original email, new email, and the user's name if the code is valid. This is to prevent duplicate database queries. Throws if there is an error, or the request can not be found.
+ * @throws {NoSuchRequestError} If no request exists with the given user id and request id. 
+ * @throws {XpkgError} If step 1 is not completed first.
+ */
+export async function checkEmailChangeRequestCode(userId: string, requestId: string, code: number, session?: ClientSession): Promise<{
+  valid: boolean;
+  originalEmail?: string;
+  newEmail?: string;
+  name?: string;
+}> {
+  return genericSessionFunction(async session => {
+    const requestDoc = await EmailChangeModel.findOne({ userId, requestId }).exec();
+    if (!requestDoc)
+      throw new NoSuchRequestError(requestId);
+
+    if (!requestDoc.newEmail || !requestDoc.newCodeHash)
+      throw new XpkgError('Step 1 not completed');
+
+    const isCodeValid = await Bun.password.verify(code.toString(), requestDoc.newCodeHash, 'bcrypt');
+    if (!isCodeValid)
+      return {
+        valid: false
+      };
+
+    const user = await getUserFromId(userId);
+    await requestDoc.deleteOne({ session });
+
+    user.emailVerified = true;
+    user.email = requestDoc.newEmail;
+    await user.save({ session });
+    return {
+      valid: true,
+      originalEmail: requestDoc.originalEmail,
+      newEmail: requestDoc.newEmail,
+      name: user.name
+    };
+  }, session);
 }
 
 /**
@@ -245,4 +362,4 @@ export async function verifyEmail(userId: string): Promise<void> {
 async function generateGravatarUrl(email: string): Promise<string> {
   const emailHash = await hash(email, { algorithm: 'sha256' });
   return 'https://gravatar.com/avatar/' + emailHash;
-} 
+}

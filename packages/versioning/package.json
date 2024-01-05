@@ -4,6 +4,7 @@
   "description": "X-Pkg tools for versioning",
   "main": "dist/index.js",
   "type": "module",
+  "private": true,
   "scripts": {
     "clean": "npx tsc --build --clean",
     "install-deps": "npm install",

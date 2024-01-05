@@ -15,36 +15,17 @@
 $page-background: #eeeff5;
 
 $dark-blue: #1f222a;
-// $dark-blue-hover: #0f1321;
-
-// $disabled-dark-blue: #757984;
-// $disabled-gray: #d7d9e0; 
-
-// $really-dark-gray: #2c2c2c;
-// $dark-gray: #464646;
-// $gray: #656565;
-// $light-gray: #cecece;
-// $really-light-gray: #f4f4f4;
-
-// $footer-gray: #9e9e9e;
-
-// $error-red: #cc2525;
-// $warning-yellow: #d4b020;
-// $good-green: #3fd161;
-
-// $subrow-gray: #dcdde4;
 
 // Code modified from Katie McTigue, https://medium.com/@katiemctigue/how-to-create-a-dark-mode-in-sass-609f131a3995
 // Filters created from Barrett Sonntag, https://codepen.io/sosuke/pen/Pjoqqp
-$themes: (
-  default: (
-    background-color: #e2e2e7,
+$themes: (default: (background-color: #e2e2e7,
     content-box-color: #eeeff5,
+    logo-text-color: #2c2c2c,
+    logo-text-color-filter: brightness(0) saturate(100%) invert(17%) sepia(51%) saturate(0%) hue-rotate(159deg) brightness(95%) contrast(103%),
     primary-text-color: #9b1989,
     primary-text-color-filter: brightness(0) saturate(100%) invert(16%) sepia(45%) saturate(4800%) hue-rotate(292deg) brightness(99%) contrast(99%),
-    main-text-color: #2c2c2c,
-    main-text-color-filter: brightness(0) saturate(100%) invert(17%) sepia(51%) saturate(0%) hue-rotate(159deg) brightness(95%) contrast(103%),
     secondary-text-color: #006eff,
+    placeholder-text-color: #00ff37,
     main-box-border: #545356,
     error-border: #ff0000,
     input-background: #d3cd26,
@@ -52,16 +33,17 @@ $themes: (
     input-selection-color: #ff00b7,
     theme-change-color: #16181f,
     box-footer-background: #d60c0c,
-    good-green: #0f0,
+    good-text: rgb(75, 101, 41),
+    error-text: #372482
   ),
-  dark: (
-    background-color: #16181f,
+  dark: (background-color: #16181f,
     content-box-color: #1f222a,
-    primary-text-color: #ffffff,
-    primary-text-color-filter: brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(272deg) brightness(106%) contrast(101%),
-    main-text-color: #e3e7ee,
-    main-text-color-filter: brightness(0) saturate(100%) invert(93%) sepia(2%) saturate(1769%) hue-rotate(190deg) brightness(93%) contrast(91%),
+    logo-text-color: #ffffff,
+    logo-text-color-filter: brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(272deg) brightness(106%) contrast(101%),
+    primary-text-color: #e3e7ee,
+    primary-text-color-filter: brightness(0) saturate(100%) invert(93%) sepia(2%) saturate(1769%) hue-rotate(190deg) brightness(93%) contrast(91%),
     secondary-text-color: #cdd0d4,
+    placeholder-text-color: #5b5e63,
     main-box-border: #828284,
     error-border: #e92a2a,
     input-background: #30343e,
@@ -69,7 +51,8 @@ $themes: (
     input-selection-color: #3e56ad,
     theme-change-color: #e2e2e7,
     box-footer-background: #2e3035,
-    good-green: #60c760,
+    good-text: #60c760,
+    error-text: #de5a5a
   ),
 );
 

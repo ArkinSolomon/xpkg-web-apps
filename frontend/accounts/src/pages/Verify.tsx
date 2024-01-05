@@ -33,7 +33,7 @@ export default function (): JSX.Element {
         return setError('token expired.');
 
       try {
-        const response = await axios.post('http://localhost:4819/account/verify', {
+        const response = await axios.post('http://localhost:4819/account/email/verify', {
           token: verificationToken
         }, {
           validateStatus: () => true
@@ -54,7 +54,6 @@ export default function (): JSX.Element {
         console.error(e);
         setError('an unknown error occured while trying to validate the token.');
       }
-
     })();
   }, []);
 

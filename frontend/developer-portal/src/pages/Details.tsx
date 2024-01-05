@@ -644,15 +644,11 @@ Upload
                         <button
                           onClick={() => downloadFile(this._data?.versionData.loc as string, `${this._data?.packageId}@${this._data?.versionData.packageVersion}`)}
                           className='primary-button'
-                        >
-Download Package File
-                        </button>
+                        >Download Package File</button>
                         <button
                           onClick={() => downloadInstallationFile(this._data!.packageId, this._data!.versionData.packageVersion.toString()!, this._data?.versionData.privateKey)}
                           className='primary-button'
-                        >
-Download Installation File
-                        </button>
+                        >Download Installation File</button>
                       </>
                       }
                     </aside>
@@ -700,9 +696,7 @@ Download Installation File
                       className='primary-button mt-6 float-right'
                       disabled={this.state.isSubmitting || !this.state.xpSelection.isValid || this._originalSelection === this.state.xpSelection.toString()}
                       onClick={this._updateXpSelection}
-                    >
-Update X-Plane Selection
-                    </button>
+                    >Update X-Plane Selection</button>
                   </div>
                 </section>
                 <section className='mt-11'>     
@@ -719,9 +713,7 @@ Update X-Plane Selection
                       className='primary-button'
                       disabled={this._originalIncompatibilities === JSON.stringify(this.state.incompatibilities) || this.state.incompatibilityErr || this.state.isSubmitting}
                       onClick={this._updateIncompatibilities}
-                    >
-Update Incompatibilities
-                    </button>
+                    >Update Incompatibilities</button>
                   </div>
                 </section>
               </>

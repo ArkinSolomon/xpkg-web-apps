@@ -68,7 +68,8 @@ const authorizeRoutes = [
   '/account/userdata',
   '/account/resetpfp',
   '/account/name',
-  '/account/resend',
+  '/account/email/changeemail$',
+  '/account/email/resend',
   '/oauth/*'
 ];
 

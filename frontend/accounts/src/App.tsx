@@ -21,6 +21,7 @@ import Authenticate from './pages/Authenticate';
 import Authorize from './pages/Authorize';
 import Account from './pages/Account';
 import Verify from './pages/Verify';
+import EmailChange from './pages/EmailChange';
 
 declare global {
   interface Window {
@@ -33,9 +34,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path='/account' element={<Account />} />
         <Route path='/authenticate' element={<Authenticate />} />
         <Route path='/authorize' element={<Authorize />} />
-        <Route path='/account' element={<Account />} />
+        <Route path='/changeemail' element={<EmailChange />} />
         <Route path='/verify' element={<Verify />} />
       </Routes>
       <Footer />

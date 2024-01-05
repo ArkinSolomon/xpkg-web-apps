@@ -34,21 +34,26 @@ import { header } from 'express-validator';
 export default async function (req: AuthorizedRequest, res: Response, next: NextFunction) {
   const result = await isValidTokenFormat(header('authorization')).run(req);
   if (!result.isEmpty()) {
-    req.logger.trace('Invalid authroization header, message: ' + result.array()[0].msg);
+    req.logger.trace('Invalid authorization header, message: ' + result.array()[0].msg);
     return res.sendStatus(401);
   }
 
-  const userId = await validateXisToken(req.headers.authorization!);
-  if (!userId) {
-    req.logger.trace('Invalid token provided');
-    return res.sendStatus(401);
-  }
+  try {
+    const userId = await validateXisToken(req.headers.authorization!);
+    if (!userId) {
+      req.logger.trace('Invalid token provided');
+      return res.sendStatus(401);
+    }
 
-  req.logger.setBindings({
-    userId
-  });
-  req.logger.trace('User authorized');
-  (req as AuthorizedRequest).user = await getUserFromId(userId);
-  req.logger.trace('Got user information from database');
-  next();
+    req.logger.setBindings({
+      userId
+    });
+    req.logger.trace('User authorized');
+    (req as AuthorizedRequest).user = await getUserFromId(userId);
+    req.logger.trace('Got user information from database');
+    next();
+  } catch (e) {
+    req.logger.error(e);
+    res.sendStatus(500);
+  }
 }

@@ -48,7 +48,7 @@ export const TokenScope = {
   // Action
   PasswordReset: 1n << 8n,
   EmailVerification: 1n << 9n,
-  EmailChangeRevoke: 1n << 10n,
+  EmailChange: 1n << 10n,
 
   // Registry scopes
   RegistryCreatePackage: 1n << 16n,

@@ -16,88 +16,6 @@
 @import '_themes.scss';
 @import '_media.scss';
 
-.explain-text {
-  font-family: $noto-sans;
-  font-size: 11pt;
-  line-height: 13pt;
-
-  &,
-  a,
-  a:visited {
-    @include themed() {
-      color: t('secondary-text-color');
-    }
-  }
-
-  a {
-    cursor: pointer;
-    text-decoration: underline;
-
-    &.clicked {
-      @include themed() {
-        color: t('good-green');
-      }
-    }
-  }
-}
-
-p.check-box-text {
-  &,
-  a,
-  a:visited {
-    @include themed() {
-      color: t('primary-text-color');
-    }
-  }
-}
-
-.bottom-buttons {
-  display: flex;
-  flex-flow: row;
-
-  &>* {
-    flex: 1 100%;
-  }
-
-  button, input[type="submit"] {
-    max-width: fit-content;
-  }
-
-  .center-link-wrapper {
-    display: flex;
-    text-align: center;
-    align-items: center;
-
-    a {
-      flex-grow: 1;
-
-      cursor: pointer;
-
-      font-family: $noto-sans;
-      font-size: 10pt;
-      text-decoration: underline;
-
-      @include themed() {
-        color: t('secondary-text-color');
-      }
-
-      &:hover {
-        filter: brightness(85%);
-      }
-    }
-
-    &.hide {
-      visibility: hidden;
-      cursor: default;
-    }
-  }
-
-  button.hide, input.hide {
-    visibility: hidden;
-    cursor: default;
-  }
-}
-
 .auth-lock {
   display: flex;
 
@@ -137,7 +55,7 @@ p.check-box-text {
       user-select: none;
 
       @include themed() {
-        filter: t('main-text-color-filter');
+        filter: t('primary-text-color-filter');
       }
     }
   }
@@ -153,7 +71,7 @@ p.check-box-text {
       }
 
       @include themed() {
-        color: t('main-text-color');
+        color: t('primary-text-color');
       }
     }
   }

@@ -16,27 +16,27 @@ import { identifiers } from '@xpkg/validation';
 import TokenModel, { TokenScope, TokenType } from './models/tokenModel.js';
 import { DateTime, DurationLike } from 'luxon';
 import { createPermissionsNumber, hasAnyPermission, hasPermission } from '../util/permissionNumberUtil.js';
-import { logger } from '@xpkg/backend-util';
 import { XIS_CLIENT_ID } from './clientDatabase.js';
+import { ClientSession } from 'mongoose';
+import genericSessionFunction from './genericSessionFunction.js';
 
 /**
  * Create an access token for a user to interact with the X-Pkg identity service. Invalidates any remaining tokens.
  * 
  * @async
  * @param {string} userId The id of the user this token is for.
+ * @param {ClientSession} [session] An optional session to use for an atomic transaction.
  * @returns {Promise<string>} The access token for the user.
  */
-export async function createXisToken(userId: string): Promise<string> {
+export async function createXisToken(userId: string, session?: ClientSession): Promise<string> {
   const permissions = createPermissionsNumber(TokenScope.Identity);
 
-  // Only one identity token at a time is permitted
-  await TokenModel.deleteMany({
-    userId,
-    tokenType: TokenType.Identity
-  })
-    .exec();
+  return genericSessionFunction(async session => {
+    // Only one identity service token should be active at all times
+    await deleteXisTokens(userId, session);
+    return createToken(userId, XIS_CLIENT_ID, '[identity-internal-token]', TokenType.Identity, permissions, { minutes: 30 });
+  }, session);
 
-  return createToken(userId, XIS_CLIENT_ID, '[identity-internal-token]', TokenType.Identity, permissions, { minutes: 30 });
 }
 
 /**
@@ -44,83 +44,191 @@ export async function createXisToken(userId: string): Promise<string> {
  * 
  * @async 
  * @param {string} token The token to validate.
+ * @param {ClientSession} [session] An optional session to use for an atomic transaction.
  * @returns {Promise<string | null>} A promise which resolves to the id of the user, or null if the token is not valid.
  */
-export async function validateXisToken(token: string): Promise<string | null> {
-  const tokenDoc = await validateToken(token);
+export async function validateXisToken(token: string, session: ClientSession): Promise<string | null> {
+  return genericSessionFunction(async session => {
+    const tokenDoc = await validateToken(token, {
+      session,
+      deleteExpired: true
+    });
 
-  if (!tokenDoc)
-    return null;
+    if (!tokenDoc)
+      return null;
+  
+    if (!hasPermission(tokenDoc.permissionsNumber, TokenScope.Identity))
+      return null;
+  
+    return tokenDoc.userId;
+  }, session);
+}
 
-  if (!hasPermission(tokenDoc.permissionsNumber, TokenScope.Identity))
-    return null;
-
-  return tokenDoc.userId;
+/**
+ * Delete any XIS tokens, though there should only be up to one.
+ * 
+ * @async 
+ * @param {string} userId The user who's token to delete.
+ * @param {ClientSession} [session] An optional session to use for an atomic transaction.
+ * @returns {Promise<void>} A promise which resolves when the operation is complete.
+ */
+export async function deleteXisTokens(userId:string, session?: ClientSession): Promise<void> {
+  await genericSessionFunction(async session => {
+    await TokenModel.deleteMany({
+      userId,
+      tokenType: TokenType.Identity
+    })
+      .session(session)
+      .exec();
+  }, session);
 }
 
 /**
  * Create a new validation token and invalidate all others.
  * 
- * @param {string} userId The id of the user who's validation token is being created.
+ * @param {string} userId The id of the user to associate with the token.
  * @param {string} email The email address of the user's validation token. 
- * @returns {string} The new validation token.
+ * @param {ClientSession} [session] An optional session to use for an atomic transaction.
+ * @returns {Promise<string>} The new validation token.
  */
-export async function createEmailVerificationToken(userId: string, email: string): Promise<string> {
+export async function createEmailVerificationToken(userId: string, email: string, session?: ClientSession): Promise<string> {
   const permissionsNumber = createPermissionsNumber(TokenScope.EmailVerification);
-  await TokenModel.deleteMany({
-    userId,
-    tokenType: TokenType.Action,
-    permissionsNumber
-  })
-    .exec();
-
-  return createToken(userId, XIS_CLIENT_ID, '[email-verification-internal-token]', TokenType.Action, permissionsNumber, { days: 1 }, { data: email });
+  return genericSessionFunction(async session => {
+    await TokenModel.deleteMany({
+      userId,
+      tokenType: TokenType.Action,
+      permissionsNumber
+    })
+      .session(session)
+      .exec();
+    return createToken(userId, XIS_CLIENT_ID, '[email-verification-internal-token]', TokenType.Action, permissionsNumber, { days: 1 }, { data: email, session });
+  }, session);
 }
 
 /**
- * Delete a token and get it's data
+ * Create a new request to change an email, and delete all other tokens.
+ * 
+ * @param {string} userId The id of the user to associate with the token.
+ * @param {string} changeRequestId The id of the change request.
+ * @param {ClientSession} [session] An optional session to use for an atomic transaction.
+ * @returns {Promise<string>} The change request token.
+ */
+export async function createChangeRequestToken(userId: string, changeRequestId: string, session?: ClientSession): Promise<string> {
+  const permissionsNumber = createPermissionsNumber(TokenScope.EmailChange);
+  return genericSessionFunction(async session => {
+    await TokenModel.deleteMany({
+      userId,
+      tokenType: TokenType.Action,
+      permissionsNumber
+    })
+      .session(session)
+      .exec();
+
+    return createToken(userId, XIS_CLIENT_ID, '[email-change-request-internal-token]', TokenType.Action, permissionsNumber, { hours: 1 }, { data: changeRequestId, session });
+  }, session);
+}
+
+/**
+ * Get a token and its data (if provided), and determine if it is valid.
  * 
  * @async
- * @param {string} token The action token to consume.
- * @returns {Promise<{userId: string; data?: string;}|null>} A promise which resolves to the token's data and the user id, or null if the token is invalid.
+ * @param {string} token The token to get.
+ * @param {TokenScope|TokenScope[]} scope The scope the token is expected to have. If an array is provided, any in the list will match.
+ * @param {Object} [opts] Additional options.
+ * @param {ClientSession} [opts.session] An optional session to use for an atomic transaction.
+ * @param {boolean} [opts.update] True if the last used date of the token should be updated. Defaults to the opposite of consume. Does nothing if consume is set to true.
+ * @param {boolean} [opts.deleteExpired] True if the token should be deleted if it is passed it's expiry.
+ * @param {boolean} [opts.consume=false] True if the token should be deleted after being used once.
+ * @returns {Promise<{userId: string; tokenId: string; data?: string;}|null>} A promise which resolves to the token's data and the user id, or null if the token is invalid.
  */
-export async function consumeActionToken(token: string): Promise<{ userId: string; data?: string; } | null> {
-  const tokenDoc = await validateToken(token);
+export async function getToken(token: string, scope: TokenScope | TokenScope[], { session, update, deleteExpired, consume }: {
+  session?: ClientSession;
+  update?: boolean;
+  deleteExpired?: boolean;
+  consume?: boolean;
+} = {
+  deleteExpired: false,
+  consume: false
+}): Promise<{
+    userId: string;
+    tokenId: string;
+    data?: string;
+  } | null> {
+  if (typeof scope === typeof TokenScope.Identity)
+    scope = [scope as typeof TokenScope.Identity];
+  consume ??= false;
+  deleteExpired ??= false;
+  update ??= !consume;
 
-  if (!tokenDoc)
-    return null;
+  return genericSessionFunction(async session => {
+    const tokenDoc = await validateToken(token, {
+      deleteExpired,
+      session
+    });
 
-  if (!hasAnyPermission(tokenDoc.permissionsNumber, TokenScope.PasswordReset, TokenScope.EmailVerification, TokenScope.EmailChangeRevoke)) {
-    logger.trace('Invalid action token: not action token');
-    return null;
-  }
+    if (!tokenDoc)
+      return null;
+    
+    if (!hasAnyPermission(tokenDoc.permissionsNumber, ...(scope as TokenScope[])))
+      return null;
 
-  await tokenDoc.deleteOne();
+    if (consume)
+      await tokenDoc.deleteOne({ session });
+    else if (update) {
+      tokenDoc.used = new Date();
+      await tokenDoc.save({ session });
+    }
 
-  return {
-    userId: tokenDoc.userId,
-    data: tokenDoc.data
-  };
+    return {
+      userId: tokenDoc.userId,
+      tokenId: tokenDoc.tokenId,
+      data: tokenDoc.data
+    };
+  }, session);
+}
+
+/**
+ * Delete a user's token by their id and the token id. Completes successfully even if no such token matches the given criteria.
+ * 
+ * @async
+ * @param {string} userId The id of the user who's token to delete.
+ * @param {string} tokenId The id of the token to delete.
+ * @param {ClientSession} [session] An optional session to use for an atomic transaction.
+ * @returns {Promise<void>} A promise that resovles when the operation is complete. 
+ */
+export async function deleteToken(userId: string, tokenId: string, session?: ClientSession): Promise<void> {
+  await genericSessionFunction(async session => {
+    await TokenModel.deleteOne({
+      userId,
+      tokenId
+    })
+      .session(session)
+      .exec();
+  }, session);
 }
 
 /**
  * Update the last used date of a token to now.
  * 
  * @async
- * @param {string} tokenId The id of the token to update.
  * @param {string} userId The id of the user that owns the token to update.
+ * @param {string} tokenId The id of the token to update.
+ * @param {ClientSession} [session] An optional session to use for an atomic transaction.
  * @returns {Promise} A promise which resolves if the operation completes successfully, otherwise it rejects.
  */
-export async function updateTokenUsedDate(tokenId: string, userId: string): Promise<void> {
-  await TokenModel.updateOne({
-    tokenId,
-    userId
-  }, {
-    $set: {
-      used: new Date
-    }
-  })
-    .exec();
+export async function updateTokenUsedDate(userId: string, tokenId: string, session?: ClientSession): Promise<void> {
+  return genericSessionFunction(async session => {
+    await TokenModel.updateOne({
+      userId,
+      tokenId
+    }, {
+      $set: {
+        used: new Date()
+      }
+    })
+      .session(session)
+      .exec();
+  }, session);
 }
 
 /**
@@ -138,7 +246,7 @@ export async function updateTokenUsedDate(tokenId: string, userId: string): Prom
  * @param {string} [opts.data] The optional data to store with the token.
  * @returns {Promise<string>} A promise which resolves to the the new token.
  */
-async function createToken(userId: string, clientId: string, tokenName: string, tokenType: TokenType, permissionsNumber: bigint, expiresIn: DurationLike, { tokenDescription, data }: { tokenDescription?: string; data?: string; } = {}) {
+async function createToken(userId: string, clientId: string, tokenName: string, tokenType: TokenType, permissionsNumber: bigint, expiresIn: DurationLike, { tokenDescription, data, session }: { tokenDescription?: string; data?: string; session?: ClientSession; } = {}): Promise<string> {
   const tokenId = identifiers.alphanumericNanoid(32);
   const tokenSecret = identifiers.alphanumericNanoid(71);
 
@@ -147,25 +255,27 @@ async function createToken(userId: string, clientId: string, tokenName: string, 
     cost: 12
   });
 
-  const created = DateTime.utc();
-  const expiry = created.plus(expiresIn);
-  const newToken = new TokenModel({
-    userId,
-    clientId,
-    tokenId,
-    tokenSecretHash,
-    regenerated: created,
-    expiry,
-    tokenName,
-    tokenDescription,
-    tokenType,
-    permissionsNumber,
-    data,
-    created
-  });
-  await newToken.save();
+  return genericSessionFunction(async session => {
+    const created = DateTime.utc();
+    const expiry = created.plus(expiresIn);
+    const newToken = new TokenModel({
+      userId,
+      clientId,
+      tokenId,
+      tokenSecretHash,
+      regenerated: created,
+      expiry,
+      tokenName,
+      tokenDescription,
+      tokenType,
+      permissionsNumber,
+      data,
+      created
+    });
+    await newToken.save({ session });
 
-  return `xpkg_${tokenId}${tokenSecret}${expiry.toUnixInteger().toString(16).padStart(8, '0')}`;
+    return `xpkg_${tokenId}${tokenSecret}${expiry.toUnixInteger().toString(16).padStart(8, '0')}`;
+  }, session);
 }
 
 /**
@@ -173,35 +283,47 @@ async function createToken(userId: string, clientId: string, tokenName: string, 
  * 
  * @async
  * @param {string} token The token to validate.
+ * @param {Object} [opts] Additional verification options.
+ * @param {boolean} [opts.deleteExpired=false] True if the token should be deleted if it is expired.
+ * @param {ClientSession} [opts.session] An optional session to use for an atomic transaction.
  * @returns The document of the token, or null if the token is invalid.
  */
-async function validateToken(token: string) {
+async function validateToken(token: string, { deleteExpired, session }: {
+  deleteExpired?: boolean;
+  session?: ClientSession;
+} = { deleteExpired: false }) {
   const [tokenId, tokenSecret, expiry] = deconstructToken(token);
-  if (expiry < DateTime.now()) {
-    logger.trace('Invalid action token: expired token');
-    return null;
-  }
+  deleteExpired ??= false;
 
-  const tokenDoc = await TokenModel.findOne({
-    tokenId
-  })
-    .exec();
-
-  if (!tokenDoc) {
-    logger.trace('Invalid action token: not found');
-    return null;
-  }
-
-  if (DateTime.fromJSDate(tokenDoc.expiry) < DateTime.now()) {
-    logger.trace('Invalid action token: database expired');
-    return null;
-  }
-
-  const hashValid = await Bun.password.verify(tokenSecret, tokenDoc.tokenSecretHash, 'bcrypt');
-  if (!hashValid)
+  // We can early return if the token claims to be expired and we don't have to delete it
+  const expiredClaim = expiry < DateTime.now();
+  if (expiredClaim && !deleteExpired) 
     return null;
 
-  return tokenDoc;
+  return genericSessionFunction(async session => {
+    const tokenDoc = await TokenModel.findOne({
+      tokenId
+    })
+      .exec();
+  
+    if (!tokenDoc)
+      return null;
+  
+    if (tokenDoc.expiry.getTime() < Date.now()) {
+      if (deleteExpired) 
+        await tokenDoc.deleteOne({ session });
+      
+      return null;
+    } else if (expiredClaim) 
+      // The token has been tampered with so the token is not valid (we don't check if it doesn't make the expired claim though)
+      return null;
+  
+    const hashValid = await Bun.password.verify(tokenSecret, tokenDoc.tokenSecretHash, 'bcrypt');
+    if (!hashValid)
+      return null;
+  
+    return tokenDoc;
+  }, session);
 }
 
 /**

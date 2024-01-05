@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,6 +102,95 @@ main#content-box {
       bottom: 0;
       left: 0;
       right: 0;
+    }
+
+    .explain-text {
+      font-family: $noto-sans;
+      font-size: 11pt;
+      line-height: 13pt;
+
+      a {
+        cursor: pointer;
+        text-decoration: underline;
+
+        &.clicked {
+          @include themed() {
+            color: t('good-text');
+          }
+        }
+      }
+
+      &,
+      a,
+      a:visited {
+        @include themed() {
+          color: t('secondary-text-color');
+        }
+      }
+
+      b {
+        font-weight: bold;
+      }
+    }
+
+    p.check-box-text {
+
+      &,
+      a,
+      a:visited {
+        @include themed() {
+          color: t('primary-text-color');
+        }
+      }
+    }
+
+    .bottom-buttons {
+      display: flex;
+      flex-flow: row;
+
+      &>* {
+        flex: 1 100%;
+      }
+
+      button,
+      input[type="submit"] {
+        max-width: fit-content;
+      }
+
+      .center-link-wrapper {
+        display: flex;
+        text-align: center;
+        align-items: center;
+
+        a {
+          flex-grow: 1;
+
+          cursor: pointer;
+
+          font-family: $noto-sans;
+          font-size: 10pt;
+          text-decoration: underline;
+
+          @include themed() {
+            color: t('secondary-text-color');
+          }
+
+          &:hover {
+            filter: brightness(85%);
+          }
+        }
+
+        &.hide {
+          visibility: hidden;
+          cursor: default;
+        }
+      }
+
+      button.hide,
+      input.hide {
+        visibility: hidden;
+        cursor: default;
+      }
     }
   }
 }

@@ -88,7 +88,7 @@ type AuthData = {
   confirmPassword?: string;
 };
 
-import '../css/Auth.scss';
+import '../css/Authenticate.scss';
 import SmallContentBox from '../components/SmallContentBox';
 import TextInput from '../components/TextInput';
 import { ChangeEvent, Component } from 'react';
@@ -408,7 +408,7 @@ export default class extends Component {
       };
       break;
     default:
-      index = -1;
+      index = Page.ErrorPage;
       updateData = {
         subtitle: 'An error occured',
         showBack: true,

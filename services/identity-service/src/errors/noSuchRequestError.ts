@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,16 @@
 import XpkgError from './xpkgError.js';
 
 /**
- * An error which is thrown by the account database when such a user does not exist.
+ * An error which is thrown by the a database when a (generic) request does not exist.
  */
-export default class NoSuchAccountError extends XpkgError {
+export default class NoSuchRequestError extends XpkgError {
 
   /**
-   * Create a new error saying the account does not exist with the provided details.
+   * Create a new error saying a request does not exist with the given id.
    * 
-   * @param {string} keyName The name of the key that the author was looked up by.
-   * @param {string} value The value of the key that the author was looked up by.
+   * @param {string} requestId The value of the key that the author was looked up by.
    */
-  constructor(keyName: string, value: string) {
-    super(`Account does not exist with the parameters: ${keyName}=${value}`);
+  constructor(requestId: string) {
+    super(`Request does not exist with the id: ${requestId}`);
   }
 }

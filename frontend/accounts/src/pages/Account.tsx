@@ -347,10 +347,7 @@ export default class extends Component<Record<string, never>, AccountState> {
             <nav id='sidebar' className='closed'>
               <button id='sidebar-close' className='plus-sign' onClick={this._toggleSidebar} />
               <div id='title-wrapper'>
-                <h1 className='main-title'>
-                  <img src='/logos/main-logo.png' alt='X-Pkg Logo' />
-            X-Pkg Accounts
-                </h1>
+                <h1 className='main-title'><img src='/logos/main-logo.png' alt='X-Pkg Logo' />X-Pkg Accounts</h1>
               </div>
               <SidebarItem icon={<PersonIcon />} label='Personal Information' onClick={this._createPageChangeFunction(AccountPage.PersonalInformation)} active={this.state.loadedPage === AccountPage.PersonalInformation} />
               <SidebarItem icon={<NotificationsIcon />} label='Notification Settings' onClick={this._createPageChangeFunction(AccountPage.NotificationSettings)} active={this.state.loadedPage === AccountPage.NotificationSettings} />

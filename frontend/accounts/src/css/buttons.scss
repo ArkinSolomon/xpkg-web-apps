@@ -45,8 +45,8 @@
 
   @include themed() {
     color: t('main-box-color');
-    background-color: t('main-text-color');
-    border-color: t('main-text-color');
+    background-color: t('primary-text-color');
+    border-color: t('primary-text-color');
   }
 }
 
@@ -58,6 +58,6 @@
 
   @include themed() {
     border-color: t('main-box-border');
-    color: t('main-text-color');
+    color: t('primary-text-color');
   }
 }
