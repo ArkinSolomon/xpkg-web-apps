@@ -28,7 +28,7 @@
 
   .theme-icon-color {
 
-    @include themed() {
+    @include themed {
       fill: t('theme-change-color');
     }
   }

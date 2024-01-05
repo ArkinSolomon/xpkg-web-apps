@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 
   padding: 4px 1em;
   appearance: none;
+  position: relative;
   cursor: pointer;
 
   &:hover {
@@ -36,6 +37,21 @@
       cursor: not-allowed;
     }
   }
+
+  .extern-link {
+    margin-left: 4px;
+
+    svg {
+      height: 13pt;
+      line-height: 13pt;
+
+      width: auto;
+      aspect-ratio: 1;
+
+      vertical-align: middle;
+      transform: translateY(-1px);
+    }
+  }
 }
 
 .primary-button {
@@ -43,7 +59,7 @@
 
   border: 1px solid;
 
-  @include themed() {
+  @include themed {
     color: t('main-box-color');
     background-color: t('primary-text-color');
     border-color: t('primary-text-color');
@@ -56,8 +72,8 @@
   border: 1px solid;
   background-color: transparent;
 
-  @include themed() {
-    border-color: t('main-box-border');
+  @include themed {
     color: t('primary-text-color');
+    border-color: t('main-box-border');
   }
 }

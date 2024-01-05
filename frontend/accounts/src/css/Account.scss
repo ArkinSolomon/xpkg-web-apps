@@ -54,7 +54,7 @@
   overflow-y: scroll;
   overflow-x: hidden;
 
-  @include themed() {
+  @include themed {
     border-right-color: t('main-box-border');
     background-color: t('content-box-color');
   }
@@ -76,7 +76,7 @@
     margin-left: 0;
     margin-right: 0;
 
-    @include themed() {
+    @include themed {
       color: t('main-box-border');
       background-color: t('main-box-border');
     }
@@ -98,8 +98,8 @@
     text-wrap: nowrap;
     white-space: nowrap;
 
-    @include themed() {
-      color: t('primary-text-color');
+    @include themed {
+      color: t('logo-text-color');
     }
 
     img {
@@ -110,8 +110,8 @@
       margin-right: 10px;
       user-select: none;
 
-      @include themed() {
-        filter: t('primary-text-color-filter');
+      @include themed {
+        filter: t('logo-text-color-filter');
       }
     }
 

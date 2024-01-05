@@ -24,7 +24,7 @@
       margin-bottom: 5px;
       font-size: 12pt;
 
-      @include themed() {
+      @include themed {
         color: t('primary-text-color');
       }
     }
@@ -46,7 +46,7 @@
       border-bottom-style: solid;
       border-color: transparent;
 
-      @include themed() {
+      @include themed {
         color: t('primary-text-color');
         background-color: t('input-background');
         border-bottom-color: t('input-border-color');
@@ -56,7 +56,7 @@
         border-radius: 5px;
         border-bottom: 0;
 
-        @include themed() {
+        @include themed {
           color: t('secondary-text-color');
         }
       }
@@ -64,13 +64,13 @@
 
     &.error {
       input {
-        @include themed() {
+        @include themed {
           border-bottom-color: t('error-border');
         }
       }
 
       label {
-        @include themed() {
+        @include themed {
           color: t('error-border');
         }
       }
@@ -102,7 +102,7 @@
       margin: 0;
       margin-right: 3px;
 
-      @include themed() {
+      @include themed {
         border: 1px solid t('input-border-color');
       }
 
@@ -114,7 +114,7 @@
       transform: translateY(0.25em);
 
       &:checked {
-        @include themed() {
+        @include themed {
           background-color: t('input-background');
           border: 2px solid t('input-border-color');
         }

@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import '../css/SvgColoring.scss';
+import '../css/svgColoring.scss';
 
 export default function PersonIcon() {
   // https://www.svgrepo.com/collection/forge-line-interface-icons

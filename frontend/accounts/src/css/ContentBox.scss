@@ -29,7 +29,7 @@ main#content-box {
   border-radius: 14px;
   z-index: 10;
 
-  @include themed() {
+  @include themed {
     background-color: t('content-box-color');
     border: 1px solid t('main-box-border');
   }
@@ -68,8 +68,8 @@ main#content-box {
       display: block;
       width: 100%;
 
-      @include themed() {
-        color: t('primary-text-color');
+      @include themed {
+        color: t('logo-text-color');
       }
 
       img {
@@ -80,8 +80,8 @@ main#content-box {
         margin-right: 10px;
         user-select: none;
 
-        @include themed() {
-          filter: t('primary-text-color-filter');
+        @include themed {
+          filter: t('logo-text-color-filter');
         }
       }
     }
@@ -91,7 +91,7 @@ main#content-box {
       text-align: center;
       font-size: 16pt;
 
-      @include themed() {
+      @include themed {
         color: t('primary-text-color');
       }
     }
@@ -114,7 +114,7 @@ main#content-box {
         text-decoration: underline;
 
         &.clicked {
-          @include themed() {
+          @include themed {
             color: t('good-text');
           }
         }
@@ -123,7 +123,7 @@ main#content-box {
       &,
       a,
       a:visited {
-        @include themed() {
+        @include themed {
           color: t('secondary-text-color');
         }
       }
@@ -138,7 +138,7 @@ main#content-box {
       &,
       a,
       a:visited {
-        @include themed() {
+        @include themed {
           color: t('primary-text-color');
         }
       }
@@ -171,7 +171,7 @@ main#content-box {
           font-size: 10pt;
           text-decoration: underline;
 
-          @include themed() {
+          @include themed {
             color: t('secondary-text-color');
           }
 

@@ -78,7 +78,6 @@ route.post('/create',
       });
       req.logger.trace('New author account registered in database');
       const token = await tokenDatabase.createXisToken(user.userId);
-
       await sendVerificationEmail(user.userId, user.name, user.email);
 
       res.json({ token });

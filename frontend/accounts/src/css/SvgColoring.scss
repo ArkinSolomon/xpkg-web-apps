@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,54 @@
 
 svg {
   .primary-fill {
-    @include themed() {
+    @include themed {
       fill: t('primary-text-color');
     }
   }
 
   .primary-stroke {
-    @include themed() {
+    @include themed {
       stroke: t('primary-text-color');
     }
   }
 
   .secondary-text-fill {
-    @include themed() {
+    @include themed {
       fill: t('secondary-text-color');
     }
   }
 
   .secondary-text-stroke {
-    @include themed() {
+    @include themed {
       stroke: t('secondary-text-color');
+    }
+  }
+
+  .primary-button {
+    .button-text-stroke {
+      @include themed {
+        stroke: t('main-box-color');
+      }
+    }
+
+    .button-text-fill {
+      @include themed {
+        fill: t('main-box-color');
+      }
+    }
+  }
+
+  .primary-button {
+    .button-text-stroke {
+      @include themed {
+        stroke: t('primary-text-color');
+      }
+    }
+
+    .button-text-fill {
+      @include themed {
+        fill: t('primary-text-color');
+      }
     }
   }
 }

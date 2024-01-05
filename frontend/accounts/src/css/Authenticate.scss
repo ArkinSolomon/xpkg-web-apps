@@ -29,7 +29,7 @@
   border-width: 1px;
   border-style: solid;
 
-  @include themed() {
+  @include themed {
     background-color: t('box-footer-background');
     border-color: t('main-box-border');
   }
@@ -54,7 +54,7 @@
 
       user-select: none;
 
-      @include themed() {
+      @include themed {
         filter: t('primary-text-color-filter');
       }
     }
@@ -70,7 +70,7 @@
         font-weight: bold;
       }
 
-      @include themed() {
+      @include themed {
         color: t('primary-text-color');
       }
     }

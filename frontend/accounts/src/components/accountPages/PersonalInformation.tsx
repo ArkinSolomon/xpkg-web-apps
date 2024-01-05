@@ -54,6 +54,7 @@ import { body } from 'express-validator';
 import { ModalProps } from '../Modal';
 import axios from 'axios';
 import { getCookie } from '../../scripts/cookies';
+import ExternalLinkIcon from '../../svgs/ExternalLinkIcon';
 
 export default class PersonalInformation extends Component<PersonalInformationProps, PersonalInformationState> {
 
@@ -70,6 +71,12 @@ export default class PersonalInformation extends Component<PersonalInformationPr
       resendText: props.userData!.emailVerified ? 'Your email has been verified.' : 'You must verify your email.',
       changeEmailEnabled: true
     };
+
+    const pfpUrl = props.userData!.profilePicture;
+    const splitUrl = pfpUrl.split('?');
+    const searchParams = new URLSearchParams(splitUrl[1] ?? '');
+    searchParams.set('s', '256');
+    this.props.userData!.profilePicture = splitUrl[0] + '?' + searchParams.toString();
 
     this._originalName = props.userData!.name;
     this._newName = props.userData!.name;
@@ -348,7 +355,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
     
     if (isGravatar && (!this.state.emailHash || this.state.emailHash === hash!)) 
       return (
-        <button className='primary-button mt-4' role='link' onClick={() => window.open('https://wordpress.com/log-in/link?client_id=1854&redirect_to=https%3A%2F%2Fpublic-api.wordpress.com%2Foauth2%2Fauthorize%3Fclient_id%3D1854%26response_type%3Dcode%26blog_id%3D0%26state%3D06d58a818e98e88ac66f10ae7dbacad0bc34559c5f776606785532173df4afe8%26redirect_uri%3Dhttps%253A%252F%252Fgravatar.com%252Fconnect%252F%253Faction%253Drequest_access_token%26from-calypso%3D1', '_blank')}>Modify Gravatar</button>
+        <button className='primary-button mt-4' role='link' onClick={() => window.open('https://wordpress.com/log-in/link?client_id=1854&redirect_to=https%3A%2F%2Fpublic-api.wordpress.com%2Foauth2%2Fauthorize%3Fclient_id%3D1854%26response_type%3Dcode%26blog_id%3D0%26state%3D06d58a818e98e88ac66f10ae7dbacad0bc34559c5f776606785532173df4afe8%26redirect_uri%3Dhttps%253A%252F%252Fgravatar.com%252Fconnect%252F%253Faction%253Drequest_access_token%26from-calypso%3D1', '_blank')}>Modify Gravatar<span className='extern-link'><ExternalLinkIcon /></span></button>
       ); 
     else if (!isGravatar) 
       return (
@@ -365,7 +372,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
     return (
       <div id='personal-info-page'>
         <div id='pfp-section'>
-          <img src={this.props.userData!.profilePicture + '?s=256'} alt='Profile Picture' />
+          <img src={this.props.userData!.profilePicture} alt='Profile Picture' />
           <button className='primary-button mt-4'>Upload Image</button>
           {this._gravatarButton()}
         </div>

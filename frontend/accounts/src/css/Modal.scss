@@ -21,7 +21,7 @@ dialog#modal {
   min-height: 205px;
   border-radius: 14px;
 
-  @include themed() {
+  @include themed {
     background-color: t('content-box-color');
     border: 1px solid t('main-box-border');
   }
@@ -39,7 +39,7 @@ dialog#modal {
     font-family: $noto-sans;
     font-size: 18pt;
 
-    @include themed() {
+    @include themed {
       color: t('primary-text-color');
     }
   }
@@ -54,7 +54,7 @@ dialog#modal {
       font-size: 12pt;
       line-height: 17pt;
 
-      @include themed() {
+      @include themed {
         color: t('secondary-text-color');
       }
 

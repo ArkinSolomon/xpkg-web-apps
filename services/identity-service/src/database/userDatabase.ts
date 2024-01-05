@@ -361,5 +361,5 @@ export async function checkEmailChangeRequestCode(userId: string, requestId: str
  */
 async function generateGravatarUrl(email: string): Promise<string> {
   const emailHash = await hash(email, { algorithm: 'sha256' });
-  return 'https://gravatar.com/avatar/' + emailHash;
+  return `https://gravatar.com/avatar/${emailHash}?d=identicon`;
 }

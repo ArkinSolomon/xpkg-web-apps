@@ -19,7 +19,7 @@ p.loading-page {
   text-align: center;
   margin: 66px 0;
 
-  @include themed() {
+  @include themed {
     color: t('primary-text-color');
   }
 }
