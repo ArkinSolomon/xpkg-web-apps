@@ -23,7 +23,7 @@ import { ClientSession } from 'mongoose';
 import genericSessionFunction from './genericSessionFunction.js';
 import NoSuchRequestError from '../errors/noSuchRequestError.js';
 import XpkgError from '../errors/xpkgError.js';
-import { numericNanoid } from '@xpkg/validation/src/identifiers.js';
+import { identifiers } from '@xpkg/auth-util';
 
 /**
  * Create a new user with a random identifier.
@@ -199,8 +199,8 @@ export async function changeName(userId: string, newName: string): Promise<void>
  * 
  * @async
  * @param {string} userId The id of the user who's verification status to update.
- * @returns {Promise} A promise which resolves if the operation completes successfully.
  * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
+ * @returns {Promise} A promise which resolves if the operation completes successfully.
  * @throws {NoSuchAccountError} Error thrown if no account exists with the given user id. 
  */
 export async function verifyEmail(userId: string, session?: ClientSession): Promise<void> {
@@ -294,7 +294,7 @@ export async function addNewEmailToChangeRequest(userId: string, requestId: stri
     if (requestDoc.newEmail || requestDoc.newCodeHash)
       throw new XpkgError('Step already completed once');
 
-    const code = numericNanoid(6);
+    const code = identifiers.numericNanoid(6);
     const codeHash = await Bun.password.hash(code, 'bcrypt');
 
     requestDoc.newEmail = newEmail;

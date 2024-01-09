@@ -17,6 +17,7 @@ import { body, matchedData, validationResult } from 'express-validator';
 import { logger, verifyRecaptcha } from '@xpkg/backend-util';
 import * as tokenDatabase from '../database/tokenDatabase.js';
 import * as userDatabase from '../database/userDatabase.js';
+import * as clientDatabase from '../database/clientDatabase.js';
 import NoSuchAccountError from '../errors/noSuchAccountError.js';
 import { AuthorizedRequest } from '../util/authorization.js';
 import { validators } from '@xpkg/validation';
@@ -135,15 +136,13 @@ route.post('/login',
       res.sendStatus(500);
     }
   });
-
-// Since this route is protected by middleware, if it gets to this point, the user has already been authorized
-route.post('/tokenvalidate', (req: AuthorizedRequest, res) => {
-  req.logger.info('Token is valid for this user!');
-  return res.sendStatus(204);
-});
-
+  
 route.get('/userdata', async (req: AuthorizedRequest, res) => {
   try {
+    let oauthClients: Awaited<ReturnType<typeof clientDatabase.getUserClients>> = [];
+    if (req.user!.isDeveloper) 
+      oauthClients = await clientDatabase.getUserClients(req.user!.userId);
+
     res
       .status(200)
       .json({
@@ -153,8 +152,10 @@ route.get('/userdata', async (req: AuthorizedRequest, res) => {
         emailVerified: req.user!.emailVerified,
         userId: req.user!.userId,
         profilePicture: req.user!.profilePicUrl,
-        isDeveloper: req.user!.settings.isDeveloper,
-        nameChangeDate: req.user!.nameChangeDate.toISOString()
+        isDeveloper: req.user!.isDeveloper,
+        nameChangeDate: req.user!.nameChangeDate.toISOString(),
+        oauthClients,
+        limits: req.user!.limits
       });
   } catch (e) {
     req.logger.error(e);

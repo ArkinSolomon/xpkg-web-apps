@@ -13,8 +13,8 @@
  * either express or implied limitations under the License.
  */
 import { ValidationChain } from 'express-validator';
-import { TokenScope } from '../database/models/tokenModel.js';
-import { createPermissionsNumber } from './permissionNumberUtil.js';
+import { logger } from '@xpkg/backend-util';
+import { TokenScope, createPermissionsNumber, parseScopeStr } from '@xpkg/auth-util';
 
 /**
  * Ensure that a provided value is a valid client id for OAuth.
@@ -44,8 +44,10 @@ export function isValidOAuthScope(chain: ValidationChain): ValidationChain {
       const scopeArr = scopes.split(' ');
 
       for (const i in scopeArr) 
-        if (scopeArr.indexOf(scopeArr[i]) !== ~~i) 
+        if (scopeArr.indexOf(scopeArr[i]) !== ~~i) {
+          logger.trace('Duplicate scope: ' + scopeArr[i]);
           return false;
+        }
 
       for (const scope of scopeArr) {
         if (!/^[a-z]+$/i.test(scope)) 
@@ -53,14 +55,18 @@ export function isValidOAuthScope(chain: ValidationChain): ValidationChain {
 
         if (scope === 'Identity') 
           return false;
-
-        if (!Object.hasOwn(TokenScope, scope)) 
+        
+        const tokenScope = parseScopeStr(scope);
+        if (!tokenScope) {
+          logger.trace('Invalid scope: ' + scope);         
           return false;
+        }
 
-        scopeNumbers.push(TokenScope[scope as keyof typeof TokenScope]);
+        scopeNumbers.push(tokenScope);
       }
 
       (chain as ValidationChain & { __xpkgScopeNumCache: TokenScope[]; }).__xpkgScopeNumCache = scopeNumbers;
+      return true;
     }).bail().withMessage('bad_scope')
     .customSanitizer(() => createPermissionsNumber(...(chain as ValidationChain & { __xpkgScopeNumCache: TokenScope[]; }).__xpkgScopeNumCache));
 }

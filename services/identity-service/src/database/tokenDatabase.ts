@@ -12,13 +12,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import { identifiers } from '@xpkg/validation';
-import TokenModel, { TokenScope, TokenType } from './models/tokenModel.js';
+import { TokenScope, createPermissionsNumber, hasAnyPermission, hasPermission, deconstructToken, XIS_CLIENT_ID, identifiers } from '@xpkg/auth-util';
+import TokenModel, { TokenType } from './models/tokenModel.js';
 import { DateTime, DurationLike } from 'luxon';
-import { createPermissionsNumber, hasAnyPermission, hasPermission } from '../util/permissionNumberUtil.js';
-import { XIS_CLIENT_ID } from './clientDatabase.js';
 import { ClientSession } from 'mongoose';
 import genericSessionFunction from './genericSessionFunction.js';
+import NoSuchTokenError from '../errors/noSuchTokenError.js';
 
 /**
  * Create an access token for a user to interact with the X-Pkg identity service. Invalidates any remaining tokens.
@@ -47,7 +46,7 @@ export async function createXisToken(userId: string, session?: ClientSession): P
  * @param {ClientSession} [session] An optional session to use for an atomic transaction.
  * @returns {Promise<string | null>} A promise which resolves to the id of the user, or null if the token is not valid.
  */
-export async function validateXisToken(token: string, session: ClientSession): Promise<string | null> {
+export async function validateXisToken(token: string, session?: ClientSession): Promise<string | null> {
   return genericSessionFunction(async session => {
     const tokenDoc = await validateToken(token, {
       session,
@@ -141,7 +140,7 @@ export async function createChangeRequestToken(userId: string, changeRequestId: 
  * @param {boolean} [opts.consume=false] True if the token should be deleted after being used once.
  * @returns {Promise<{userId: string; tokenId: string; data?: string;}|null>} A promise which resolves to the token's data and the user id, or null if the token is invalid.
  */
-export async function getToken(token: string, scope: TokenScope | TokenScope[], { session, update, deleteExpired, consume }: {
+export async function getTokenData(token: string, scope: TokenScope | TokenScope[], { session, update, deleteExpired, consume }: {
   session?: ClientSession;
   update?: boolean;
   deleteExpired?: boolean;
@@ -208,17 +207,96 @@ export async function deleteToken(userId: string, tokenId: string, session?: Cli
 }
 
 /**
+ * Regenerate a token with the exact same permissions, but a different expiry date.
+ * 
+ * @async 
+ * @param {string} userId The id of the user who's token to update.
+ * @param {string} tokenId The id of the token to update.
+ * @param {Date} expiry The new expiry date of the token.
+ * @param {ClientSession} [session] An optional session to use for an atomic transaction.
+ * @returns {Promise<string>} A promise which resolves to the regenerated token.
+ * @throws {NoSuchTokenError} Error thrown if a token with the given id is not found.
+ */
+export async function regenerateToken(userId: string, tokenId: string, expiry: Date, session?: ClientSession): Promise<string>;
+
+/**
+ * Regenerate a token with new permissions.
+ * 
+ * @async 
+ * @param {string} userId The id of the user who's token to update.
+ * @param {string} tokenId The id of the token to update.
+ * @param {bigint} permissionsNumber The new permissions number of the token.
+ * @param {Date} expiry The new expiry date of the token.
+ * @param {ClientSession} [session] An optional session to use for an atomic transaction.
+ * @returns {Promise<string>} A promise which resolves to the regenerated token.
+ * @throws {NoSuchTokenError} Error thrown if a token with the given id is not found.
+ */
+export async function regenerateToken(userId: string, tokenId: string, permissionsNumber: bigint, expiry: Date, session?: ClientSession): Promise<string>;
+
+export async function regenerateToken(userId: string, tokenId: string, permissionsNumber: Date | bigint, expiry?: Date | ClientSession, session?: ClientSession): Promise<string> {
+  const tokenSecret = identifiers.alphanumericNanoid(71);
+  const tokenSecretHash = await Bun.password.hash(tokenSecret, {
+    algorithm: 'bcrypt',
+    cost: 12
+  });
+
+  let expiryDate: Date;
+  if (permissionsNumber instanceof Date) 
+    return genericSessionFunction(async session => {
+      expiryDate = permissionsNumber;
+
+      const updated = await TokenModel.updateOne({
+        userId, 
+        tokenId
+      }, {
+        expiry,
+        tokenSecretHash,
+        regenerated: new Date()
+      })
+        .session(session)
+        .exec();
+
+      if (updated.matchedCount !== 1) 
+        throw new NoSuchTokenError(tokenId);
+
+      return `xpkg_${tokenId}${tokenSecret}${DateTime.fromJSDate(expiryDate).toUnixInteger().toString(16).padStart(8, '0')}`;
+    }, expiry as ClientSession | undefined);
+  else
+    return genericSessionFunction(async session => {
+      expiryDate = expiry as Date;
+      const updated = await TokenModel.updateOne({
+        userId, 
+        tokenId
+      }, {
+        expiry,
+        permissionsNumber,
+        tokenSecretHash,
+        regenerated: new Date()
+      })
+        .session(session)
+        .exec();
+      
+      if (updated.matchedCount !== 1) 
+        throw new NoSuchTokenError(tokenId);
+
+      return `xpkg_${tokenId}${tokenSecret}${DateTime.fromJSDate(expiryDate).toUnixInteger().toString(16).padStart(8, '0')}`;
+    }, session);
+  
+}
+
+/**
  * Update the last used date of a token to now.
  * 
  * @async
  * @param {string} userId The id of the user that owns the token to update.
  * @param {string} tokenId The id of the token to update.
  * @param {ClientSession} [session] An optional session to use for an atomic transaction.
- * @returns {Promise} A promise which resolves if the operation completes successfully, otherwise it rejects.
+ * @returns {Promise<void>} A promise which resolves if the operation completes successfully, otherwise it rejects.
+ * @throws {NoSuchTokenError} Error thrown if a token with the given id is not found.
  */
 export async function updateTokenUsedDate(userId: string, tokenId: string, session?: ClientSession): Promise<void> {
   return genericSessionFunction(async session => {
-    await TokenModel.updateOne({
+    const updateData = await TokenModel.updateOne({
       userId,
       tokenId
     }, {
@@ -228,58 +306,43 @@ export async function updateTokenUsedDate(userId: string, tokenId: string, sessi
     })
       .session(session)
       .exec();
+    
+    if (updateData.matchedCount !== 1) 
+      throw new NoSuchTokenError(tokenId);
   }, session);
 }
 
 /**
- * Create a token on the database.
+ * Check if the user has a token with the given client id.
  * 
- * @async
- * @param {string} userId The id of the user this token is for.
- * @param {string} clientId The id of the client that issued this token.
- * @param {string} tokenName The name of the token.
- * @param {TokenType} tokenType The type of the token.
- * @param {bigint} permissionsNumber The permissions number of the token.
- * @param {DurationLike} expiresIn How long until the token expires.
- * @param {Object} opts Aditional options for the token. 
- * @param {string} [opts.description] An optional description, defaults to undefined.
- * @param {string} [opts.data] The optional data to store with the token.
- * @returns {Promise<string>} A promise which resolves to the the new token.
+ * @param {string} userId The id of the user that owns the token to update.
+ * @param {string} clientId The client id to check for.
+ * @returns {Promise<{ permissionsNumber: bigint; expiry: Date; } | null>} The token id, permissions number, and current expiry of the token, or null if the user has no token with the given id.
  */
-async function createToken(userId: string, clientId: string, tokenName: string, tokenType: TokenType, permissionsNumber: bigint, expiresIn: DurationLike, { tokenDescription, data, session }: { tokenDescription?: string; data?: string; session?: ClientSession; } = {}): Promise<string> {
-  const tokenId = identifiers.alphanumericNanoid(32);
-  const tokenSecret = identifiers.alphanumericNanoid(71);
-
-  const tokenSecretHash = await Bun.password.hash(tokenSecret, {
-    algorithm: 'bcrypt',
-    cost: 12
-  });
-
-  return genericSessionFunction(async session => {
-    const created = DateTime.utc();
-    const expiry = created.plus(expiresIn);
-    const newToken = new TokenModel({
-      userId,
-      clientId,
-      tokenId,
-      tokenSecretHash,
-      regenerated: created,
-      expiry,
-      tokenName,
-      tokenDescription,
-      tokenType,
-      permissionsNumber,
-      data,
-      created
+export async function userHasToken(userId: string, clientId: string): Promise<{ tokenId: string; permissionsNumber: bigint; expiry: Date; } | null> {
+  const token = await TokenModel.findOne({
+    userId,
+    clientId
+  })
+    .select({
+      _id: 0,
+      tokenId: 1,
+      permissionsNumber: 1,
+      expiry: 1
     });
-    await newToken.save({ session });
 
-    return `xpkg_${tokenId}${tokenSecret}${expiry.toUnixInteger().toString(16).padStart(8, '0')}`;
-  }, session);
+  if (!token)
+    return null;
+  else
+    return {
+      tokenId: token.tokenId,
+      permissionsNumber: token.permissionsNumber,
+      expiry: token.expiry
+    };
 }
 
 /**
- * Validate a token by checking its expiry.
+ * Validate a token by checking its expiry and hash.
  * 
  * @async
  * @param {string} token The token to validate.
@@ -288,7 +351,7 @@ async function createToken(userId: string, clientId: string, tokenName: string, 
  * @param {ClientSession} [opts.session] An optional session to use for an atomic transaction.
  * @returns The document of the token, or null if the token is invalid.
  */
-async function validateToken(token: string, { deleteExpired, session }: {
+export async function validateToken(token: string, { deleteExpired, session }: {
   deleteExpired?: boolean;
   session?: ClientSession;
 } = { deleteExpired: false }) {
@@ -327,15 +390,48 @@ async function validateToken(token: string, { deleteExpired, session }: {
 }
 
 /**
- * Deconstruct a token into its different parts.
+ * Create a token on the database.
  * 
- * @param {string} token The token to deconstruct
- * @returns {[string, string, DateTime]} A tuple of three values of each part of the token, the tokenId, the hash, and the expiry.
+ * @async
+ * @param {string} userId The id of the user this token is for.
+ * @param {string} clientId The id of the client that issued this token.
+ * @param {string} tokenName The name of the token.
+ * @param {TokenType} tokenType The type of the token.
+ * @param {bigint} permissionsNumber The permissions number of the token.
+ * @param {DurationLike} expiresIn How long until the token expires.
+ * @param {Object} opts Aditional options for the token. 
+ * @param {string} [opts.description] An optional description, defaults to undefined.
+ * @param {string} [opts.data] The optional data to store with the token.
+ * @returns {Promise<string>} A promise which resolves to the the new token.
  */
-function deconstructToken(token: string): [string, string, DateTime] {
-  return [
-    token.slice(5, 37),
-    token.slice(37, 108),
-    DateTime.fromSeconds(parseInt(token.slice(108), 16))
-  ];
+export async function createToken(userId: string, clientId: string, tokenName: string, tokenType: TokenType, permissionsNumber: bigint, expiresIn: DurationLike, { tokenDescription, data, session }: { tokenDescription?: string; data?: string; session?: ClientSession; } = {}): Promise<string> {
+  const tokenId = identifiers.alphanumericNanoid(32);
+  const tokenSecret = identifiers.alphanumericNanoid(71);
+
+  const tokenSecretHash = await Bun.password.hash(tokenSecret, {
+    algorithm: 'bcrypt',
+    cost: 12
+  });
+
+  return genericSessionFunction(async session => {
+    const created = DateTime.utc();
+    const expiry = created.plus(expiresIn);
+    const newToken = new TokenModel({
+      userId,
+      clientId,
+      tokenId,
+      tokenSecretHash,
+      regenerated: created,
+      expiry,
+      tokenName,
+      tokenDescription,
+      tokenType,
+      permissionsNumber,
+      data,
+      created
+    });
+    await newToken.save({ session });
+
+    return `xpkg_${tokenId}${tokenSecret}${expiry.toUnixInteger().toString(16).padStart(8, '0')}`;
+  }, session);
 }

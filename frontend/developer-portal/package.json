@@ -13,6 +13,7 @@
     "install-deps": "npm install"
   },
   "devDependencies": {
+    "@types/chart.js": "^2.9.41",
     "@types/grecaptcha": "^3.0.6",
     "@types/jquery": "^3.5.25",
     "@types/js-cookie": "^3.0.5",
@@ -27,7 +28,10 @@
   "author": "Arkin Solomon",
   "license": "Apache-2.0",
   "dependencies": {
+    "@xpkg/auth-util": "^0.1.0",
     "@xpkg/versioning": "^0.1.0",
+    "axios": "^1.6.5",
+    "chart.js": "^4.4.1",
     "chartjs-adapter-luxon": "^1.3.1",
     "formik": "^2.4.5",
     "http-method-enum": "^1.0.0",
@@ -53,5 +57,14 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "nx": {
+    "targets": {
+      "start": {
+        "dependsOn": [
+          "^build"
+        ]
+      }
+    }
   }
 }

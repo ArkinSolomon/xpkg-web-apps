@@ -23,8 +23,11 @@
  * @property {string} name The account owner's display name.
  * @property {string} hash The account owner's password hash.
  * @property {boolean} emailVerified True if the email address associated with this account.
- * @property {Date} nameChangeDate The date at which the user's name was last changed.
  * @property {string} profilePicUrl The user's profile picture.
+ * @property {Date} nameChangeDate The date at which the user's name was last changed.
+ * @property {boolean} isDeveloper True if the user is a developer.
+ * @property {UserSettings} settings The user's settings.
+ * @property {UserLimits} limits The limits on this user's account.
  */
 export type UserData = {
   userId: string;
@@ -35,26 +38,41 @@ export type UserData = {
   emailVerified: boolean;
   profilePicUrl: string;
   nameChangeDate: Date;
+  isDeveloper: boolean;
   settings: UserSettings;
+  limits: UserLimits;
 };
 
 /**
  * The different settings that a user can have.
  * 
  * @typedef {Object} UserSettings
- * @property {boolean} isDeveloper True if the user is a developer.
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export type UserSettings = {
-  isDeveloper: boolean;
+};
+
+/**
+ * The different limits on a user's account.
+ * 
+ * @typedef {Object} UserLimits
+ * @property {number} clients The maximum number of OAuth clients the user can have.
+ */
+export type UserLimits = {
+  clients: number;
 };
 
 import mongoose, { Schema } from 'mongoose';
 
-const userSettingsSchema = new Schema<UserSettings>({
-  isDeveloper: {
-    type: Boolean,
+const userSettingsSchema = new Schema<UserSettings>({}, {
+  _id: false
+});
+
+const userLimitsSchema = new Schema<UserLimits>({
+  clients: {
+    type: Number,
     required: true,
-    default: false
+    default: 3
   }
 }, {
   _id: false
@@ -103,8 +121,18 @@ const userSchema = new Schema<UserData>({
     required: true,
     default: Date.now
   },
+  isDeveloper: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
   settings: {
     type: userSettingsSchema,
+    required: true,
+    default: () => ({})
+  },
+  limits: {
+    type: userLimitsSchema,
     required: true,
     default: () => ({})
   }

@@ -39,7 +39,7 @@ export type ModalProps = {
 import { JSX, ReactNode, useEffect } from 'react';
 import '../css/Modal.scss';
 import '../css/buttons.scss';
-import { identifiers } from '@xpkg/validation';
+import { identifiers } from '@xpkg/auth-util';
 
 export default function Modal(props: ModalProps): JSX.Element {
   const buttons: JSX.Element[] = [];

@@ -17,6 +17,7 @@
  * The consent information sent from the server so that the user can decide to consent.
  * 
  * @typedef {Object} ConsentInformation
+ * @property {string} clientId The client id. Same as the one sent.
  * @property {string} clientName The name of the client this user is consenting to.
  * @property {string} clientIcon The icon of the client this user is consenting to.
  * @property {string} clientDescription The description of the client given by the user that created the client.
@@ -24,6 +25,7 @@
  * @property {string} userPicture The url of the user's profile picture.
  */
 type ConsentInformation = {
+  clientId: string;
   clientName: string;
   clientIcon: string;
   clientDescription: string;
@@ -34,12 +36,13 @@ type ConsentInformation = {
 import { JSX, useEffect, useState } from 'react';
 import SmallContentBox from '../components/SmallContentBox';
 import HexagonImage from '../components/HexagonImage';
-import tokenValidityChecker from '../scripts/tokenValidityChecker';
 import axios from 'axios';
-import { getCookie } from '../scripts/cookies';
 import ConnectArrows from '../svgs/ConnectArrows';
+import { DEVELOPER_PORTAL_CLIENT_ID, FORUM_CLIENT_ID, STORE_CLIENT_ID, XIS_URL, XPKG_CLIENT_CLIENT_ID, isTokenValid } from '@xpkg/auth-util';
+import { cookies } from '@xpkg/frontend-util';
+import '../css/Authorize.scss';
 
-export default function (): JSX.Element {
+export default function Authorize(): JSX.Element {
   const [consentInfo, setConsentInfo] = useState<ConsentInformation | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,45 +50,53 @@ export default function (): JSX.Element {
     (async () => { 
       const searchParams = new URLSearchParams(window.location.search);
       if (!searchParams.has('client_id')) 
-        return setError('missing client id.');
+        return setError('Invalid/malformed request: missing client id.');
       else if (!searchParams.has('scope')) 
-        return setError('missing scope.');
+        return setError('Invalid/malformed request: missing scope.');
       else if (!searchParams.has('redirect_uri')) 
-        return setError('missing redirect URI.');
+        return setError('Invalid/malformed request: missing redirect URI.');
       else if (!searchParams.has('response_type')) 
-        return setError('missing response type.');
+        return setError('Invalid/malformed request: missing response type.');
       else if (!searchParams.has('code_challenge')) 
-        return setError('missing code challenge.');
+        return setError('Invalid/malformed request: missing code challenge.');
 
-      const isLoginValid = await tokenValidityChecker();
-      if (isLoginValid !== 204) {
-        searchParams.append('next', 'authorize');
-        window.location.href = '/authenticate?' + searchParams.toString();
-      }
+      try {
+        const isLoginValid = await isTokenValid(cookies.getCookie('token') ?? '');
+        if (!isLoginValid) {
+          if (searchParams.has('next'))
+            searchParams.delete('next');
+          searchParams.append('next', 'authorize');
+          cookies.deleteCookie('token');
+          window.location.href = '/authenticate?' + searchParams.toString();
+        }
       
-      const consentInfoQuery = new URLSearchParams();
-      consentInfoQuery.append('client_id', searchParams.get('client_id')!);
-      const response = await axios.get('http://localhost:4819/oauth/consentinformation?' + consentInfoQuery.toString(), {
-        headers: {
-          Authorization: getCookie('token')!
-        },
-        validateStatus: () => true
-      });
+        const consentInfoQuery = new URLSearchParams();
+        const clientId = searchParams.get('client_id')!;
+        consentInfoQuery.append('client_id', clientId);
 
-      if (response.status !== 200) 
-        return setError(`an error occured while fetching information (${response.data}).`);
+        const response = await axios.get(window.XIS_URL + '/oauth/consentinformation?' + consentInfoQuery.toString(), {
+          headers: {
+            Authorization: cookies.getCookie('token')!
+          },
+          validateStatus: () => true
+        });
 
-      setConsentInfo(response.data);
+        if (response.status !== 200)
+          return setError(`Invalid/malformed request: an error occured while fetching information (${response.data}).`);
+    
+        setConsentInfo(response.data);
+      } catch (e) {
+        console.error(e);
+        setError('An unkown error occured.');
+      }
     })();
+    
   }, []);
 
   if (error) 
     return (
       <SmallContentBox>
-        <p className='my-4 mx-1 explain-text'>
-Invalid/malformed request:
-          {error}
-        </p>
+        <p className='my-4 mx-1 explain-text'>{error}</p>
       </SmallContentBox>
     );
 
@@ -95,6 +106,17 @@ Invalid/malformed request:
         <p className='my-4 mx-1 explain-text'>Loading details...</p>
       </SmallContentBox>
     );
+  
+  const isProprietaryService = [DEVELOPER_PORTAL_CLIENT_ID, FORUM_CLIENT_ID, STORE_CLIENT_ID, XPKG_CLIENT_CLIENT_ID].includes(consentInfo.clientId);
+  const shouldAutoAuth = isProprietaryService && consentInfo.clientId !== DEVELOPER_PORTAL_CLIENT_ID;
+  // if (shouldAutoAuth) 
+  //   authorize();
+
+  const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.has('next'))
+    searchParams.delete('next');
+
+  const submitUrl = XIS_URL + '/oauth/authorize?' + searchParams.toString();
   
   return (
     <SmallContentBox>
@@ -109,6 +131,16 @@ Invalid/malformed request:
           <div className='flex-none'>
             <HexagonImage size='64px' alt='Application' src={consentInfo.userPicture} />
           </div>
+        </div>
+        <h2 id='connect-text'>Do you want to allow { consentInfo.clientId === DEVELOPER_PORTAL_CLIENT_ID}<br /><b>{consentInfo.clientName}</b><br /> to access your account?</h2>
+        <hr className='auth-hr' />
+        <p className='explain-text mt-3'>{consentInfo.clientDescription}</p>
+        <div className='bottom-buttons mt-12 mb-12 px-8'>
+          <button className='secondary-button' onClick={() => window.location.href = '/'}>Cancel</button>
+          <div className='center-link-wrapper' />
+          <form action={submitUrl} method='POST'>
+            <input className='primary-button' type='submit' value='Authorize' />
+          </form>
         </div>
       </>
     </SmallContentBox>

@@ -78,7 +78,6 @@ export type EmailChangeData = {
 };
 
 import { Component } from 'react';
-import { getExpiry } from '../scripts/tokenValidityChecker';
 import axios from 'axios';
 import { body } from 'express-validator';
 import { validators } from '@xpkg/validation';
@@ -87,6 +86,7 @@ import SmallContentBox from '../components/SmallContentBox';
 import TextInput from '../components/TextInput';
 import InputVerificationCode from '../components/InputVerificationCode';
 import '../css/EmailChange.scss';
+import { isTokenValid } from '@xpkg/auth-util';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EMPTY_FUNCTION = () => { };
@@ -129,8 +129,8 @@ export default class EmailChange extends Component<Record<string, never>, EmailC
       return this._setError('No token was provided.');
 
     this._changeToken = searchParams.get('token')!; 
-    const expiryDate = getExpiry(this._changeToken);
-    if (expiryDate.getTime() < Date.now()) 
+    const isChangeTokenValid = await isTokenValid(this._changeToken);
+    if (!isChangeTokenValid) 
       return this._setError('Token expired.');
 
     try {
@@ -217,7 +217,7 @@ export default class EmailChange extends Component<Record<string, never>, EmailC
               isSubmitting: true
             });
 
-            const response = await axios.post('http://localhost:4819/account/email/changeemail/step1', {
+            const response = await axios.post(window.XIS_URL + '/account/email/changeemail/step1', {
               token: this._changeToken!,
               newEmail: this._newEmail
             }, {
@@ -264,7 +264,7 @@ export default class EmailChange extends Component<Record<string, never>, EmailC
             this.setState({
               isSubmitting: true
             });
-            const response = await axios.post('http://localhost:4819/account/email/changeemail/step2', {
+            const response = await axios.post(window.XIS_URL + '/account/email/changeemail/step2', {
               token: this._changeToken!,
               code: parseInt(this.state.codeEntry, 10)
             }, {

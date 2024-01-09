@@ -212,12 +212,19 @@ export function isValidTokenFormat(chain: ValidationChain): ValidationChain {
     .isLength({
       min: 116,
       max: 116
-    }).bail().withMessage('bad_len').custom(token => {
+    }).bail().withMessage('bad_len')
+    .custom(token => {
       if (!token.startsWith('xpkg_')) 
         return false;
-
+      
       try {
-        parseInt(token.slice(108), 16);
+        const expiry = token.slice(108);
+        if (expiry.length !== 8)
+          return false;
+
+        const expiryNum = parseInt(expiry, 16);
+        if (isNaN(expiryNum))
+          return false;
       } catch {
         return false;
       }

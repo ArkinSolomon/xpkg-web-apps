@@ -24,6 +24,7 @@
  * @property {string} userId The id of the user that this token is for.
  * @property {bigint} permissionsNumber The permissions number of the token.
  * @property {Date} tokenExpiry When the generated token expires.
+ * @property {string} redirectUri The redirect URI to match that was sent during the code request.
  */
 export type CodeData = {
   clientId: string;
@@ -33,6 +34,7 @@ export type CodeData = {
   userId: string;
   permissionsNumber: bigint;
   tokenExpiry: Date;
+  redirectUri: string;
 };
 
 import mongoose, { Schema } from 'mongoose';
@@ -67,6 +69,10 @@ const codeSchema = new Schema<CodeData>({
   },
   tokenExpiry: {
     type: Date,
+    required: true
+  },
+  redirectUri: {
+    type: String,
     required: true
   }
 }, {

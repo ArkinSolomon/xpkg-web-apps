@@ -12,18 +12,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import { Logger } from 'pino';
-import { Response, Router, response } from 'express';
+import { Router } from 'express';
 import { logger } from '@xpkg/backend-util';
 import { getClient } from '../database/clientDatabase.js';
 import { AuthorizedRequest } from '../util/authorization.js';
 import { isValidClientId, isValidOAuthScope } from '../util/validators.js';
-import { matchedData, validationResult, query } from 'express-validator';
-import { UserData } from '../database/models/userModel.js';
-import { ClientData } from '../database/models/clientModel.js';
+import { matchedData, validationResult, query, header, body } from 'express-validator';
 import { DateTime } from 'luxon';
-import { generateCode } from '../database/codeDatabase.js';
+import { generateCode, verifyCode } from '../database/codeDatabase.js';
 import queryString from 'query-string';
+import { validators } from '@xpkg/validation';
+import * as tokenDatabase from '../database/tokenDatabase.js';
+import genericSessionFunction from '../database/genericSessionFunction.js';
+import { getUserFromId } from '../database/userDatabase.js';
+import { TokenType } from '../database/models/tokenModel.js';
 
 const route = Router();
 
@@ -33,15 +35,15 @@ route.post('/authorize',
   query('state').isLength({ min: 1, max: 64 }).withMessage('bad_state').optional(),
   query('redirect_uri').isString().trim().notEmpty().isURL().withMessage('bad_redirect').customSanitizer(uri => uri.endsWith('/') ? uri.slice(0, -1) : uri),
   query('response_type').trim().notEmpty().bail().custom(v => ['code', 'token', 'id_token'].includes(v)).withMessage('bad_response'),
-  query('expires_in').isInt({ min: 0, max: 31536000 }).withMessage('bad_expiry').default(2592000),
-  query('code_challenge').isString().notEmpty().withMessage('bad_challenge'),
+  query('expires_in').default(2592000).isInt({ min: 0, max: 31536000 }).withMessage('bad_expiry'),
+  query('code_challenge').isString().isLength({ min: 32, max: 32 }).notEmpty().withMessage('bad_challenge'),
   query('code_challenge_method').isString().custom(v => v === 'S256').withMessage('bad_code_method'),
   async (req: AuthorizedRequest, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
       const mapped = result.mapped();
       if (mapped['scope']) {
-        req.logger.trace(`Invalid scope in request, with message: ${mapped['scope']}`);
+        req.logger.trace(`Invalid scope in request, with message: ${mapped['scope'].msg}`);
         return res
           .status(400)
           .send('invalid_scope');
@@ -75,39 +77,168 @@ route.post('/authorize',
     req.logger.setBindings({
       clientId, redirectUri
     });
-    const client = await getClient(clientId);
-    if (!client) {
-      req.logger.info('Invalid client id (not found in database)');
+    try {
+      const client = await getClient(clientId);
+      if (!client) {
+        req.logger.info('Invalid client id (not found in database)');
+        return res
+          .status(400)
+          .send('invalid_request');
+      }
+
+      req.logger.info(typeof client.permissionsNumber);
+
+      if ((permissionsNumber | client.permissionsNumber) !== client.permissionsNumber) {
+        req.logger.info('Invalid scopes provided');
+        return res
+          .status(400)
+          .send('invalid_request');
+      }
+
+      if (!client.redirectURIs.includes(redirectUri)) {
+        req.logger.info('Invalid redirect URI');
+        return res
+          .status(400)
+          .send('invalid_request');
+      }
+
+      const tokenExpiry = DateTime.now().plus({ seconds: expiresIn }).toJSDate();
+      if (responseType === 'id_token') {
+        req.logger.error('id_token not implemented');
+        return res
+          .status(400)
+          .send('unsupported_response_type');
+      } else if (responseType === 'code') {
+        const code = await generateCode(client.clientId, req.user!.userId, permissionsNumber, tokenExpiry, codeChallenge, redirectUri);
+        const qStringParams = {
+          code, state
+        };
+        return res.redirect(redirectUri + '?' + queryString.stringify(qStringParams));
+
+        // } else if (responseType === 'token') {
+
+      } else {
+        req.logger.error(`UNKNOWN RESPONSE_TYPE: ${responseType} not implemented.`);
+        return res.sendStatus(500);
+      }
+    } catch (e) {
+      req.logger.error(e);
+      res.sendStatus(500);
+    }
+  });
+
+route.post('/token',
+  isValidClientId(body('client_id')),
+  body('client_secret').optional().isString().isLength({ min: 83, max: 83 }).custom(s => s.startsWith('xpkg_secret_')).withMessage('bad_secret').customSanitizer(s => s.replace(/^xpkg_secret_/, '')),
+  body('grant_type').isString().custom(v => v === 'authorization_code').withMessage('bad_grant_type'),
+  body('code').isString().isLength({ min: 32, max: 32 }).withMessage('bad_code'),
+  body('redirect_uri').isString().notEmpty().withMessage('bad_redirect'),
+  body('code_verifier').isString().isLength({ min: 8, max: 64 }).notEmpty().withMessage('bad_verifier'),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      const message = result.array()[0].msg;
+      req.logger.trace(`Bad request with message: ${message}`);
       return res
         .status(400)
-        .send('invalid_request');
+        .json({
+          error: 'invalid_request'
+        });
     }
 
-    if (!client.redirectURIs.includes(redirectUri)) {
-      req.logger.info('Invalid redirect URI');
-      return res
-        .status(400)
-        .send('invalid_request');
-    }
-
-    const tokenExpiry = DateTime.now().plus({ seconds: expiresIn }).toJSDate();
-    if (responseType === 'id_token') {
-      req.logger.warn('id_token not implemented');
-      return res
-        .status(400)
-        .send('unsupported_response_type');
-    } else if (responseType === 'code') {
-      const code = generateCode(client.clientId, req.user!.userId, permissionsNumber, tokenExpiry, codeChallenge);
-      const qStringParams = {
-        code, state
+    const {
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      redirect_uri: redirectUri,
+      code_verifier: codeVerifier
+    } = matchedData(req) as {
+      client_id: string;
+      client_secret?: string;
+      code: string;
+      redirect_uri: string;
+      code_verifier: string;
       };
-      return res.redirect(redirectUri + queryString.stringify(qStringParams));
+    
+    try {
+      req.logger.setBindings({ clientId });
 
-      // } else if (responseType === 'token') {
+      const client = await getClient(clientId);
+      if (!client) {
+        req.logger.info('Provided client does not exist');
+        return res
+          .status(400)
+          .json({
+            error: 'invalid_client'
+          });
+      }
 
-    } else {
-      req.logger.error(`UNKNOWN RESPONSE_TYPE: ${responseType} not implemented.`);
-      return res.sendStatus(500);
+      if (client.currentUsers + 1 >= client.quota) {
+        req.logger.info('Provided client has exceeded user quota');
+        return res
+          .status(400)
+          .json({
+            error: 'invalid_grant'
+          });
+      }
+
+      if (client.isSecure)
+        if (!clientSecret){
+          req.logger.info('Client is secure but no secret provided');
+          return res
+            .status(400)
+            .json({
+              error: 'invalid_client'
+            });
+        }
+    
+      const isSecretValid = await Bun.password.verify(clientSecret!, client.secretHash, 'bcrypt');
+      if (!isSecretValid) {
+        req.logger.info('Client secret is invalid');
+        return res
+          .status(400)
+          .json({
+            error: 'invalid_client'
+          });
+      }
+
+      genericSessionFunction(async session => {
+        const codeData = await verifyCode(clientId, code, codeVerifier, redirectUri, session);
+        if (!codeData) {
+          req.logger.info('Invalid code provided');
+          return res
+            .status(400)
+            .json({
+              error: 'invalid_request'
+            });
+        }    
+
+        const user = await getUserFromId(codeData.userId);
+        req.logger.setBindings({ userId: user.userId });
+
+        const existingToken = await tokenDatabase.userHasToken(user.userId, clientId);
+        const expireSeconds = DateTime.fromJSDate(codeData.tokenExpiry).diffNow('seconds');
+        let token;
+        if (!existingToken) 
+          token = tokenDatabase.createToken(user.userId, client.clientId, client.name, TokenType.OAuth, codeData.permissionsNumber, expireSeconds, { session });
+        else 
+          token = tokenDatabase.regenerateToken(user.userId, existingToken.tokenId, codeData.tokenExpiry, session);
+
+        client.currentUsers += 1;
+        await client.save({ session });
+        await session.commitTransaction();
+
+        res
+          .status(200)
+          .json({
+            access_token: token,
+            token_type: 'bearer',
+            expires_in: expireSeconds.as('seconds')
+          });
+      });
+    } catch (e) {
+      req.logger.error(e);
+      res.sendStatus(500);
     }
   });
 
@@ -139,6 +270,7 @@ route.get('/consentinformation',
     }
 
     const information = {
+      clientId,
       clientName: client.name,
       clientIcon: client.icon,
       clientDescription: client.description,
@@ -146,10 +278,41 @@ route.get('/consentinformation',
       userPicture: req.user!.profilePicUrl
     };
 
-    logger.trace(information, 'Retrieved consent request information');
+    logger.trace('Retrieved consent request information');
     res
       .status(200)
       .json(information);
+  });
+
+route.post('/tokenvalidate',
+  validators.isValidTokenFormat(header('authorization')),
+  isValidOAuthScope(body('scope')),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      const message = result.array()[0].msg;
+      req.logger.trace(`Invalid token with message: ${message}`);
+      return res.sendStatus(401);
+    }
+
+    const { authorization: token, scope: permissionsNumber } = matchedData(req) as {
+      authorization: string;
+      scope: bigint;
+  };
+
+    try {
+      const tokenData = await tokenDatabase.validateToken(token, { deleteExpired: true });
+
+      if (!tokenData)
+        return res.sendStatus(401);
+
+      if ((tokenData.permissionsNumber & permissionsNumber) !== permissionsNumber)
+        res.sendStatus(401);
+      res.sendStatus(204);
+    } catch (e) {
+      req.logger.error(e);
+      res.sendStatus(500);
+    }
   });
 
 export default route;

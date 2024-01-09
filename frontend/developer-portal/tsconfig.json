@@ -2,5 +2,13 @@
   "extends": "../tsconfig.json",
   "include": [
     "src"
+  ],
+  "references": [
+    {
+      "path": "../../packages/auth-util"
+    },
+    {
+      "path": "../../packages/frontend-util"
+    }
   ]
 }

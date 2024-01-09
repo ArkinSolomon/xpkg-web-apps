@@ -13,10 +13,11 @@
  * either express or implied limitations under the License.
  */
 import { logger, expressLogger, atlasConnect } from '@xpkg/backend-util';
+import Express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { customAlphabet } from 'nanoid';
-import Express from 'express';
 
 if (!process.env.NODE_ENV) {
   logger.fatal('NODE_ENV not defined');
@@ -45,7 +46,9 @@ await atlasConnect();
 
 const app = Express();
 app.use(bodyParser.json());
+app.use('/oauth/token', bodyParser.urlencoded());
 app.use(cors());
+app.use(cookieParser());
 
 app.use(function (_, res, next) {
   res.setHeader('X-Powered-By', 'Express, X-Pkg contributors, and you :)');
@@ -64,13 +67,14 @@ app.use(expressLogger(() => {
 }));
 
 const authorizeRoutes = [
-  '/account/tokenvalidate',
   '/account/userdata',
   '/account/resetpfp',
   '/account/name',
   '/account/email/changeemail$',
   '/account/email/resend',
-  '/oauth/*'
+  '/account/clients/*',
+  '/oauth/authorize',
+  '/oauth/consentinformation'
 ];
 
 import authorization from './util/authorization.js';
@@ -78,6 +82,7 @@ app.use(authorizeRoutes, authorization);
 
 import account from './routes/account.js';
 import oauth from './routes/oauth.js';
+import { body } from 'express-validator';
 
 app.use('/account', account);
 app.use('/oauth', oauth);

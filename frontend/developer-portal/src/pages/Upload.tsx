@@ -73,7 +73,6 @@ type UploadState = {
 };
 
 import { Component } from 'react';
-import * as tokenStorage from '../scripts/tokenStorage';
 import HTTPMethod from 'http-method-enum';
 import Version from '../scripts/version';
 import Big from 'big.js';
@@ -95,6 +94,7 @@ import '../css/Upload.scss';
 import { AuthorPackageData, AuthorVersionData, PackageType, getAuthorPackage } from '../scripts/author';
 import RegistryError from '../scripts/registryError';
 import VersionSelection from '../scripts/versionSelection';
+import { cookies } from '@xpkg/frontend-util';
 
 class Upload extends Component {
   
@@ -125,7 +125,7 @@ class Upload extends Component {
       incompatibilityErr: false
     };    
 
-    const token = tokenStorage.checkAuth();
+    const token = cookies.getCookie('token');
     if (!token) {
       sessionStorage.setItem('post-auth-redirect', '/packages');
       window.location.href = '/';
@@ -194,8 +194,7 @@ class Upload extends Component {
       if (e instanceof RegistryError) 
         switch (e.status) {
         case 401:
-          tokenStorage.delToken();
-          sessionStorage.setItem('post-auth-redirect', '/packages');
+          cookies.deleteCookie('token');
           window.location.href = '/';
           return;
         case 404:
@@ -274,7 +273,7 @@ class Upload extends Component {
         method: HTTPMethod.POST,
         data: formData,
         headers: {
-          Authorization: tokenStorage.checkAuth() as string
+          Authorization: cookies.getCookie('token')!
         }, 
         onUploadProgress: e  => {
           this.setState({

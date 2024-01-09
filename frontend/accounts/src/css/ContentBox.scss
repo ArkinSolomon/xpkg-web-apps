@@ -46,11 +46,10 @@ main#content-box {
 
   &.small {
     min-height: 380px;
-    height: 55%;
-    max-height: 512px;
+    height: min(512px, 55%);
     padding: 24px;
 
-    overflow: hidden;
+    overflow-x: hidden;
 
     @media screen and (max-width: $tablet-width) {
       width: min(100%, 400px);

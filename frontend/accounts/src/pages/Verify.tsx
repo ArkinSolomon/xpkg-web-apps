@@ -15,7 +15,7 @@
 import { JSX, useEffect, useState } from 'react';
 import SmallContentBox from '../components/SmallContentBox';
 import axios from 'axios';
-import { getExpiry } from '../scripts/tokenValidityChecker';
+import { isTokenValid } from '@xpkg/auth-util';
 
 export default function (): JSX.Element {
   const [error, setError] = useState<string | null>(null);
@@ -28,12 +28,12 @@ export default function (): JSX.Element {
         return setError('no token provided.');
 
       const verificationToken = searchParams.get('token')!; 
-      const expiryDate = getExpiry(verificationToken);
-      if (expiryDate.getTime() < Date.now()) 
+      const isVerificationTokenValid = isTokenValid(verificationToken);
+      if (!isVerificationTokenValid) 
         return setError('token expired.');
 
       try {
-        const response = await axios.post('http://localhost:4819/account/email/verify', {
+        const response = await axios.post(window.XIS_URL + '/account/email/verify', {
           token: verificationToken
         }, {
           validateStatus: () => true

@@ -41,13 +41,13 @@ type VerifyProps = {
 
 import { Component, ReactNode } from 'react';
 import MainContainer from '../components/Main Container/MainContainer';
-import { checkAuth } from '../scripts/tokenStorage';
 import MainContainerLoading from '../components/Main Container/MainContainerLoading';
 import { httpRequest } from '../scripts/http';
 import HTTPMethod from 'http-method-enum';
 import MainContainerError from '../components/Main Container/MainContainerError';
 import { useParams } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { cookies } from '@xpkg/frontend-util';
 
 class Verify extends Component {
 
@@ -56,8 +56,7 @@ class Verify extends Component {
   constructor(props: VerifyProps) {
     super(props);
 
-    const token = checkAuth();
-
+    const token = cookies.getCookie('token');
     this.state = {
       doneLoading: false,
       isLoggedIn: !!token,

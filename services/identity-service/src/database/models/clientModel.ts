@@ -25,8 +25,12 @@
  * @property {string} icon The location of the client icon.
  * @property {string[]} redirectURIs The possible URIs to which the client may redirect.
  * @property {bigint} permissionsNumber The permission number that this client MAY request.
+ * @property {boolean} sensitiveScopes True if this client may be granted more sensetive scopes. Does not mean that permissions number does not include sensitive scopes.
+ * @property {boolean} isSecure True if the client has a secret issued that must be checked before granting tokens.
  * @property {Date} created When the client was created.
  * @property {Date} secretRegenerated When the client secret was regenerated.
+ * @property {number} quota The maximum amount of users per month this client is permitted to have.
+ * @property {number} currentUsers The current amount of users per month this client has.
  */
 export type ClientData = {
   clientId: string;
@@ -37,8 +41,12 @@ export type ClientData = {
   icon: string;
   redirectURIs: string[];
   permissionsNumber: bigint;
+  sensitiveScopes: boolean;
+  isSecure: boolean;
   created: Date;
   secretRegenerated: Date;
+  quota: number;
+  currentUsers: number;
 };
 
 import mongoose, { Schema } from 'mongoose';
@@ -79,12 +87,31 @@ const clientSchema = new Schema<ClientData>({
   permissionsNumber: {
     type: BigInt,
     required: true
+  },
+  sensitiveScopes: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  isSecure: {
+    type: Boolean,
+    required: true
+  },
+  quota: {
+    type: Number,
+    required: true,
+    default: 250
+  },
+  currentUsers: {
+    type: Number,
+    required: true,
+    default: 0
   }
 }, {
   collection: 'clients'
 });
 
-const clientsDB = mongoose.connection.useDb('oauth');
-const ClientModel = clientsDB.model<ClientData>('client', clientSchema);
+const oauthDB = mongoose.connection.useDb('oauth');
+const ClientModel = oauthDB.model<ClientData>('client', clientSchema);
 
 export default ClientModel;

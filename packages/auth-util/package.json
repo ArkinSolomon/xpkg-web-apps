@@ -1,0 +1,23 @@
+{
+  "name": "@xpkg/auth-util",
+  "version": "0.1.0",
+  "description": "X-Pkg tools for OAuth.",
+  "main": "dist/index.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "clean": "npx tsc --build --clean",
+    "install-deps": "npm install",
+    "build": "npx tsc --build",
+    "lint": "npx eslint ./src --fix",
+    "check-lint": "npx eslint"
+  },
+  "types": "./dist/index.d.ts",
+  "author": "Arkin Solomon",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@xpkg/validation": "^0.1.0",
+    "axios": "^1.6.4",
+    "express-validator": "^7.0.1"
+  }
+}

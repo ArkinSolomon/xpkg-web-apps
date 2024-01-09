@@ -33,7 +33,7 @@ export type EmailChangeData = {
   expiry: Date;
 };
 
-import { identifiers } from '@xpkg/validation';
+import { identifiers } from '@xpkg/auth-util';
 import { DateTime } from 'luxon';
 import mongoose, { Schema } from 'mongoose';
 

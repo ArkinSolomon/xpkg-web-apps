@@ -106,7 +106,6 @@ import MainContainerContent from '../components/Main Container/MainContainerCont
 import MainContainerError from '../components/Main Container/MainContainerError';
 import MainContainerLoading from '../components/Main Container/MainContainerLoading';
 import SideBar from '../components/Main Container/SideBar';
-import * as tokenStorage from '../scripts/tokenStorage';
 import '../css/Packages.scss';
 import '../css/Buttons.scss';
 import '../css/SubrowStyles.scss';
@@ -116,6 +115,7 @@ import Big from 'big.js';
 import { AuthorData, AuthorPackageData, PackageType, VersionStatus, getAllAuthorPackages, getAuthorData } from '../scripts/author';
 import StorageBar from '../components/StorageBar';
 import RegistryError from '../scripts/registryError';
+import { cookies } from '@xpkg/frontend-util';
 
 class Packages extends Component {
 
@@ -140,12 +140,10 @@ class Packages extends Component {
       errorMessage
     };
 
-    const token = tokenStorage.checkAuth();
-    
+    const token = cookies.getCookie('token');
     if (!token) {
-      tokenStorage.delToken();
-      sessionStorage.setItem('post-auth-redirect', '/packages');
-      window.location.href = '/';
+      const next = Buffer.from('/packages').toString('base64url');
+      window.location.href = '/?next=' + next;
       return;
     }   
   } 
@@ -233,12 +231,8 @@ class Packages extends Component {
             <button
               className='subrow-top-right primary-button'
               onClick={() => window.location.href = '/packages/package?packageId=' + pkg.packageId}
-            >
-Package Information
-            </button>
-
+            >Package Information</button>
             <p className='package-description'>{pkg.description.length > 1024 ? pkg.description.substring(0, 1021) + '...' : pkg.description}</p>
-            
             <div className='subtable-wrapper'>
               <table>
                 <thead>
@@ -268,11 +262,7 @@ Package Information
       <MainContainerContent title='Packages'>
         <>
           {this.state.successMessage && <p className='success-message'>{this.state.successMessage}</p>}
-          <button className='primary-button' onClick={() => window.location.href = '/packages/new'}>
-            <span className='leading-4 text-[24pt]'>+</span>
-&nbsp;Create a new package
-          </button>
-
+          <button className='primary-button' onClick={() => window.location.href = '/packages/new'}><span className='leading-4 text-[24pt]'>+</span>&nbsp;Create a new package</button>
           {this._storageBar()}
           <Table {...tableParams} />
         </>
@@ -304,7 +294,7 @@ Package Information
       } as Partial<PackagesState>);
 
       if (e instanceof RegistryError && e.status === 401) {
-        tokenStorage.delToken();
+        cookies.deleteCookie('token');
         window.location.href = '/';
       }
     }
@@ -342,7 +332,6 @@ Package Information
           ]}
           />
         )}
-
         right={
           // We wrap this in a function just to use regular JS stuff
           ((): ReactNode => {

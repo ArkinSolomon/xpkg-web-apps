@@ -32,14 +32,19 @@ import { isValidTokenFormat } from '@xpkg/validation/src/validators.js';
 import { header } from 'express-validator';
 
 export default async function (req: AuthorizedRequest, res: Response, next: NextFunction) {
-  const result = await isValidTokenFormat(header('authorization')).run(req);
+  const result = await isValidTokenFormat(header('authorization')).run({
+    headers: {
+      authorization: req.headers.authorization ?? req.cookies.token
+    }
+  });
+
   if (!result.isEmpty()) {
-    req.logger.trace('Invalid authorization header, message: ' + result.array()[0].msg);
+    req.logger.trace('Invalid authorization header or token cookie format, message: ' + result.array()[0].msg);
     return res.sendStatus(401);
   }
 
   try {
-    const userId = await validateXisToken(req.headers.authorization!);
+    const userId = await validateXisToken(req.headers.authorization ?? req.cookies.token);
     if (!userId) {
       req.logger.trace('Invalid token provided');
       return res.sendStatus(401);

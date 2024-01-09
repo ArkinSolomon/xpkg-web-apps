@@ -54,6 +54,7 @@ enum SwitchState {
  * @property {string} profilePicture The profile picture of the user.
  * @property {boolean} isDeveloper True if the user is a developer.
  * @property {Date} nameChangeDate When the user last changed their name.
+ * @property {ClientData[]} oauthClients The client data for OAuth clients that belong to this user.
  */
 export type UserData = {
   userId: string;
@@ -64,6 +65,42 @@ export type UserData = {
   profilePicture: string;
   isDeveloper: boolean;
   nameChangeDate: Date;
+  oauthClients: ClientData[];
+};
+
+/**
+ * The data for a single OAuth client returned from the server. This is just coppied and pasted from the server.
+ * 
+ * @typedef {Object} ClientData
+ * @property {string} clientId The id of the client.
+ * @property {string} userId The id of the user that created the client.
+ * @property {string} name The client name.
+ * @property {string} description The description of the client.
+ * @property {string} icon The location of the client icon.
+ * @property {string[]} redirectURIs The possible URIs to which the client may redirect.
+ * @property {bigint} permissionsNumber The permission number that this client MAY request.
+ * @property {Date} created When the client was created.
+ * @property {Date} secretRegenerated When the client secret was regenerated.
+ * @property {number} quota The maximum amount of users this client is permitted to have.
+ * @property {number} currentUsers The current amount of users this client has.
+ * @property {Object} limits The limits on this account.
+ * @property {number} clients The maximum number of OAuth clients this user can have.
+ */
+export type ClientData = {
+  clientId: string;
+  userId: string;
+  name: string;
+  description: string;
+  icon: string;
+  redirectURIs: string[];
+  permissionsNumber: bigint;
+  created: Date;
+  secretRegenerated: Date;
+  quota: number;
+  currentUsers: number;
+  limits: {
+    clients: number;
+  };
 };
 
 /**
@@ -97,12 +134,11 @@ import YourDataIcon from '../svgs/YourDataIcon';
 import Loading from '../components/accountPages/Loading';
 import PersonalInformation from '../components/accountPages/PersonalInformation';
 import axios from 'axios';
-import { getCookie, setCookie } from '../scripts/cookies';
-import tokenValidityChecker, { getTokenExpiry } from '../scripts/tokenValidityChecker';
 import Error from '../components/accountPages/Error';
 import Modal, { ModalProps } from '../components/Modal';
-import { identifiers } from '@xpkg/validation';
+import { deconstructToken, identifiers, isTokenValid } from '@xpkg/auth-util';
 import LogoutIcon from '../svgs/LogoutIcon';
+import { cookies } from '@xpkg/frontend-util';
 
 export default class extends Component<Record<string, never>, AccountState> {
   private _userData?: UserData;
@@ -123,8 +159,8 @@ export default class extends Component<Record<string, never>, AccountState> {
 
     (async () => {
       try {
-        const isLoginValid = await tokenValidityChecker();
-        if (isLoginValid !== 204) 
+        const isLoginValid = await isTokenValid(cookies.getCookie('token'));
+        if (!isLoginValid) 
           loginAgain();
         
       } catch (e) {
@@ -136,9 +172,9 @@ export default class extends Component<Record<string, never>, AccountState> {
       }
 
       try {
-        const response = await axios.get('http://localhost:4819/account/userdata', {
+        const response = await axios.get(window.XIS_URL + '/account/userdata', {
           headers: {
-            Authorization: getCookie('token')!
+            Authorization: cookies.getCookie('token')!
           }
         });
 
@@ -155,8 +191,8 @@ export default class extends Component<Record<string, never>, AccountState> {
         return this._changePage(AccountPage.Error);
       }
 
-      const expiryDate = getTokenExpiry();
-      const delay = expiryDate.getTime() - Date.now();
+      const [,, expiryDate] = deconstructToken(cookies.getCookie('token')!);
+      const delay = expiryDate.valueOf() - Date.now();
 
       setTimeout(() => {
         this._modalKey = 'bye-bye';
@@ -383,6 +419,6 @@ export default class extends Component<Record<string, never>, AccountState> {
  * Redirect the user to login again.
  */
 function loginAgain() {
-  setCookie('token', 'null', -1);
+  cookies.deleteCookie('token');
   window.location.href = '/authenticate?next=account';
 }

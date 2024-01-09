@@ -31,47 +31,6 @@ export enum TokenType {
 }
 
 /**
- * The different scopes that a token can have.
- * 
- * @name TokenScope
- * @enum {bigint}
- */
-export const TokenScope = {
-  
-  // Proprietary service tokens
-  Identity: 1n << 0n,
-  Registry: 1n << 1n,
-  Forum: 1n << 2n,
-  Store: 1n << 3n,
-  Client: 1n << 4n,
-  
-  // Action
-  PasswordReset: 1n << 8n,
-  EmailVerification: 1n << 9n,
-  EmailChange: 1n << 10n,
-
-  // Registry scopes
-  RegistryCreatePackage: 1n << 16n,
-  RegistryUploadVersion: 1n << 17n,
-  RegistryModifyPackageInfo: 1n << 18n,
-  RegistryReadAuthorData: 1n << 19n,
-  RegistryViewPackages: 1n << 20n,
-  RegistryViewResources: 1n << 21n,
-  RegistryModifyVersionData: 1n << 22n,
-  RegistryViewAnalytics: 1n << 23n,
-  RegistryViewBugReports: 1n << 24n,
-  RegistryRespondBugReports: 1n << 25n,
-  RegistryManageBugReports: 1n << 26n,
-
-  // Identity service scopes
-  IdentityViewAuthorEmail: 1n << 32n
-};
-Object.freeze(TokenScope);
-
-// We use this to get around the fact that TypeScript enumerations do not support BigInts
-export type TokenScope = typeof TokenScope[keyof typeof TokenScope];
-
-/**
  * The schema of a single token that has access to a user's account.
  * 
  * @typedef {string} TokenData

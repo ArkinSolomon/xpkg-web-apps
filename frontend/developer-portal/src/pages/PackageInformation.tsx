@@ -52,7 +52,6 @@ import MainContainer from '../components/Main Container/MainContainer';
 import MainContainerLoading from '../components/Main Container/MainContainerLoading';
 import MainContainerError from '../components/Main Container/MainContainerError';
 import MainContainerContent from '../components/Main Container/MainContainerContent';
-import * as tokenStorage from '../scripts/tokenStorage';
 import { httpRequest } from '../scripts/http';
 import { getStatusTextShort } from './Packages';
 import { Formik, FormikErrors } from 'formik';
@@ -69,6 +68,7 @@ import { AuthorPackageData, AuthorVersionData, PackageType, VersionStatus, getAu
 import RegistryError from '../scripts/registryError';
 import { getBestUnits } from '../scripts/displayUtil';
 import { Line } from 'react-chartjs-2';
+import { cookies } from '@xpkg/frontend-util';
 
 class PackageInformation extends Component {
 
@@ -89,13 +89,12 @@ class PackageInformation extends Component {
       isDescriptionOriginal: true
     };
 
-    const token = tokenStorage.checkAuth();
+    const token = cookies.getCookie('token');
     if (!token) {
-      tokenStorage.delToken();
-      sessionStorage.setItem('post-auth-redirect', '/packages');
-      window.location.href = '/';
+      const next = Buffer.from('/packages').toString('base64url');
+      window.location.href = '/?next=' + next;
       return;
-    }   
+    }
 
     this._updateDescription = this._updateDescription.bind(this);
   }
@@ -130,9 +129,8 @@ class PackageInformation extends Component {
       if (e instanceof RegistryError) 
         switch (e.status) {
         case 401:
-          tokenStorage.delToken();
-          sessionStorage.setItem('post-auth-redirect', '/packages');
-          window.location.href = '/';
+          cookies.deleteCookie('token');
+          window.location.href = '/?next=' + Buffer.from('/packages').toString('base64url');
           return;
         case 404:
           return this.setState({
@@ -176,7 +174,7 @@ class PackageInformation extends Component {
           isFormSubmitting: true
         } as Partial<PackageInformationState>); 
         
-        httpRequest(`${window.REGISTRY_URL}/packages/description`, HTTPMethod.PATCH, tokenStorage.checkAuth() as string, {
+        httpRequest(`${window.REGISTRY_URL}/packages/description`, HTTPMethod.PATCH, cookies.getCookie('token') as string, {
           newDescription: description,
           packageId: this.state.currentPackageData?.packageId as string
         }, (err, res) => {
@@ -189,9 +187,8 @@ class PackageInformation extends Component {
             if (res)
               switch (res.status) {
               case 401:
-                tokenStorage.delToken();
-                sessionStorage.setItem('post-auth-redirect', '/packages');
-                window.location.href = '/';
+                cookies.deleteCookie('token');
+                window.location.href = '/?next=' + Buffer.from('/packages').toString('base64url');
                 break;
               case 400:
                 errMsg = {

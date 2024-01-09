@@ -57,10 +57,10 @@ export type AnalyticsData = {
 };
 
 import RegistryError from './registryError';
-import * as tokenStorage from './tokenStorage';
 import * as http from './http';
 import HTTPMethod from 'http-method-enum';
 import { DateTime, Duration } from 'luxon';
+import { cookies } from '@xpkg/frontend-util';
 
 /**
  * Get the analytics data for the specified time using the current credentials.
@@ -73,7 +73,7 @@ import { DateTime, Duration } from 'luxon';
  * @throws {RegistryError} Error thrown if there was a response error.
  */
 export async function getAnalytics(packageId: string, packageVersion: string, after: DateTime, before = DateTime.now().startOf('day')): Promise<AnalyticsData[]> {
-  const token = tokenStorage.checkAuth();
+  const token = cookies.getCookie('token');
   if (!token)
     throw new RegistryError(401, 'Unauthorized');
   

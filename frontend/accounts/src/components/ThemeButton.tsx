@@ -13,7 +13,7 @@
  * either express or implied limitations under the License.
  */
 import React, { useState } from 'react';
-import { getCookie, setCookie } from '../scripts/cookies';
+import { cookies } from '@xpkg/frontend-util';
 import '../css/ThemeButton.scss';
 
 const LIGHT_MODE_BUTTON = <svg xmlns='http://www.w3.org/2000/svg' xmlnsXlink='http://www.w3.org/1999/xlink' fill='none' strokeLinecap='square' strokeMiterlimit='10' viewBox='0 0 128 128'>
@@ -35,8 +35,8 @@ const callbacks: ((isDark: boolean) => void)[] = [];
 
 export default function () {
   let isDarkByDefault = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (getCookie('theme')) 
-    isDarkByDefault = getCookie('theme') == 'dark';
+  if (cookies.getCookie('theme')) 
+    isDarkByDefault = cookies.getCookie('theme') == 'dark';
 
   const [isDarkMode, setDarkMode] = useState(isDarkByDefault);
 
@@ -44,12 +44,12 @@ export default function () {
   if (isDarkMode) {
     document.getElementsByTagName('html')[0].classList.remove('theme--default');
     document.getElementsByTagName('html')[0].classList.add('theme--dark');
-    setCookie('theme', 'dark', 365);
+    cookies.setCookie('theme', 'dark', 365);
     image = LIGHT_MODE_BUTTON;
   } else {
     document.getElementsByTagName('html')[0].classList.remove('theme--dark');
     document.getElementsByTagName('html')[0].classList.add('theme--default');
-    setCookie('theme', 'light', 365);
+    cookies.setCookie('theme', 'light', 365);
     image = DARK_MODE_BUTTON;
   }
 
@@ -80,5 +80,5 @@ export function registerCallback(cb: (isDark: boolean) => void): void {
  * @returns {boolean} True if the site is set in dark mode.
  */
 export function isSiteInDarkMode(): boolean {
-  return getCookie('theme') == 'dark';
+  return cookies.getCookie('theme') == 'dark';
 }

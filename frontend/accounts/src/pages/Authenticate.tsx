@@ -99,8 +99,8 @@ import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
 import Checkbox from '../components/Checkbox';
 import axios from 'axios';
-import { setCookie } from '../scripts/cookies';
-import tokenValidityChecker from '../scripts/tokenValidityChecker';
+import { cookies } from '@xpkg/frontend-util';
+import { isTokenValid } from '@xpkg/auth-util';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EMPTY_FUNCTION = () => { };
@@ -162,16 +162,17 @@ export default class extends Component {
       this.state.currentPage = Page.DefaultPage;
     }
 
-    if (this.state.currentPage !== Page.ErrorPage) 
-      tokenValidityChecker()
-        .then(status => {
-          if (status === 204) 
+    if (this.state.currentPage !== Page.ErrorPage)
+      isTokenValid(cookies.getCookie('token') ?? '')
+        .then(isValid => {
+          if (isValid) {
             window.location.href = this._redirectUrl;
-          else 
-            this._setPageFromIndex(Page.DefaultPage);
-          
-        })
-        .finally();
+            return;
+          }
+
+          cookies.deleteCookie('token');
+          this._setPageFromIndex(Page.DefaultPage);
+        });
     
     this._setPageFromIndex(this.state.currentPage);
 
@@ -305,7 +306,7 @@ export default class extends Component {
           grecaptcha.ready(async () => {
             try {
               const recaptchaToken = grecaptcha.execute(window.SITE_KEY, { action: 'create' });
-              const result = await axios.post('http://localhost:4819/account/create', {
+              const result = await axios.post(window.XIS_URL + '/account/create', {
                 email: this._authData.email,
                 name: this._authData.name,
                 password: this._authData.password,
@@ -315,7 +316,7 @@ export default class extends Component {
               if (result.status !== 200) 
                 throw 'Error: status ' + result.status;
 
-              setCookie('token', result.data.token, 1);
+              cookies.setCookie('token', result.data.token, 1);
               window.location.href = this._redirectUrl;
             } catch (e) {
               console.error(e);
@@ -371,7 +372,7 @@ export default class extends Component {
           grecaptcha.ready(async () => {
             try {
               const recaptchaToken = grecaptcha.execute(window.SITE_KEY, { action: 'create' });
-              const result = await axios.post('http://localhost:4819/account/login', {
+              const result = await axios.post(window.XIS_URL + '/account/login', {
                 email: this._authData.email,
                 password: this._authData.password,
                 validation: recaptchaToken
@@ -380,7 +381,7 @@ export default class extends Component {
               if (result.status !== 200) 
                 throw 'Error: status ' + result.status;
               
-              setCookie('token', result.data.token, 1);
+              cookies.setCookie('token', result.data.token, 1);
               window.location.href = this._redirectUrl;
             } catch (e) {
               console.error(e);

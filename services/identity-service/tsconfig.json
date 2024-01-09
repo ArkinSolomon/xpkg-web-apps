@@ -9,10 +9,10 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../../packages/backend-util"
+      "path": "../../packages/auth-util"
     },
     {
-      "path": "../../packages/versioning"
+      "path": "../../packages/backend-util"
     },
     {
       "path": "../../packages/validation"

@@ -58,10 +58,8 @@ function ConfirmPopup(props: ConfirmPopupConfig & { open: boolean; }) {
 
   return (
     <Popup
-      
       // Now, this is always true, but for some reason if you get rid of this, and hardcode it as true, it doesn't work
       open={props.open}
-
       modal
       nested
       closeOnDocumentClick={false}

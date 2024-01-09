@@ -66,7 +66,7 @@ export default class Tools extends Component {
 
   state: ToolsState;
 
-  constructor(props: never) {
+  constructor(props: Record<string, never>) {
     super(props);
 
     let defaultPage = ToolPages.VersionStrings;
@@ -111,7 +111,6 @@ export default class Tools extends Component {
             // }
           ]}
         />}
-
       right={
         <>
           {

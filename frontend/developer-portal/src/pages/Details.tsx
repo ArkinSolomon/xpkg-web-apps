@@ -54,7 +54,6 @@ type DetailsState = {
 };
 
 import { Component, ReactNode } from 'react';
-import * as tokenStorage from '../scripts/tokenStorage';
 import Version from '../scripts/version';
 import { downloadFile, httpRequest } from '../scripts/http';
 import HTTPMethod from 'http-method-enum';
@@ -88,6 +87,7 @@ import {
   Filler,
   TimeScale
 } from 'chart.js';
+import { cookies } from '@xpkg/frontend-util';
 
 ChartJS.register(
   LinearScale,
@@ -134,11 +134,10 @@ class Details extends Component {
     this._maxDate = DateTime.now().startOf('day');
     this._minDate = this._maxDate.minus(Duration.fromObject({ weeks: 2 }));
 
-    const token = tokenStorage.checkAuth();
+    const token = cookies.getCookie('token');
     if (!token) {
-      tokenStorage.delToken();
-      sessionStorage.setItem('post-auth-redirect', '/packages');
-      window.location.href = '/';
+      const next = Buffer.from('/packages').toString('base64url');
+      window.location.href = '/?next=' + next;
       return;
     }
 
@@ -208,9 +207,8 @@ class Details extends Component {
           errorMessage = 'Invalid package identifier or version provided.';
           break;
         case 401:
-          tokenStorage.delToken();
-          sessionStorage.setItem('post-auth-redirect', '/packages');
-          window.location.href = '/';
+          cookies.deleteCookie('token');
+          window.location.href = '/?next=' + Buffer.from('/packages').toString('base64url');
           return;
         case 404:
           errorMessage = 'Package version not found.';
@@ -250,7 +248,7 @@ class Details extends Component {
         method: HTTPMethod.POST,
         data: formData,
         headers: {
-          Authorization: tokenStorage.checkAuth() as string
+          Authorization: cookies.getCookie('token')!
         }, 
         onUploadProgress: e  => {
           this.setState({
@@ -321,9 +319,7 @@ class Details extends Component {
               className='primary-button'
               disabled={!this.state.file || this.state.isSubmitting}
               onClick={() => this._reuploadFailed()}
-            >
-Upload
-            </button>
+            >Upload</button>
           </div>
         </section>
       );
@@ -351,7 +347,7 @@ Upload
 
     let response;
     try {
-      response = await httpRequest(`${window.REGISTRY_URL}/packages/xpselection`, HTTPMethod.PATCH, tokenStorage.checkAuth() as string, {
+      response = await httpRequest(`${window.REGISTRY_URL}/packages/xpselection`, HTTPMethod.PATCH, cookies.getCookie('token')!, {
         packageId: this._data?.packageId as string,
         packageVersion: this._data?.versionData.packageVersion.toString(),
         xpSelection: this.state.xpSelection.toString()
@@ -388,9 +384,8 @@ Upload
       } as Partial<DetailsState>);
     }
     case 401:
-      tokenStorage.delToken();
-      sessionStorage.setItem('post-auth-redirect', '/packages');
-      window.location.href = '/';
+      cookies.deleteCookie('token');
+      window.location.href = '/?next=' + Buffer.from('/packages').toString('base64url');
       return;
     case 409:
       return this.setState({
@@ -459,7 +454,7 @@ Upload
 
     let response;
     try {
-      response = await httpRequest(`${window.REGISTRY_URL}/packages/incompatibilities`, HTTPMethod.PATCH, tokenStorage.checkAuth() as string, {
+      response = await httpRequest(`${window.REGISTRY_URL}/packages/incompatibilities`, HTTPMethod.PATCH, cookies.getCookie('token')! as string, {
         packageId: this._data?.packageId as string,
         packageVersion: this._data?.versionData.packageVersion.toString(),
         incompatibilities
@@ -501,9 +496,8 @@ Upload
       } as Partial<DetailsState>);
     }
     case 401: 
-      tokenStorage.delToken();
-      sessionStorage.setItem('post-auth-redirect', '/packages');
-      window.location.href = '/';
+      cookies.deleteCookie('token');
+      window.location.href = '/?next=' + Buffer.from('/packages').toString('base64url');
       return;
     case 409:
       return this.setState({

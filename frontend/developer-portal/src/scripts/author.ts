@@ -150,12 +150,12 @@ type RegistrySinglePackageData = Omit<AuthorSingleVersionPackageData, 'version'>
   versionData: RegistryVersionData;
 };
 
-import * as tokenStorage from './tokenStorage';
 import * as http from './http';
 import HTTPMethod from 'http-method-enum';
 import VersionSelection from './versionSelection';
 import Version from './version';
 import RegistryError from './registryError';
+import { cookies } from '@xpkg/frontend-util';
 
 /**
  * Try to get the storage data for the currently logged in author. 
@@ -165,7 +165,7 @@ import RegistryError from './registryError';
  * @throws {Error} An error is thrown if the author does not have a token, or if the request fails.
  */
 export async function getAuthorData(): Promise<AuthorData> {
-  const token = tokenStorage.checkAuth();
+  const token = cookies.getCookie('token');
   if (!token)
     throw new RegistryError(401, 'Unauthorized');
   
@@ -184,7 +184,7 @@ export async function getAuthorData(): Promise<AuthorData> {
  * @throws {RegistryError} An error is thrown if the author does not have a token, or if the request fails for any other reason.
  */
 export async function getAllAuthorPackages(): Promise<AuthorPackageData[]> {
-  const token = tokenStorage.checkAuth();
+  const token = cookies.getCookie('token');
   if (!token)
     throw new RegistryError(401, 'Unauthorized');
 
@@ -220,7 +220,7 @@ export async function getAllAuthorPackages(): Promise<AuthorPackageData[]> {
  * @throws {RegistryError} An error is thrown if the author does not have a token, or if the request fails for any other reason.
  */
 export async function getAuthorPackage(packageId: string): Promise<AuthorPackageData> {
-  const token = tokenStorage.checkAuth();
+  const token = cookies.getCookie('token');
   if (!token)
     throw new RegistryError(401, 'Unauthorized');
 
@@ -251,7 +251,7 @@ export async function getAuthorPackage(packageId: string): Promise<AuthorPackage
  * @throws {RegistryError} An error is thrown if the author does not have a token, or if the request fails for any other reason.
  */
 export async function getAuthorPackageVersion(packageId: string, packageVersion: string): Promise<AuthorSingleVersionPackageData> {
-  const token = tokenStorage.checkAuth();
+  const token = cookies.getCookie('token');
   if (!token)
     throw new RegistryError(401, 'Unauthorized');
 

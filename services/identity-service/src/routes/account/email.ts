@@ -20,9 +20,9 @@ import { AuthorizedRequest } from '../../util/authorization.js';
 import * as tokenDatabase from '../../database/tokenDatabase.js';
 import * as userDatabase from '../../database/userDatabase.js';
 import genericSessionFunction from '../../database/genericSessionFunction.js';
-import { TokenScope } from '../../database/models/tokenModel.js';
 import NoSuchRequestError from '../../errors/noSuchRequestError.js';
 import XpkgError from '../../errors/xpkgError.js';
+import { TokenScope } from '@xpkg/auth-util';
 
 const route = Router();
 
@@ -62,7 +62,7 @@ route.get('/changeemail/data',
     const { token } = matchedData(req) as { token: string; };
     try {
       await genericSessionFunction(async session => {
-        const requestToken = await tokenDatabase.getToken(token, TokenScope.EmailChange, { session, deleteExpired: true });
+        const requestToken = await tokenDatabase.getTokenData(token, TokenScope.EmailChange, { session, deleteExpired: true });
         if (!requestToken || !requestToken.data) {
           req.logger.info('Invalid or expired token provided');
           return res.sendStatus(401);
@@ -110,7 +110,7 @@ route.post('/changeemail/step1',
     const { token, newEmail } = matchedData(req) as { token: string; newEmail: string; };
     try {
       await genericSessionFunction(async session => {
-        const requestToken = await tokenDatabase.getToken(token, TokenScope.EmailChange, { session, deleteExpired: true });
+        const requestToken = await tokenDatabase.getTokenData(token, TokenScope.EmailChange, { session, deleteExpired: true });
         if (!requestToken || !requestToken.data) {
           req.logger.info('Invalid or expired token provided');
           return res.sendStatus(401);
@@ -177,7 +177,7 @@ route.post('/changeemail/step2',
     const { token, code } = matchedData(req) as { token: string; code: number; };
     try {
       await genericSessionFunction(async session => {
-        const requestToken = await tokenDatabase.getToken(token, TokenScope.EmailChange, { session, deleteExpired: true });
+        const requestToken = await tokenDatabase.getTokenData(token, TokenScope.EmailChange, { session, deleteExpired: true });
         if (!requestToken || !requestToken.data) {
           req.logger.info('Invalid or expired token provided');
           return res.sendStatus(401);
@@ -234,7 +234,7 @@ route.post('/verify',
     const { token } = matchedData(req) as { token: string; };
 
     genericSessionFunction(async session => {
-      const requestToken = await tokenDatabase.getToken(token, TokenScope.EmailVerification, { session, deleteExpired: true, consume: true });
+      const requestToken = await tokenDatabase.getTokenData(token, TokenScope.EmailVerification, { session, deleteExpired: true, consume: true });
       if (!requestToken) {
         req.logger.info('Invalid or expired token provided');
         return res.sendStatus(401);

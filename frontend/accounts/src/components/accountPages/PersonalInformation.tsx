@@ -53,8 +53,8 @@ import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
 import { ModalProps } from '../Modal';
 import axios from 'axios';
-import { getCookie } from '../../scripts/cookies';
 import ExternalLinkIcon from '../../svgs/ExternalLinkIcon';
+import { cookies } from '@xpkg/frontend-util';
 
 export default class PersonalInformation extends Component<PersonalInformationProps, PersonalInformationState> {
 
@@ -127,9 +127,9 @@ export default class PersonalInformation extends Component<PersonalInformationPr
 
             let error = 'Could not reset your profile picture, an internal server error occured. Please try again later.';
             try {
-              const result = await axios.patch('http://localhost:4819/account/resetpfp', {}, {
+              const result = await axios.patch(window.XIS_URL + '/account/resetpfp', {}, {
                 headers: {
-                  Authorization: getCookie('token')
+                  Authorization: cookies.getCookie('token')
                 },
                 validateStatus: () => true
               });  
@@ -186,11 +186,11 @@ export default class PersonalInformation extends Component<PersonalInformationPr
             });
 
             try {
-              const result = await axios.patch('http://localhost:4819/account/name', {
+              const result = await axios.patch(window.XIS_URL + '/account/name', {
                 newName: this._newName
               }, {
                 headers: {
-                  Authorization: getCookie('token')
+                  Authorization: cookies.getCookie('token')
                 }
               });
 
@@ -254,9 +254,9 @@ export default class PersonalInformation extends Component<PersonalInformationPr
             });
 
             try {
-              const result = await axios.post('http://localhost:4819/account/email/changeemail', {}, {
+              const result = await axios.post(window.XIS_URL + '/account/email/changeemail', {}, {
                 headers: {
-                  Authorization: getCookie('token')
+                  Authorization: cookies.getCookie('token')
                 }
               });
 
@@ -317,9 +317,9 @@ export default class PersonalInformation extends Component<PersonalInformationPr
     });
 
     try {
-      await axios.post('http://localhost:4819/account/email/resend', {}, {
+      await axios.post(window.XIS_URL + '/account/email/resend', {}, {
         headers: {
-          Authorization: getCookie('token')
+          Authorization: cookies.getCookie('token')
         }
       });
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,30 +12,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-div.small-content-box-page {
-  left: 0;
-  right: 0;
 
-  box-sizing: border-box;
+import XpkgError from './xpkgError.js';
 
-  display: inline;
-  position: absolute;
+/**
+ * An error which is thrown by the token database when a token with a given id does not exist.
+ */
+export default class NoSuchTokenError extends XpkgError {
 
-  padding: 12px 24px;
-  transition: transform 0.24s ease-out, opacity 0.15s ease-out;
-
-  &.before {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-
-  &.active {
-    transform: translateX(0%);
-    opacity: 1;
-  }
-
-  &.after {
-    transform: translateX(100%);
-    opacity: 0;
+  /**
+   * Create a new error saying that no such token exists with the given id.
+   * 
+   * @param {string} tokenId The id of the token that was not found.
+   */
+  constructor(tokenId: string) {
+    super(`No such token exists with an id of ${tokenId}`);
   }
 }

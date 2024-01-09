@@ -6,6 +6,7 @@
   "type": "module",
   "devDependencies": {
     "@types/body-parser": "^1.19.4",
+    "@types/cookie-parser": "^1.4.6",
     "@types/cors": "^2.8.15",
     "@types/express": "^4.17.20",
     "@types/hasha": "^3.0.1",
@@ -20,9 +21,11 @@
   "author": "Arkin Solomon",
   "license": "Apache-2.0",
   "dependencies": {
+    "@xpkg/auth-util": "^0.1.0",
     "@xpkg/backend-util": "^0.1.0",
     "@xpkg/validation": "^0.1.0",
     "body-parser": "^1.20.2",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "express-validator": "^7.0.1",
     "hasha": "^6.0.0",

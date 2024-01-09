@@ -53,10 +53,10 @@ import MainContainer from '../components/Main Container/MainContainer';
 import MainContainerContent from '../components/Main Container/MainContainerContent';
 import ErrorMessage from '../components/ErrorMessage';
 import '../css/Buttons.scss';
-import { checkAuth, delToken } from '../scripts/tokenStorage';
 import InputArea, { InputAreaProps } from '../components/Input/InputArea';
 import axios, { AxiosError } from 'axios';
 import { validateId } from '../scripts/validators';
+import { cookies } from '@xpkg/frontend-util';
 
 // Compute the default option
 export const packageTypes = {
@@ -80,9 +80,8 @@ class NewPackage extends Component {
       errors: {}
     };
 
-    const token = checkAuth();
+    const token = cookies.getCookie('token');
     if (!token) {
-      sessionStorage.setItem('post-auth-redirect', '/packages');
       window.location.href = '/';
       return;
     }   
@@ -144,7 +143,7 @@ class NewPackage extends Component {
         method: 'POST',
         data: formData,
         headers: {
-          Authorization: checkAuth() as string
+          Authorization: cookies.getCookie('token')
         }
       });
 
@@ -179,8 +178,8 @@ class NewPackage extends Component {
           } as Partial<NewPackageState>);
           break;
         case 401:
+          cookies.getCookie('token');
           window.location.href = '/';
-          delToken();
           break;
         case 500:
           this.setState({
