@@ -20,6 +20,11 @@ import logger from './logger.js';
  */
 export default async function connect() {
   try {
+    if (!process.env.MONGODB_IP) 
+      throw new Error('Misisng MONGODB_IP environment variable');
+    if (!process.env.MONGODB_KEY_PATH) 
+      throw new Error('Misisng MONGODB_KEY_PATH environment variable');
+
     await mongoose.connect(`mongodb+srv://${process.env.MONGODB_IP}/?authSource=%24external&authMechanism=MONGODB-X509` as string, {
       tlsAllowInvalidCertificates: false,
       tlsCertificateKeyFile: process.env.MONGODB_KEY_PATH,
