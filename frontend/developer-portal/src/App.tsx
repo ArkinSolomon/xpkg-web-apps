@@ -56,8 +56,6 @@ function App() {
         <Route path='/packages/new' element={<NewPackage />} />
         <Route path='/packages/upload' element={<Upload />} />
         
-        {/* We use /verify twice because /verify/ is not caught by /verify/:verificationToken */}
-        
         <Route path='*' element={<NotFound />} />
       </Routes>
       <Footer />

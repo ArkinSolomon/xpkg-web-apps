@@ -18,6 +18,8 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { customAlphabet } from 'nanoid';
+import fs from 'fs/promises';
+import https from 'https';
 
 if (!process.env.NODE_ENV) {
   logger.fatal('NODE_ENV not defined');
@@ -45,6 +47,15 @@ process.on('uncaughtException', err => {
 await atlasConnect();
 
 const app = Express();
+const [key, cert, ca] = await Promise.all([
+  fs.readFile(process.env.HTTPS_KEY_PATH as string, 'utf8'),
+  fs.readFile(process.env.HTTPS_CERT_PATH as string, 'utf8'),
+  fs.readFile(process.env.HTTPS_CHAIN_PATH as string, 'utf8')
+]);
+const server = https.createServer({
+  key, cert, ca
+}, app);
+
 app.use(bodyParser.json());
 app.use('/oauth/token', bodyParser.urlencoded());
 app.use(cors());
@@ -82,7 +93,6 @@ app.use(authorizeRoutes, authorization);
 
 import account from './routes/account.js';
 import oauth from './routes/oauth.js';
-import { body } from 'express-validator';
 
 app.use('/account', account);
 app.use('/oauth', oauth);
@@ -92,4 +102,6 @@ app.all('*', (_, res) => {
 });
 
 const port = process.env.PORT || 4819;
-app.listen(port, () => logger.info(`X-Pkg identity service listening on port ${port}`));
+server.listen(port, () => {
+  logger.info(`X-Pkg identity service listening on port ${port}`);
+});
