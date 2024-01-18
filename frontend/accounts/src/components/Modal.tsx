@@ -30,7 +30,7 @@ export type ModalProps = {
   children: ReactNode | ReactNode[];
   buttons?: {
     text: string;
-    action?: () =>  void;
+    action?: () => void;
     style?: 'primary' | 'secondary';
     autoFocus?: boolean;
   }[];

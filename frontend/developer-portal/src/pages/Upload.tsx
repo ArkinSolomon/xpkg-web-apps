@@ -275,7 +275,7 @@ class Upload extends Component {
         headers: {
           Authorization: cookies.getCookie('token')!
         }, 
-        onUploadProgress: e  => {
+        onUploadProgress: e => {
           this.setState({
             uploadProgress: e.progress
           } as Partial<UploadState>);
@@ -331,7 +331,7 @@ class Upload extends Component {
   }
 
   render(): JSX.Element {
-    const loadingBarProps: LoadingPopupConfig =  {
+    const loadingBarProps: LoadingPopupConfig = {
       open: this.state.isUploading,
       progress: this.state.uploadProgress,
       title: 'Uploading',

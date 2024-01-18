@@ -336,7 +336,7 @@ export default class Version {
         return str + 'a1';
       return str;
     }
-    else  if (this.patch === 999 && this.minor === 999)
+    else if (this.patch === 999 && this.minor === 999)
       return this.major.toString();
     else if (this.patch === 999)
       return `${this.major}.${this.minor}`;

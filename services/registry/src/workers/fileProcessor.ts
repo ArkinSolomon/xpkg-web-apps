@@ -101,7 +101,7 @@ const {
   platforms
 } = data;
 const tempId = nanoid(32);
-const  storageId = nanoid(64);
+const storageId = nanoid(64);
 
 let unzippedFileLoc = path.join(unzippedFilesLocation, tempId);
 const xpkgFileLoc = path.join(xpkgFilesLocation, storageId + '.xpkg');

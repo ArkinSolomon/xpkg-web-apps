@@ -74,7 +74,7 @@ import RegistryError from '../scripts/registryError';
 import VersionSelection from '../scripts/versionSelection';
 import PackageInformation from './PackageInformation';
 import { getAnalytics, AnalyticsData, TimeChartData, formatAnalyticsDataToDays } from '../scripts/analytics';
-import { Line }  from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 import { DateTime, Duration } from 'luxon';
 import 'chartjs-adapter-luxon';
 import {
@@ -250,7 +250,7 @@ class Details extends Component {
         headers: {
           Authorization: cookies.getCookie('token')!
         }, 
-        onUploadProgress: e  => {
+        onUploadProgress: e => {
           this.setState({
             uploadProgress: e.progress
           } as Partial<DetailsState>);

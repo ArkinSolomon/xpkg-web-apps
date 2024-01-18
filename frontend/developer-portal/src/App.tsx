@@ -26,11 +26,10 @@ import NotFound from './pages/NotFound';
 import Support from './pages/Support';
 import PackageInformation from './pages/PackageInformation';
 import Tools from './pages/Tools';
-import Verify from './pages/Verify';
 import Upload from './pages/Upload';
 import Details from './pages/Details';
 import Authorize from './pages/Authorize';
-import Redirect from './pages/Redirct';
+import Redirect from './pages/Redirect';
 
 declare global {
   interface Window {

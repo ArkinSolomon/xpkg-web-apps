@@ -24,7 +24,7 @@ export const FORUM_CLIENT_ID = 'xpkg_fm_0111010001100001011011000110101100111010
 export const STORE_CLIENT_ID = 'xpkg_st_011011010110111101101110011010010110010101110011';
 export const XPKG_CLIENT_CLIENT_ID = 'xpkg_cl_011100000110000101101011011010010110011101100101';
 
-export const ACCOUNTS_URL =  process.env.ACCOUNTS_URL ?? 'http://127.0.0.1:3000';
+export const ACCOUNTS_URL = process.env.ACCOUNTS_URL ?? 'http://127.0.0.1:3000';
 export const XIS_URL = process.env.XIS_URL ?? 'http://127.0.0.1:4819';
 
 export * as identifiers from './identifiers.js';
