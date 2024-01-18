@@ -45,6 +45,7 @@ import { Logger } from 'pino';
  */
 export default function (genRequestId: () => string) {
   return function (req: Request, res: Response, next: NextFunction) {
+    req.startTime = Date.now();
     req.id = genRequestId();
     res.setHeader('X-Request-Id', req.id);
     req.logger = logger.child({
@@ -61,8 +62,7 @@ export default function (genRequestId: () => string) {
         etag: res.getHeader('etag')
       }, 'Request complete');
     });
-
-    req.startTime = Date.now();
+    
     next();
   };
 }

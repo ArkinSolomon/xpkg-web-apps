@@ -52,9 +52,6 @@ export function isValidOAuthScope(chain: ValidationChain): ValidationChain {
       for (const scope of scopeArr) {
         if (!/^[a-z]+$/i.test(scope)) 
           return false;
-
-        if (scope === 'Identity') 
-          return false;
         
         const tokenScope = parseScopeStr(scope);
         if (!tokenScope) {

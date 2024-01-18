@@ -16,7 +16,7 @@ import { DateTime } from 'luxon';
 import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
 import axios from 'axios';
-import { TokenScope } from './permissionsNumber.js';
+import { TokenScope, toScopeStr } from './permissionsNumber.js';
 
 export const XIS_CLIENT_ID = 'xpkg_is_011101110110100001101111011000010110110101101001';
 export const DEVELOPER_PORTAL_CLIENT_ID = 'xpkg_dp_011100000111001001100111011100100110110101110010';
@@ -35,41 +35,29 @@ export * from './permissionsNumber.js';
  * 
  * @async
  * @param {string} token The token to check.
- * @param {...TokenScope} scopes The scopes to check for.
- * @returns {Promise<number>} A promise which resolves to the status code from the server (which is 204 on success, and typically 401 on failure), or 401 if there is a reason the request shouldn't be made. 400 May also be returned if the token itself is invalid.
+ * @param {TokenScope} scope The required scope.
+ * @param {...TokenScope} scopes Additional scopes to check for.
+ * @returns {Promise<number>} A promise which resolves to true if the token is valid for all of the provided scopes.
  */
-export async function getTokenValidityStatus(token: string,  ...scopes: TokenScope[]): Promise<number> {
-  const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ token });
+export async function isTokenValid(token: string | null, scope: TokenScope, ...scopes: TokenScope[]): Promise<boolean> {
+  const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ body: { token } });
   if (!isTokenValid)
-    return 401;
+    return false;
 
-  const isTokenExpired = isExpired(token);
+  const isTokenExpired = isExpired(token!);
   if (isTokenExpired) 
-    return 401;
+    return false;
 
-  const data = await axios.post(XIS_URL + '/oauth/tokenvalidate', {}, {
+  const data = await axios.post(XIS_URL + '/oauth/tokenvalidate', {
+    scopes: [scope, ...scopes].map(s => toScopeStr(s)).join(' ')
+  }, {
     headers: {
       Authorization: token
     },
     validateStatus: () => true
   });
 
-  return data.status;
-}
-
-/**
- * Check to see if the given token is valid for all of the provided scopes.
- * 
- * @async
- * @param {string} [token] The token to check. Returns false if it is not provided.
- * @param {...TokenScope} scopes The scopes to check for.
- * @returns {Promise<boolean>} A promise which resolves to true if the token is valid, or false otherwise.
- */
-export async function isTokenValid(token: string | null, ...scopes: TokenScope[]): Promise<boolean> {
-  if (!token) 
-    return false;
-
-  return (await getTokenValidityStatus(token, ...scopes)) === 204;
+  return data.status === 204;
 }
 
 /**

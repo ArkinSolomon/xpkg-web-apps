@@ -15,7 +15,7 @@
 import { JSX, useEffect, useState } from 'react';
 import SmallContentBox from '../components/SmallContentBox';
 import axios from 'axios';
-import { isTokenValid } from '@xpkg/auth-util';
+import { TokenScope, isTokenValid } from '@xpkg/auth-util';
 
 export default function (): JSX.Element {
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +28,7 @@ export default function (): JSX.Element {
         return setError('no token provided.');
 
       const verificationToken = searchParams.get('token')!; 
-      const isVerificationTokenValid = isTokenValid(verificationToken);
+      const isVerificationTokenValid = await isTokenValid(verificationToken, TokenScope.EmailVerification);
       if (!isVerificationTokenValid) 
         return setError('token expired.');
 

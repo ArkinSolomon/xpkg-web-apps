@@ -86,7 +86,7 @@ import SmallContentBox from '../components/SmallContentBox';
 import TextInput from '../components/TextInput';
 import InputVerificationCode from '../components/InputVerificationCode';
 import '../css/EmailChange.scss';
-import { isTokenValid } from '@xpkg/auth-util';
+import { TokenScope, isTokenValid } from '@xpkg/auth-util';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EMPTY_FUNCTION = () => { };
@@ -129,7 +129,7 @@ export default class EmailChange extends Component<Record<string, never>, EmailC
       return this._setError('No token was provided.');
 
     this._changeToken = searchParams.get('token')!; 
-    const isChangeTokenValid = await isTokenValid(this._changeToken);
+    const isChangeTokenValid = await isTokenValid(this._changeToken, TokenScope.EmailChange);
     if (!isChangeTokenValid) 
       return this._setError('Token expired.');
 

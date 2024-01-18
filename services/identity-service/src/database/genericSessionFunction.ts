@@ -43,17 +43,16 @@ export default async function <T>(callback: GenericSessionCallback<T>, session?:
 
   try {
     const returnValue = await callback(session);
-
-    if (!hasProvidedSession && session.transaction.isActive)
+    if (!hasProvidedSession && session.transaction.isActive && !session.hasEnded)
       await session.commitTransaction();
 
     return returnValue;
   } catch (e) {
-    if (!hasProvidedSession && session.transaction.isActive)
+    if (!hasProvidedSession && session.transaction.isActive && !session.hasEnded)
       await session.abortTransaction();
     throw e;
   } finally {
-    if (!hasProvidedSession)
+    if (!hasProvidedSession && !session.hasEnded) 
       session.endSession();
   }
 }

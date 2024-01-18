@@ -12,15 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import { ACCOUNTS_URL, DEVELOPER_PORTAL_CLIENT_ID, XIS_URL, identifiers, isTokenValid } from '@xpkg/auth-util';
+import { DEVELOPER_PORTAL_CLIENT_ID, XIS_URL } from '@xpkg/auth-util';
 import { cookies } from '@xpkg/frontend-util';
-import qs from 'qs';
 import { useEffect } from 'react';
 import axios from 'axios';
 
 export default function Redirect() {
   useEffect(() => {
-    const currentParams = new URLSearchParams(window.location.href);
+    const currentParams = new URLSearchParams(window.location.search);
     let state = currentParams.get('state');
 
     let redirect = '/packages';
@@ -39,20 +38,22 @@ export default function Redirect() {
     
     (async () => {
       try {
-        const response = await axios.post(XIS_URL + '/oauth/token', qs.stringify({
+        const response = await axios.post(XIS_URL + '/oauth/token', {
+          client_id: DEVELOPER_PORTAL_CLIENT_ID,
           grant_type: 'authorization_code',
           code,
-          redirect_uri: 'http://localhost:3001/redirect',
-          code_verifier: cookies.getCookie('challenge')!
-        }), {
+          redirect_uri: 'http://127.0.0.1:3001/redirect',
+          code_verifier: cookies.getCookie('code_verifier')!
+        }, {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         });
-
-        console.log(response);
+      
+        cookies.setCookie('token', response.data.access_token, 30);
+        window.location.href = redirect;
       } catch (e) {
-        console.error(e);
+        window.location.href = '/?next=' + encodeURIComponent(redirect);
       }
     })();
   }, []); 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import { hash } from 'hasha';
 import { DateTime } from 'luxon';
 import genericSessionFunction from './genericSessionFunction.js';
 import { ClientSession } from 'mongoose';
+import { logger } from '@xpkg/backend-util';
 
 /**
  * Create and register an access code.
@@ -67,6 +68,7 @@ export async function generateCode(clientId: string, userId: string, permissions
 export async function verifyCode(clientId: string, code: string, codeVerifier: string, redirectUri: string, session?: ClientSession): Promise<Pick<CodeData, 'clientId' | 'userId' | 'permissionsNumber' | 'tokenExpiry'> | null> {
   const codeHash = await hash(code, { algorithm: 'sha256' });
   const verifierHash = await hash(codeVerifier, { algorithm: 'sha256' });
+
   return genericSessionFunction(async session => {
     const codeDocument = await CodeModel.findOne({
       clientId,
@@ -77,6 +79,7 @@ export async function verifyCode(clientId: string, code: string, codeVerifier: s
       return null;
     
     await codeDocument.deleteOne({ session });
+
     if (verifierHash !== codeDocument.codeChallenge || redirectUri !== codeDocument.redirectUri) 
       return null;
 

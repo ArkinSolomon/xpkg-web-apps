@@ -14,7 +14,8 @@
     "@typescript-eslint",
     "@stylistic",
     "@stylistic/jsx",
-    "@stylistic/ts"
+    "@stylistic/ts",
+    "@stylistic/js"
   ],
   "ignorePatterns": "dist/**",
   "rules": {
@@ -51,6 +52,7 @@
         }
       }
     ],
+    "@stylistic/js/no-multi-spaces": "error",
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@stylistic/jsx-props-no-multi-spaces": "error",

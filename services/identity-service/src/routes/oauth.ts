@@ -26,6 +26,7 @@ import * as tokenDatabase from '../database/tokenDatabase.js';
 import genericSessionFunction from '../database/genericSessionFunction.js';
 import { getUserFromId } from '../database/userDatabase.js';
 import { TokenType } from '../database/models/tokenModel.js';
+import { DEVELOPER_PORTAL_CLIENT_ID } from '@xpkg/auth-util';
 
 const route = Router();
 
@@ -36,7 +37,7 @@ route.post('/authorize',
   query('redirect_uri').isString().trim().notEmpty().isURL().withMessage('bad_redirect').customSanitizer(uri => uri.endsWith('/') ? uri.slice(0, -1) : uri),
   query('response_type').trim().notEmpty().bail().custom(v => ['code', 'token', 'id_token'].includes(v)).withMessage('bad_response'),
   query('expires_in').default(2592000).isInt({ min: 0, max: 31536000 }).withMessage('bad_expiry'),
-  query('code_challenge').isString().isLength({ min: 32, max: 32 }).notEmpty().withMessage('bad_challenge'),
+  query('code_challenge').isString().toLowerCase().isLength({ min: 64, max: 64 }).notEmpty().withMessage('bad_challenge'),
   query('code_challenge_method').isString().custom(v => v === 'S256').withMessage('bad_code_method'),
   async (req: AuthorizedRequest, res) => {
     const result = validationResult(req);
@@ -86,8 +87,6 @@ route.post('/authorize',
           .send('invalid_request');
       }
 
-      req.logger.info(typeof client.permissionsNumber);
-
       if ((permissionsNumber | client.permissionsNumber) !== client.permissionsNumber) {
         req.logger.info('Invalid scopes provided');
         return res
@@ -111,7 +110,8 @@ route.post('/authorize',
       } else if (responseType === 'code') {
         const code = await generateCode(client.clientId, req.user!.userId, permissionsNumber, tokenExpiry, codeChallenge, redirectUri);
         const qStringParams = {
-          code, state
+          code,
+          state
         };
         return res.redirect(redirectUri + '?' + queryString.stringify(qStringParams));
 
@@ -158,7 +158,7 @@ route.post('/token',
       code: string;
       redirect_uri: string;
       code_verifier: string;
-      };
+    };
     
     try {
       req.logger.setBindings({ clientId });
@@ -182,8 +182,8 @@ route.post('/token',
           });
       }
 
-      if (client.isSecure)
-        if (!clientSecret){
+      if (client.isSecure) {
+        if (!clientSecret) {
           req.logger.info('Client is secure but no secret provided');
           return res
             .status(400)
@@ -192,15 +192,17 @@ route.post('/token',
             });
         }
     
-      const isSecretValid = await Bun.password.verify(clientSecret!, client.secretHash, 'bcrypt');
-      if (!isSecretValid) {
-        req.logger.info('Client secret is invalid');
-        return res
-          .status(400)
-          .json({
-            error: 'invalid_client'
-          });
-      }
+        const isSecretValid = await Bun.password.verify(clientSecret!, client.secretHash, 'bcrypt');
+        if (!isSecretValid) {
+          req.logger.info('Client secret is invalid');
+          return res
+            .status(400)
+            .json({
+              error: 'invalid_client'
+            });
+        }
+      } else
+        req.logger.trace('Issuing token to non-secure client');
 
       genericSessionFunction(async session => {
         const codeData = await verifyCode(clientId, code, codeVerifier, redirectUri, session);
@@ -211,7 +213,7 @@ route.post('/token',
             .json({
               error: 'invalid_request'
             });
-        }    
+        }
 
         const user = await getUserFromId(codeData.userId);
         req.logger.setBindings({ userId: user.userId });
@@ -219,11 +221,16 @@ route.post('/token',
         const existingToken = await tokenDatabase.userHasToken(user.userId, clientId);
         const expireSeconds = DateTime.fromJSDate(codeData.tokenExpiry).diffNow('seconds');
         let token;
-        if (!existingToken) 
-          token = tokenDatabase.createToken(user.userId, client.clientId, client.name, TokenType.OAuth, codeData.permissionsNumber, expireSeconds, { session });
-        else 
-          token = tokenDatabase.regenerateToken(user.userId, existingToken.tokenId, codeData.tokenExpiry, session);
+        if (!existingToken)
+          token = await tokenDatabase.createToken(user.userId, client.clientId, client.name, TokenType.OAuth, codeData.permissionsNumber, expireSeconds, { session });
+        else
+          token = await tokenDatabase.regenerateToken(user.userId, existingToken.tokenId, codeData.tokenExpiry, session);
 
+        if (clientId === DEVELOPER_PORTAL_CLIENT_ID && !user.isDeveloper) {
+          req.logger.info('User enrolling in X-Pkg developer program for the first time');
+          user.isDeveloper = true;
+          await user.save({ session });
+        }
         client.currentUsers += 1;
         await client.save({ session });
         await session.commitTransaction();
@@ -269,16 +276,18 @@ route.get('/consentinformation',
         .send('invalid_client_id');
     }
 
+    const autoConsent = clientId === DEVELOPER_PORTAL_CLIENT_ID && req.user!.isDeveloper;
     const information = {
       clientId,
       clientName: client.name,
       clientIcon: client.icon,
       clientDescription: client.description,
       userName: req.user!.name,
-      userPicture: req.user!.profilePicUrl
+      userPicture: req.user!.profilePicUrl,
+      autoConsent
     };
 
-    logger.trace('Retrieved consent request information');
+    req.logger.trace('Retrieved consent request information');
     res
       .status(200)
       .json(information);
@@ -286,7 +295,7 @@ route.get('/consentinformation',
 
 route.post('/tokenvalidate',
   validators.isValidTokenFormat(header('authorization')),
-  isValidOAuthScope(body('scope')),
+  isValidOAuthScope(body('scopes')),
   async (req, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
@@ -295,9 +304,9 @@ route.post('/tokenvalidate',
       return res.sendStatus(401);
     }
 
-    const { authorization: token, scope: permissionsNumber } = matchedData(req) as {
+    const { authorization: token, scopes: permissionsNumber } = matchedData(req) as {
       authorization: string;
-      scope: bigint;
+      scopes: bigint;
   };
 
     try {

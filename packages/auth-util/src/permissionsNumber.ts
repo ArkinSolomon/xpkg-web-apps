@@ -96,32 +96,30 @@ export function decodePermissionsNumber(permissionsNumber: TokenScope): TokenSco
  */
 export function toScopeStr(...scopes: TokenScope[]): string {
   const scopeStrs: string[] = [];
-  for (const scope of scopes) {
+  for (const scope of scopes) 
     switch (scope) {
-  Identity: 1n << 0n,
-  DeveloperPortal: 1n << 1n,
-  Forum: 1n << 2n,
-  Store: 1n << 3n,
-  Client: 1n << 4n,
-  PasswordReset: 1n << 8n,
-  EmailVerification: 1n << 9n,
-  EmailChange: 1n << 10n,
-  RegistryCreatePackage: 1n << 16n,
-  RegistryUploadVersion: 1n << 17n,
-  RegistryModifyPackageInfo: 1n << 18n,
-  RegistryReadAuthorData: 1n << 19n,
-  RegistryViewPackages: 1n << 20n,
-  RegistryViewResources: 1n << 21n,
-  RegistryModifyVersionData: 1n << 22n,
-  RegistryViewAnalytics: 1n << 23n,
-  RegistryViewBugReports: 1n << 24n,
-  RegistryRespondBugReports: 1n << 25n,
-  RegistryManageBugReports: 1n << 26n,
-
-  // Identity service scopes
-  IdentityViewAuthorEmail: 1n << 32n
+    case TokenScope.Identity: return 'Identity';
+    case TokenScope.DeveloperPortal: return 'DeveloperPortal';
+    case TokenScope.Forum: return 'Forum';
+    case TokenScope.Store: return 'Store';
+    case TokenScope.Client: return 'Client';
+    case TokenScope.PasswordReset: return 'PasswordReset';
+    case TokenScope.EmailVerification: return 'EmailVerification';
+    case TokenScope.EmailChange: return 'EmailChange';
+    case TokenScope.RegistryCreatePackage: return 'RegistryCreatePackage';
+    case TokenScope.RegistryUploadVersion: return 'RegistryUploadVersion';
+    case TokenScope.RegistryModifyPackageInfo: return 'RegistryModifyPackageInfo';
+    case TokenScope.RegistryReadAuthorData: return 'RegistryReadAuthorData';
+    case TokenScope.RegistryViewPackages: return 'RegistryViewPackages';
+    case TokenScope.RegistryViewResources: return 'RegistryViewResources';
+    case TokenScope.RegistryModifyVersionData: return 'RegistryModifyVersionData';
+    case TokenScope.RegistryViewAnalytics: return 'RegistryViewAnalytics';
+    case TokenScope.RegistryViewBugReports: return 'RegistryViewBugReports';
+    case TokenScope.RegistryRespondBugReports: return 'RegistryRespondBugReports';
+    case TokenScope.RegistryManageBugReports: return 'RegistryManageBugReports';
+    case TokenScope.IdentityViewAuthorEmail: return 'IdentityViewAuthorEmail';
     }
-  }
+  
   return scopeStrs.join(' ');
 }
 

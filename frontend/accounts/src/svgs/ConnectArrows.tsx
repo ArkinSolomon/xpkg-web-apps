@@ -20,15 +20,15 @@ export default function ConnectArrows() {
       xmlns='http://www.w3.org/2000/svg'
     >
       <clipPath id='p.0'>
-        <path d='m0 0l1020.2887 0l0 181.7979l-1020.2887 0l0 -181.7979z' clip-rule='nonzero' />
+        <path d='m0 0l1020.2887 0l0 181.7979l-1020.2887 0l0 -181.7979z' clipRule='nonzero' />
       </clipPath>
-      <g clip-path='url(#p.0)'>
-        <path fill-opacity='0.0' d='m0 0l1020.2887 0l0 181.7979l-1020.2887 0z' fillRule='evenodd' />
-        <path fill-opacity='0.0' d='m12.049869 48.114174l996.18896 0' fillRule='evenodd' />
-        <path className='secondary-text-stroke' strokeWidth='16.0' stroke-linejoin='round' strokeLinecap='butt' d='m12.049869 48.114174l900.18896 0' fillRule='evenodd' />
+      <g clipPath='url(#p.0)'>
+        <path fillOpacity='0.0' d='m0 0l1020.2887 0l0 181.7979l-1020.2887 0z' fillRule='evenodd' />
+        <path fillOpacity='0.0' d='m12.049869 48.114174l996.18896 0' fillRule='evenodd' />
+        <path className='secondary-text-stroke' strokeWidth='16.0' strokeLinejoin='round' strokeLinecap='butt' d='m12.049869 48.114174l900.18896 0' fillRule='evenodd' />
         <path className='secondary-text-fill' strokeWidth='16.0' strokeLinecap='butt' d='m912.23883 74.54189l72.60956 -26.42772l-72.60956 -26.42772z' fillRule='evenodd' />
         <path fill-opacity='0.0' d='m1008.23883 133.68373l-996.18896 0' fillRule='evenodd' />
-        <path className='secondary-text-stroke' strokeWidth='16.0' stroke-linejoin='round' strokeLinecap='butt' d='m1008.23883 133.68373l-900.18896 0' fillRule='evenodd' />
+        <path className='secondary-text-stroke' strokeWidth='16.0' strokeLinejoin='round' strokeLinecap='butt' d='m1008.23883 133.68373l-900.18896 0' fillRule='evenodd' />
         <path className='secondary-text-fill' strokeWidth='16.0' strokeLinecap='butt' d='m108.049866 107.256004l-72.60956 26.427727l72.60956 26.42772z' fillRule='evenodd' />
       </g>
     </svg>

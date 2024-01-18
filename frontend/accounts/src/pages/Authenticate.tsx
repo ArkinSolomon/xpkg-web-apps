@@ -100,7 +100,7 @@ import { body } from 'express-validator';
 import Checkbox from '../components/Checkbox';
 import axios from 'axios';
 import { cookies } from '@xpkg/frontend-util';
-import { isTokenValid } from '@xpkg/auth-util';
+import { TokenScope, isTokenValid } from '@xpkg/auth-util';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EMPTY_FUNCTION = () => { };
@@ -163,7 +163,7 @@ export default class extends Component {
     }
 
     if (this.state.currentPage !== Page.ErrorPage)
-      isTokenValid(cookies.getCookie('token') ?? '')
+      isTokenValid(cookies.getCookie('token'), TokenScope.Identity)
         .then(isValid => {
           if (isValid) {
             window.location.href = this._redirectUrl;
@@ -305,7 +305,7 @@ export default class extends Component {
         onNext: () => {
           grecaptcha.ready(async () => {
             try {
-              const recaptchaToken = grecaptcha.execute(window.SITE_KEY, { action: 'create' });
+              const recaptchaToken = await grecaptcha.execute(window.SITE_KEY, { action: 'create' });
               const result = await axios.post(window.XIS_URL + '/account/create', {
                 email: this._authData.email,
                 name: this._authData.name,
@@ -371,7 +371,7 @@ export default class extends Component {
         onNext: () => {
           grecaptcha.ready(async () => {
             try {
-              const recaptchaToken = grecaptcha.execute(window.SITE_KEY, { action: 'create' });
+              const recaptchaToken = await grecaptcha.execute(window.SITE_KEY, { action: 'create' });
               const result = await axios.post(window.XIS_URL + '/account/login', {
                 email: this._authData.email,
                 password: this._authData.password,

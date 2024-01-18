@@ -23,6 +23,7 @@
  * @property {string} clientDescription The description of the client given by the user that created the client.
  * @property {string} userName The name of the user that is deciding on authorization.
  * @property {string} userPicture The url of the user's profile picture.
+ * @property {boolean} autoConsent True if the user should auto-consent to the popup.
  */
 type ConsentInformation = {
   clientId: string;
@@ -31,6 +32,7 @@ type ConsentInformation = {
   clientDescription: string;
   userName: string;
   userPicture: string;
+  autoConsent: boolean;
 };
 
 import { JSX, useEffect, useState } from 'react';
@@ -38,13 +40,14 @@ import SmallContentBox from '../components/SmallContentBox';
 import HexagonImage from '../components/HexagonImage';
 import axios from 'axios';
 import ConnectArrows from '../svgs/ConnectArrows';
-import { DEVELOPER_PORTAL_CLIENT_ID, FORUM_CLIENT_ID, STORE_CLIENT_ID, XIS_URL, XPKG_CLIENT_CLIENT_ID, isTokenValid } from '@xpkg/auth-util';
+import { DEVELOPER_PORTAL_CLIENT_ID, FORUM_CLIENT_ID, STORE_CLIENT_ID, TokenScope, XIS_URL, XPKG_CLIENT_CLIENT_ID, identifiers, isTokenValid } from '@xpkg/auth-util';
 import { cookies } from '@xpkg/frontend-util';
 import '../css/Authorize.scss';
 
 export default function Authorize(): JSX.Element {
   const [consentInfo, setConsentInfo] = useState<ConsentInformation | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [formId] = useState<string>(identifiers.alphaNanoid()); 
 
   useEffect(() => {
     (async () => { 
@@ -60,8 +63,11 @@ export default function Authorize(): JSX.Element {
       else if (!searchParams.has('code_challenge')) 
         return setError('Invalid/malformed request: missing code challenge.');
 
+      if (searchParams.get('code_challenge')!.length !== 64)  
+        return setError('Invalid/malformed request: invalid code challenge. Did you hash your code verifier?');
+      
       try {
-        const isLoginValid = await isTokenValid(cookies.getCookie('token') ?? '');
+        const isLoginValid = await isTokenValid(cookies.getCookie('token'), TokenScope.Identity);
         if (!isLoginValid) {
           if (searchParams.has('next'))
             searchParams.delete('next');
@@ -90,7 +96,6 @@ export default function Authorize(): JSX.Element {
         setError('An unkown error occured.');
       }
     })();
-    
   }, []);
 
   if (error) 
@@ -108,10 +113,12 @@ export default function Authorize(): JSX.Element {
     );
   
   const isProprietaryService = [DEVELOPER_PORTAL_CLIENT_ID, FORUM_CLIENT_ID, STORE_CLIENT_ID, XPKG_CLIENT_CLIENT_ID].includes(consentInfo.clientId);
-  const shouldAutoAuth = isProprietaryService && consentInfo.clientId !== DEVELOPER_PORTAL_CLIENT_ID;
-  // if (shouldAutoAuth) 
-  //   authorize();
-
+  const shouldAutoAuth = consentInfo.autoConsent || (isProprietaryService && consentInfo.clientId !== DEVELOPER_PORTAL_CLIENT_ID);
+  if (shouldAutoAuth)  
+    window.onload = () => {
+      (document.querySelector('#' + formId) as HTMLFormElement).submit();
+    };
+  
   const searchParams = new URLSearchParams(window.location.search);
   if (searchParams.has('next'))
     searchParams.delete('next');
@@ -136,10 +143,10 @@ export default function Authorize(): JSX.Element {
         <hr className='auth-hr' />
         <p className='explain-text mt-3'>{consentInfo.clientDescription}</p>
         <div className='bottom-buttons mt-12 mb-12 px-8'>
-          <button className='secondary-button' onClick={() => window.location.href = '/'}>Cancel</button>
+          <button className='secondary-button' onClick={() => window.location.href = '/'} disabled={shouldAutoAuth}>Cancel</button>
           <div className='center-link-wrapper' />
-          <form action={submitUrl} method='POST'>
-            <input className='primary-button' type='submit' value='Authorize' />
+          <form action={submitUrl} id={formId} method='POST'>
+            <input className='primary-button' id='authorize-button' type='submit' value='Authorize' disabled={shouldAutoAuth} />
           </form>
         </div>
       </>

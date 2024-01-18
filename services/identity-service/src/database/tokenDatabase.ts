@@ -313,7 +313,7 @@ export async function updateTokenUsedDate(userId: string, tokenId: string, sessi
 }
 
 /**
- * Check if the user has a token with the given client id.
+ * Check if the user has a token with the given client id. Does not check if the token is already expired..
  * 
  * @param {string} userId The id of the user that owns the token to update.
  * @param {string} clientId The client id to check for.

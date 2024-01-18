@@ -34,7 +34,7 @@ import { header } from 'express-validator';
 export default async function (req: AuthorizedRequest, res: Response, next: NextFunction) {
   const result = await isValidTokenFormat(header('authorization')).run({
     headers: {
-      authorization: req.headers.authorization ?? req.cookies.token
+      authorization: req.headers.authorization || req.cookies.token
     }
   });
 

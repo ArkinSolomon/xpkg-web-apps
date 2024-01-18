@@ -83,7 +83,6 @@ export async function createClient(userId: string, name: string, description: st
 export async function getClient(clientId: string): Promise<HydratedDocument<ClientData> | null> {
   return ClientModel
     .findOne({ clientId })
-    .select({ _id: 0 })
     .exec();
 }
 

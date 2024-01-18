@@ -31,7 +31,7 @@ route.post('/create',
   validators.isValidEmail(body('email')),
   validators.isValidName(body('name')),
   validators.isValidPassword(body('password')),
-  body('validation').notEmpty(),
+  body('validation').isString().notEmpty(),
   async (req, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
@@ -92,7 +92,7 @@ route.post('/create',
 route.post('/login',
   validators.isValidEmail(body('email')),
   validators.isValidPassword(body('password')),
-  body('validation').notEmpty(),
+  body('validation').isString().notEmpty(),
   async (req, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
@@ -125,7 +125,9 @@ route.post('/login',
       const token = await tokenDatabase.createXisToken(user.userId);
       req.logger.info('Successful login, token generated');
 
-      res.json({ token });
+      res
+        .status(200)
+        .json({ token });
     } catch (e) {
       if (e instanceof NoSuchAccountError) {
         req.logger.info('No account with email');
