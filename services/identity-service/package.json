@@ -16,6 +16,7 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "lint": "npx eslint ./src --fix",
+    "build": "npx tsc --build",
     "check-lint": "npx eslint"
   },
   "author": "Arkin Solomon",
