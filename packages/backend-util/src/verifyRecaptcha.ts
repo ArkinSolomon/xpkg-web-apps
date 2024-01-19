@@ -15,7 +15,7 @@
 import axios from 'axios';
 import logger from './logger.js';
 
-const disableCaptcha = process.env.RECAPTCHA_DISABLE || process.env.NODE_ENV !== 'production';
+const disableCaptcha = process.env.RECAPTCHA_DISABLE || (process.env.NODE_ENV !== 'production');
 if (disableCaptcha)
   logger.warn('reCAPTCHA disabled');
 

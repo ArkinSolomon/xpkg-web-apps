@@ -57,7 +57,7 @@ const server = https.createServer({
 }, app);
 
 app.use(bodyParser.json());
-app.use('/oauth/token', bodyParser.urlencoded());
+app.use('/oauth/token', bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use(cookieParser());
 
