@@ -32,6 +32,4 @@ jobs:
         run: npx nx show projects --affected --base=${{ github.event.before }} | grep -q '@xpkg/accounts'
       - name: Build
         if: ${{ success() }}
-        run: |
-          echo 'Building'
-          npx nx run --parallel=3 @xpkg/accounts:build 
+        run: npx nx run --verbose --parallel=3 @xpkg/accounts:build
