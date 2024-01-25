@@ -23,6 +23,8 @@ jobs:
           cache-dependency-path: '**/package-lock.json'
       - name: Install
         run: npm ci
+      - name: Test git
+        run: git log --oneline -5
       - name: Check Affected
         run: npx nx show projects --affected --base='HEAD~1' | grep -q '@xpkg/accounts'
       - name: Build
