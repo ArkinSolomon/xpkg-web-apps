@@ -25,8 +25,14 @@ jobs:
       - name: Check Affected
         continue-on-error : true
         run: npx nx show projects --affected --base=${{ github.event.before }} | grep -q '@xpkg/accounts'
+        env:
+          CI: false
       - name: Lint
         run: npx nx run --verbose @xpkg/accounts:lint
+        env:
+          CI: false
       - name: Build
         if: ${{ success() }}
         run: npx nx run --verbose --parallel=3 @xpkg/accounts:build
+        env:
+          CI: false
