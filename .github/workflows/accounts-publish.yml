@@ -25,6 +25,13 @@ jobs:
         with:
           node-version: 21.x
           cache: npm
+      - name: Cache NX/pip
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .nx/cache
+            /Users/runner/Library/Caches/pip
+          key: ${{ runner.os }}-nx
       - name: Install
         run: npm ci --include=dev --verbose
       - name: Check Affected
