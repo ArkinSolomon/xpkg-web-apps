@@ -21,15 +21,12 @@ jobs:
           cache: npm
           cache-dependency-path: '**/package-lock.json'
       - name: Install
-        run: npm ci
-      - name: Test git
-        run: |
-          git fetch
-          git pull
-          git log --oneline -5
+        run: npm ci --include=dev --verbose
       - name: Check Affected
         continue-on-error : true
         run: npx nx show projects --affected --base=${{ github.event.before }} | grep -q '@xpkg/accounts'
+      - name: Lint
+        run: npx nx run --verbose @xpkg/accounts:lint
       - name: Build
         if: ${{ success() }}
         run: npx nx run --verbose --parallel=3 @xpkg/accounts:build
