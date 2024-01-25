@@ -40,4 +40,4 @@ jobs:
         uses: oracle-actions/run-oci-cli-command@v1.1.1
         with:
           id: delete-contents
-          run: os object bulk-delete --namespace-name ${{ vars.OCI_OBJECT_STORAGE_NAMESPACE }} --bucket-name ${{ vars.ACCOUNTS_BUCKET_NAME }} --dry-run
+          command: os object bulk-delete --namespace-name ${{ vars.OCI_OBJECT_STORAGE_NAMESPACE }} --bucket-name ${{ vars.ACCOUNTS_BUCKET_NAME }} --dry-run
