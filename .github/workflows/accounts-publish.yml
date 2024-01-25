@@ -32,6 +32,6 @@ jobs:
         # run: npx nx run --verbose --parallel=3 @xpkg/accounts:build
         run: |
           npx nx run --verbose @xpkg/frontend-util:build
-          npx nx run --verbose @xpkg/validation-util:build
+          npx nx run --verbose @xpkg/validation:build
           npx nx run --verbose @xpkg/auth-util:build
           npm run build
