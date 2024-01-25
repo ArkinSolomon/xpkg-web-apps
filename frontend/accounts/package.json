@@ -9,8 +9,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "npx eslint ./src --fix",
-    "check-lint": "npx eslint",
-    "install-deps": "npm install"
+    "check-lint": "npx eslint"
   },
   "devDependencies": {
     "@types/grecaptcha": "^3.0.6",

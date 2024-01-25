@@ -6,7 +6,7 @@
   },
   "targetDefaults": {
     "build": {
-      "dependsOn": ["^build", "install-deps"],
+      "dependsOn": ["^build"],
       "cache": true,
       "inputs": ["src-files", "^src-files", "package-json"]
     },
@@ -17,10 +17,6 @@
     "check-lint": {
       "cache": false,
       "inputs": ["src-files"]
-    },
-    "install-deps": {
-      "cache": true,
-      "inputs": ["package-json"]
     }
   },
   "affected": {
