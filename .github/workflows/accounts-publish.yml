@@ -9,6 +9,12 @@ on:
 jobs:
   Build-And-Upload:
     runs-on: macos-latest
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: ${{ secrets.OCI_CLI_REGION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,8 +31,13 @@ jobs:
         continue-on-error : true
         run: npx nx show projects --affected --base=${{ github.event.before }} | grep -q '@xpkg/accounts'
       - name: Lint
-        run: npx nx run --verbose @xpkg/accounts:check-lint
+        run: npx nx run @xpkg/accounts:check-lint
       - name: Build
         if: ${{ success() }}
         working-directory: './frontend/accounts'
-        run: npx nx run --verbose --parallel=3 @xpkg/accounts:build
+        run: npx nx run --parallel=3 @xpkg/accounts:build
+      - name: Delete Contents
+        uses: oracle-actions/run-oci-cli-command@v1.1.1
+        with:
+          id: delete-contents
+          run: os object bulk-delete --namespace-name ${{ vars.OCI_OBJECT_STORAGE_NAMESPACE }} --bucket-name ${{ vars.ACCOUNTS_BUCKET_NAME }} --dry-run
