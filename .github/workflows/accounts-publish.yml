@@ -23,6 +23,7 @@ jobs:
       - name: Test git
         run: |
           git fetch
+          git pull
           git log --oneline -5
       - name: Check Affected
         run: npx nx show projects --affected --base=${{ github.event.before }} | grep -q '@xpkg/accounts'
