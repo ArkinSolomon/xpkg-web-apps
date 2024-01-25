@@ -24,10 +24,13 @@ jobs:
       - name: Install
         run: npm ci
       - name: Test git
-        run: git log --oneline -5
+        run: |
+          git fetch
+          git log --oneline -5
       - name: Check Affected
-        run: npx nx show projects --affected --base='HEAD~1' | grep -q '@xpkg/accounts'
+        run: npx nx show projects --affected --base=${{ github.event.before }} | grep -q '@xpkg/accounts'
       - name: Build
+        if: success()
         run: |
           echo 'Building'
           npx nx run --parallel=3 @xpkg/accounts:build 
