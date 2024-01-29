@@ -26,10 +26,12 @@ jobs:
           node-version: 21.x
           cache: npm
       - name: Cache Setup
-        uses: actions/setup-python@v4
+        uses: actions/cache/restore@v4
         with:
-          python-version: '3.9'
-          cache: 'pip'
+          path: |
+            /Users/runner/Library/Caches/pip
+            ~/.oci-cli-installed
+          key: ${{ runner.os }}-cache
       - name: Install
         run: npm ci --include=dev --verbose
       - name: Check Affected
