@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 OCI_OBJECT_STORAGE_NAMESPACE=$1
 ACCOUNTS_BUCKET_NAME=$2
 
@@ -12,7 +14,7 @@ for EXT in $EXTENSIONS; do
 
   if [ "$EXT" = "css" ]; then
     MIME_TYPE="text/css"
-  elif [ "$EXT" = "css" ]; then
+  elif [ "$EXT" = "js" ]; then
     MIME_TYPE="application/javascript"
   else 
     TEST_FILE=$(find . -type f -iname "*.$EXT" | head -1)
