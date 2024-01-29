@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 21.x
           cache: npm
-      - name: Cache NX/pip
+      - name: Cache Setup
         uses: actions/cache/restore@v4
         with:
           path: |
