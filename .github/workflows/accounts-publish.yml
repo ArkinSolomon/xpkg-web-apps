@@ -35,7 +35,6 @@ jobs:
       - name: Install
         run: npm ci --include=dev --verbose
       - name: Check Affected
-        continue-on-error : true
         run: npx nx show projects --affected --base=${{ github.event.before }} | grep -q '@xpkg/accounts'
       - name: Lint
         run: npx nx run @xpkg/accounts:check-lint
