@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Arkin Solomon.
+ * Copyright (c) 2023-2024. Arkin Solomon.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,11 @@
  */
 import { pino } from 'pino';
 
-const level = process.env.NODE_ENV === 'production' ? 'info' : 'trace';
+let level;
+if (process.env.LOG_LEVEL) 
+  level = process.env.LOG_LEVEL;
+else 
+  level = process.env.NODE_ENV === 'production' ? 'info' : 'trace';
 
 const logger = pino({ level });
 

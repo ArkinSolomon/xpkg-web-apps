@@ -48,6 +48,7 @@ export default function Authorize(): JSX.Element {
   const [consentInfo, setConsentInfo] = useState<ConsentInformation | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [formId] = useState<string>(identifiers.alphaNanoid());
+  const [isIntervalSet, setIntervalSetStatus] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
@@ -115,14 +116,16 @@ export default function Authorize(): JSX.Element {
   const isProprietaryService = [DEVELOPER_PORTAL_CLIENT_ID, FORUM_CLIENT_ID, STORE_CLIENT_ID, XPKG_CLIENT_CLIENT_ID].includes(consentInfo.clientId);
   const shouldAutoAuth = consentInfo.autoConsent || (isProprietaryService && consentInfo.clientId !== DEVELOPER_PORTAL_CLIENT_ID);
   
-  const selector = '#' + formId;
-  if (shouldAutoAuth){
-    const observer = new MutationObserver(() => {
-      if (document.querySelector(selector)) {
-        observer.disconnect();
-        (document.querySelector(selector) as HTMLFormElement).submit();
-      }
-    });
+  if (shouldAutoAuth && !isIntervalSet){
+    const selector = '#' + formId;
+    console.log('Check');
+    
+    setIntervalSetStatus(true);
+    setInterval(() => {
+      const formElement: HTMLFormElement | null = document.querySelector(selector);
+      if (formElement)
+        formElement.submit();
+    }, 100);
   }
   
   const searchParams = new URLSearchParams(window.location.search);
@@ -145,7 +148,7 @@ export default function Authorize(): JSX.Element {
             <HexagonImage size='64px' alt='Application' src={consentInfo.userPicture} />
           </div>
         </div>
-        <h2 id='connect-text'>Do you want to allow { consentInfo.clientId === DEVELOPER_PORTAL_CLIENT_ID}<br /><b>{consentInfo.clientName}</b><br /> to access your account?</h2>
+        <h2 id='connect-text'>Do you want to allow {consentInfo.clientId === DEVELOPER_PORTAL_CLIENT_ID ? ' the' : ''}<br /><b>{consentInfo.clientName}</b><br /> to access your account?</h2>
         <hr className='auth-hr' />
         <p className='explain-text mt-3'>{consentInfo.clientDescription}</p>
         <div className='bottom-buttons mt-12 mb-12 px-8'>

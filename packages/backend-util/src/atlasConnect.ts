@@ -15,10 +15,15 @@
 import mongoose from 'mongoose';
 import logger from './logger.js';
 
+let isInitialized = false;
+
 /**
  * Automatically attempt to connect to MongoDB atlas, and fail if connection does not work.
  */
 export default async function connect() {
+  if (isInitialized) 
+    return;
+  
   try {
     if (!process.env.MONGODB_IP) 
       throw new Error('Misisng MONGODB_IP environment variable');
@@ -32,6 +37,7 @@ export default async function connect() {
       authSource: '$external'
     });
     logger.info('Connected to MongoDB Atlas');
+    isInitialized = true;
   } catch (e) {
     logger.fatal(e, 'Could not connect to MongoDB Atlas');
     process.exit(1);

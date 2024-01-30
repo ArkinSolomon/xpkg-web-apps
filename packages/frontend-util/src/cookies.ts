@@ -28,7 +28,7 @@ export function setCookie(cname: string, cvalue: string, exdays: number, options
 } = { secure: false }) {
   const d = new Date();
   d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-  document.cookie = `${cname}=${cvalue};domain=xpkg.net;expires=${d.toUTCString()};path=${options.path ?? '/'}` + (options.secure ? ';secure' : '');
+  document.cookie = `${cname}=${cvalue};${window.location.hostname === '127.0.0.1' ? '' : 'domain=xpkg.net;'}expires=${d.toUTCString()};path=${options.path ?? '/'}` + (options.secure ? ';secure' : '');
 }
 
 /**
