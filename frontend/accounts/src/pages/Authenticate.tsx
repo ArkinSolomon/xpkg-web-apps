@@ -371,7 +371,7 @@ export default class extends Component {
         onNext: () => {
           grecaptcha.ready(async () => {
             try {
-              const recaptchaToken = await grecaptcha.execute(window.SITE_KEY, { action: 'create' });
+              const recaptchaToken = await grecaptcha.execute(window.SITE_KEY, { action: 'login' });
               const result = await axios.post(window.XIS_URL + '/account/login', {
                 email: this._authData.email,
                 password: this._authData.password,
