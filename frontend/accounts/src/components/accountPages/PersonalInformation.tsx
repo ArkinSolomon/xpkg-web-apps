@@ -55,6 +55,7 @@ import { ModalProps } from '../Modal';
 import axios from 'axios';
 import ExternalLinkIcon from '../../svgs/ExternalLinkIcon';
 import { cookies } from '@xpkg/frontend-util';
+import { XIS_URL } from '@xpkg/auth-util';
 
 export default class PersonalInformation extends Component<PersonalInformationProps, PersonalInformationState> {
 
@@ -127,7 +128,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
 
             let error = 'Could not reset your profile picture, an internal server error occured. Please try again later.';
             try {
-              const result = await axios.patch(window.XIS_URL + '/account/resetpfp', {}, {
+              const result = await axios.patch(XIS_URL + '/account/resetpfp', {}, {
                 headers: {
                   Authorization: cookies.getCookie('token')
                 },
@@ -186,7 +187,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
             });
 
             try {
-              const result = await axios.patch(window.XIS_URL + '/account/name', {
+              const result = await axios.patch(XIS_URL + '/account/name', {
                 newName: this._newName
               }, {
                 headers: {
@@ -254,7 +255,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
             });
 
             try {
-              const result = await axios.post(window.XIS_URL + '/account/email/changeemail', {}, {
+              const result = await axios.post(XIS_URL + '/account/email/changeemail', {}, {
                 headers: {
                   Authorization: cookies.getCookie('token')
                 }
@@ -317,7 +318,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
     });
 
     try {
-      await axios.post(window.XIS_URL + '/account/email/resend', {}, {
+      await axios.post(XIS_URL + '/account/email/resend', {}, {
         headers: {
           Authorization: cookies.getCookie('token')
         }
