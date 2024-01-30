@@ -47,23 +47,23 @@ import '../css/Authorize.scss';
 export default function Authorize(): JSX.Element {
   const [consentInfo, setConsentInfo] = useState<ConsentInformation | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [formId] = useState<string>(identifiers.alphaNanoid()); 
+  const [formId] = useState<string>(identifiers.alphaNanoid());
 
   useEffect(() => {
-    (async () => { 
+    (async () => {
       const searchParams = new URLSearchParams(window.location.search);
-      if (!searchParams.has('client_id')) 
+      if (!searchParams.has('client_id'))
         return setError('Invalid/malformed request: missing client id.');
-      else if (!searchParams.has('scope')) 
+      else if (!searchParams.has('scope'))
         return setError('Invalid/malformed request: missing scope.');
-      else if (!searchParams.has('redirect_uri')) 
+      else if (!searchParams.has('redirect_uri'))
         return setError('Invalid/malformed request: missing redirect URI.');
-      else if (!searchParams.has('response_type')) 
+      else if (!searchParams.has('response_type'))
         return setError('Invalid/malformed request: missing response type.');
-      else if (!searchParams.has('code_challenge')) 
+      else if (!searchParams.has('code_challenge'))
         return setError('Invalid/malformed request: missing code challenge.');
 
-      if (searchParams.get('code_challenge')!.length !== 64)  
+      if (searchParams.get('code_challenge')!.length !== 64)
         return setError('Invalid/malformed request: invalid code challenge. Did you hash your code verifier?');
       
       try {
@@ -80,7 +80,7 @@ export default function Authorize(): JSX.Element {
         const clientId = searchParams.get('client_id')!;
         consentInfoQuery.append('client_id', clientId);
 
-        const response = await axios.get(window.XIS_URL + '/oauth/consentinformation?' + consentInfoQuery.toString(), {
+        const response = await axios.get(XIS_URL + '/oauth/consentinformation?' + consentInfoQuery.toString(), {
           headers: {
             Authorization: cookies.getCookie('token')!
           },
@@ -98,14 +98,14 @@ export default function Authorize(): JSX.Element {
     })();
   }, []);
 
-  if (error) 
+  if (error)
     return (
       <SmallContentBox>
         <p className='my-4 mx-1 explain-text'>{error}</p>
       </SmallContentBox>
     );
 
-  if (!consentInfo) 
+  if (!consentInfo)
     return (
       <SmallContentBox>
         <p className='my-4 mx-1 explain-text'>Loading details...</p>
@@ -114,10 +114,16 @@ export default function Authorize(): JSX.Element {
   
   const isProprietaryService = [DEVELOPER_PORTAL_CLIENT_ID, FORUM_CLIENT_ID, STORE_CLIENT_ID, XPKG_CLIENT_CLIENT_ID].includes(consentInfo.clientId);
   const shouldAutoAuth = consentInfo.autoConsent || (isProprietaryService && consentInfo.clientId !== DEVELOPER_PORTAL_CLIENT_ID);
-  if (shouldAutoAuth)  
-    window.onload = () => {
-      (document.querySelector('#' + formId) as HTMLFormElement).submit();
-    };
+  
+  const selector = '#' + formId;
+  if (shouldAutoAuth){
+    const observer = new MutationObserver(_ => {
+      if (document.querySelector(selector)) {
+        observer.disconnect();
+        (document.querySelector(selector) as HTMLFormElement).submit();
+      }
+    });
+  }
   
   const searchParams = new URLSearchParams(window.location.search);
   if (searchParams.has('next'))

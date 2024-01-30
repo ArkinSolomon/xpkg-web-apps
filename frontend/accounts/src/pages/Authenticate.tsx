@@ -100,7 +100,7 @@ import { body } from 'express-validator';
 import Checkbox from '../components/Checkbox';
 import axios from 'axios';
 import { cookies } from '@xpkg/frontend-util';
-import { TokenScope, isTokenValid } from '@xpkg/auth-util';
+import { TokenScope, XIS_URL, isTokenValid } from '@xpkg/auth-util';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EMPTY_FUNCTION = () => { };
@@ -306,7 +306,7 @@ export default class extends Component {
           grecaptcha.ready(async () => {
             try {
               const recaptchaToken = await grecaptcha.execute(window.SITE_KEY, { action: 'create' });
-              const result = await axios.post(window.XIS_URL + '/account/create', {
+              const result = await axios.post(XIS_URL + '/account/create', {
                 email: this._authData.email,
                 name: this._authData.name,
                 password: this._authData.password,
@@ -372,7 +372,7 @@ export default class extends Component {
           grecaptcha.ready(async () => {
             try {
               const recaptchaToken = await grecaptcha.execute(window.SITE_KEY, { action: 'login' });
-              const result = await axios.post(window.XIS_URL + '/account/login', {
+              const result = await axios.post(XIS_URL + '/account/login', {
                 email: this._authData.email,
                 password: this._authData.password,
                 validation: recaptchaToken

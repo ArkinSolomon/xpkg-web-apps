@@ -15,7 +15,7 @@
 import { JSX, useEffect, useState } from 'react';
 import SmallContentBox from '../components/SmallContentBox';
 import axios from 'axios';
-import { TokenScope, isTokenValid } from '@xpkg/auth-util';
+import { TokenScope, XIS_URL, isTokenValid } from '@xpkg/auth-util';
 
 export default function (): JSX.Element {
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +33,7 @@ export default function (): JSX.Element {
         return setError('token expired.');
 
       try {
-        const response = await axios.post(window.XIS_URL + '/account/email/verify', {
+        const response = await axios.post(XIS_URL + '/account/email/verify', {
           token: verificationToken
         }, {
           validateStatus: () => true
@@ -43,7 +43,7 @@ export default function (): JSX.Element {
           setVerified(true);
 
           setTimeout(() => {
-            window.location.href = 'http://127.0.0.1:3000/authenticate';
+            window.location.href = '/authenticate';
           }, 5000);
         } else if (response.status === 500) 
           setError('an internal server error occured.');

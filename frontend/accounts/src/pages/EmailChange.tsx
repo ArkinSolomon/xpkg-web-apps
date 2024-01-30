@@ -86,7 +86,7 @@ import SmallContentBox from '../components/SmallContentBox';
 import TextInput from '../components/TextInput';
 import InputVerificationCode from '../components/InputVerificationCode';
 import '../css/EmailChange.scss';
-import { TokenScope, isTokenValid } from '@xpkg/auth-util';
+import { TokenScope, XIS_URL, isTokenValid } from '@xpkg/auth-util';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const EMPTY_FUNCTION = () => { };
@@ -217,7 +217,7 @@ export default class EmailChange extends Component<Record<string, never>, EmailC
               isSubmitting: true
             });
 
-            const response = await axios.post(window.XIS_URL + '/account/email/changeemail/step1', {
+            const response = await axios.post(XIS_URL + '/account/email/changeemail/step1', {
               token: this._changeToken!,
               newEmail: this._newEmail
             }, {
@@ -264,7 +264,7 @@ export default class EmailChange extends Component<Record<string, never>, EmailC
             this.setState({
               isSubmitting: true
             });
-            const response = await axios.post(window.XIS_URL + '/account/email/changeemail/step2', {
+            const response = await axios.post(XIS_URL + '/account/email/changeemail/step2', {
               token: this._changeToken!,
               code: parseInt(this.state.codeEntry, 10)
             }, {

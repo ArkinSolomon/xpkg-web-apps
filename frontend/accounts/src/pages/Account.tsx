@@ -136,7 +136,7 @@ import PersonalInformation from '../components/accountPages/PersonalInformation'
 import axios from 'axios';
 import Error from '../components/accountPages/Error';
 import Modal, { ModalProps } from '../components/Modal';
-import { TokenScope, deconstructToken, isTokenValid, identifiers } from '@xpkg/auth-util';
+import { TokenScope, deconstructToken, isTokenValid, identifiers, XIS_URL } from '@xpkg/auth-util';
 import LogoutIcon from '../svgs/LogoutIcon';
 import { cookies } from '@xpkg/frontend-util';
 
@@ -172,7 +172,7 @@ export default class extends Component<Record<string, never>, AccountState> {
       }
 
       try {
-        const response = await axios.get(window.XIS_URL + '/account/userdata', {
+        const response = await axios.get(XIS_URL + '/account/userdata', {
           headers: {
             Authorization: cookies.getCookie('token')!
           }
