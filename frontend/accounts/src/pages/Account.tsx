@@ -397,7 +397,7 @@ export default class extends Component<Record<string, never>, AccountState> {
             </>
               }
               <hr className='mt-auto' />
-              <SidebarItem icon={<LogoutIcon />} label='Logout' onClick={loginAgain} active={this.state.loadedPage === AccountPage.OAuthClients} />
+              <SidebarItem icon={<LogoutIcon />} label='Logout' onClick={loginAgain} />
             </nav>
             <section id='page-view'>
               <header>

@@ -12,20 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-/*
- * Copyright (c) 2024. Arkin Solomon.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied limitations under the License.
- */
 
 //These functions taken from w3schools (https://www.w3schools.com/js/js_cookies.asp)
 
@@ -36,11 +22,13 @@
  * @param {string} cvalue The value of the cookie.
  * @param {number} exdays The number of days until the cookie expires.
  */
-export function setCookie(cname: string, cvalue: string, exdays: number) {
+export function setCookie(cname: string, cvalue: string, exdays: number, options: {
+  path?: string;
+  secure?: boolean;
+} = { secure: false }) {
   const d = new Date();
   d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-  const expires = 'expires=' + d.toUTCString();
-  document.cookie = cname + '=' + cvalue + ';' + expires + ';path=/';
+  document.cookie = `${cname}=${cvalue};domain=xpkg.net;expires=${d.toUTCString()};path=${options.path ?? '/'}` + (options.secure ? ';secure' : '');
 }
 
 /**
