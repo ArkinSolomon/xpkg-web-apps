@@ -31,7 +31,7 @@ jobs:
           path: |
             /Users/runner/Library/Caches/pip
             ~/.oci-cli-installed
-          key: ${{ runner.os }}-cache
+          key: ${{ runner.os }}-xpkg-accounts
       - name: Install
         run: npm ci --include=dev --verbose
       - name: Check Affected
