@@ -9,7 +9,7 @@
     "clean": "npx tsc --build --clean",
     "build": "npx tsc --build",
     "lint": "npx eslint ./src --fix",
-    "check-lint": "npx eslint"
+    "check-lint": "npx eslint ./src --max-warnings=0"
   },
   "author": "Arkin Solomon",
   "license": "Apache-2.0",

@@ -67,7 +67,7 @@ import PackageInfoFields from '../components/PackageInfoFields';
 import { AuthorPackageData, AuthorVersionData, PackageType, VersionStatus, getAuthorPackage } from '../scripts/author';
 import RegistryError from '../scripts/registryError';
 import { getBestUnits } from '../scripts/displayUtil';
-import { Line } from 'react-chartjs-2';
+// import { Line } from 'react-chartjs-2';
 import { cookies } from '@xpkg/frontend-util';
 
 class PackageInformation extends Component {
@@ -217,10 +217,7 @@ class PackageInformation extends Component {
                   isPopupVisible: false
                 } as Partial<PackageInformationState>);
               },
-              children: <p className='generic-popup-text'>
-Could not update description,
-                { errMsg }
-              </p>
+              children: <p className='generic-popup-text'>Could not update description, { errMsg }</p>
             };
 
             this.setState({

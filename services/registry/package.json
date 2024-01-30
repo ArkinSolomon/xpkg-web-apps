@@ -9,7 +9,7 @@
     "build": "npx tsc --build",
     "start": "node --trace-warnings --enable-source-maps -r dotenv/config .",
     "lint": "npx eslint ./src --fix",
-    "check-lint": "npx eslint"
+    "check-lint": "npx eslint ./src --max-warnings=0"
   },
   "author": "Arkin Solomon",
   "license": "Apache-2.0",

@@ -117,7 +117,7 @@ export default function Authorize(): JSX.Element {
   
   const selector = '#' + formId;
   if (shouldAutoAuth){
-    const observer = new MutationObserver(_ => {
+    const observer = new MutationObserver(() => {
       if (document.querySelector(selector)) {
         observer.disconnect();
         (document.querySelector(selector) as HTMLFormElement).submit();

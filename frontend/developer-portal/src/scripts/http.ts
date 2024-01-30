@@ -81,19 +81,6 @@ export function downloadFile(url: string, fileName: string) {
 }
 
 /**
- * Encode an object as URI components.
- * 
- * @param {Record<string, string>} obj The object to encode.
- * @returns {string} The object URI encoded.
- */
-function encodeURIObject(obj: Record<string, string>): string {
-  let retStr = '';
-  for (const [k, v] of Object.entries(obj))
-    retStr += encodeURIComponent(k) + '=' + encodeURIComponent(v) + '&';
-  return retStr.length === 0 ? '' : retStr.slice(0, -1);
-}
-
-/**
  * Save an XHR blob to the local machine.
  * 
  * @param {Blob} blob The blob to save.

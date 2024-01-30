@@ -32,7 +32,6 @@ import { isMainThread } from 'worker_threads';
 import NoSuchPackageError from '../errors/noSuchPackageError.js';
 import { PackageType } from '../database/models/packageModel.js';
 import { VersionStatus } from '../database/models/versionModel.js';
-import AuthToken from '../auth/authToken.js';
 import InvalidListError from '../errors/invalidListError.js';
 import { body, matchedData, param, validationResult } from 'express-validator';
 import { AuthorizableRequest } from '../auth/authorizeRoute.js';

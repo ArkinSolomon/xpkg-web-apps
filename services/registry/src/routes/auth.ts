@@ -25,19 +25,15 @@ export type PasswordResetPayload = {
   session: string;
 };
 
-import bcrypt from 'bcrypt';
 import { Router } from 'express';
 import { validators } from '@xpkg/validation';
-import { logger, verifyRecaptcha } from '@xpkg/backend-util';
+import { logger } from '@xpkg/backend-util';
 import * as customValidators from '../util/customValidators.js';
-import * as authorDatabase from '../database/authorDatabase.js';
 import { getAuthorPackages } from '../database/packageDatabase.js';
-import { decode } from '../util/jwtPromise.js';
 import { nanoid } from 'nanoid';
-import { AccountValidationPayload } from '../database/models/authorModel.js';
 import AuthToken, { TokenPermission } from '../auth/authToken.js';
 import { PackageData } from '../database/models/packageModel.js';
-import { body, check, matchedData, param, validationResult } from 'express-validator';
+import { body, check, matchedData, validationResult } from 'express-validator';
 import { AuthorizableRequest } from '../auth/authorizeRoute.js';
 
 const route = Router();

@@ -13,8 +13,6 @@
  * either express or implied limitations under the License.
  */
 import nodemailer from 'nodemailer';
-import { MailOptions } from 'nodemailer/lib/json-transport/index.js';
-import logger from './logger.js';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -33,11 +31,10 @@ const transporter = nodemailer.createTransport({
  * @param {string} body The body/message of the email.
  */
 export default async function (address: string, subject: string, body: string): Promise<void> {
-  // transporter.sendMail({
-  logger.debug({
+  transporter.sendMail({
     from: `"X-Pkg" <${process.env.EMAIL_FROM}>`,
     to: address,
     subject,
     text: body
-  }, 'Debug email');
+  });
 }

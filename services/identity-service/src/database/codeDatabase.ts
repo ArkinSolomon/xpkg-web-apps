@@ -18,7 +18,6 @@ import { hash } from 'hasha';
 import { DateTime } from 'luxon';
 import genericSessionFunction from './genericSessionFunction.js';
 import { ClientSession } from 'mongoose';
-import { logger } from '@xpkg/backend-util';
 
 /**
  * Create and register an access code.

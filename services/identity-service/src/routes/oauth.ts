@@ -13,7 +13,6 @@
  * either express or implied limitations under the License.
  */
 import { Router } from 'express';
-import { logger } from '@xpkg/backend-util';
 import { getClient } from '../database/clientDatabase.js';
 import { AuthorizedRequest } from '../util/authorization.js';
 import { isValidClientId, isValidOAuthScope } from '../util/validators.js';

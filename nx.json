@@ -12,11 +12,11 @@
     },
     "lint": {
       "cache": true,
-      "inputs": ["src-files", "package-json", "{workspaceRoot}/.eslintrc.json"]
+      "inputs": ["src-files", "{workspaceRoot}/.eslintrc.json"]
     }, 
     "check-lint": {
-      "cache": false,
-      "inputs": ["src-files"]
+      "cache": true,
+      "inputs": ["src-files", "{workspaceRoot}/.eslintrc.json"]
     }
   },
   "affected": {
