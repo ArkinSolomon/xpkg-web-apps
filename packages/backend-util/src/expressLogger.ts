@@ -23,7 +23,7 @@ declare global {
      * @namespace Express
      * @property {Logger} logger The logger of the request.
      * @property {string} id The identifier of the request.
-     * @property {number} startTime The time at which the request was made, from the Unix epoch, in milliseconds.
+     * @property {number} startTime The time at which the request was made, from the Unix epoch using {@link Performance#now}.
      */
     interface Request {
       logger: Logger;
@@ -45,7 +45,7 @@ import { Logger } from 'pino';
  */
 export default function (genRequestId: () => string) {
   return function (req: Request, res: Response, next: NextFunction) {
-    req.startTime = Date.now();
+    req.startTime = performance.now();
     req.id = genRequestId();
     res.setHeader('X-Request-Id', req.id);
     req.logger = logger.child({
@@ -57,7 +57,7 @@ export default function (genRequestId: () => string) {
     req.logger.info('Recieved HTTP request');
     res.once('finish', () => {
       req.logger.info({
-        responseTime: Date.now() - req.startTime,
+        responseTime: performance.now() - req.startTime,
         statusCode: res.statusCode,
         etag: res.getHeader('etag')
       }, 'Request complete');
