@@ -34,7 +34,9 @@ export default async function connect() {
       tlsAllowInvalidCertificates: false,
       tlsCertificateKeyFile: process.env.MONGODB_KEY_PATH,
       authMechanism: 'MONGODB-X509',
-      authSource: '$external'
+      authSource: '$external',
+      minPoolSize: 20,
+      socketTimeoutMS: 60000 
     });
     logger.info('Connected to MongoDB Atlas');
     isInitialized = true;
