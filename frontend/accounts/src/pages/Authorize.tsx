@@ -35,7 +35,7 @@ type ConsentInformation = {
   autoConsent: boolean;
 };
 
-import { JSX, useEffect, useState } from 'react';
+import { JSX, useEffect, useRef, useState } from 'react';
 import SmallContentBox from '../components/SmallContentBox';
 import HexagonImage from '../components/HexagonImage';
 import axios from 'axios';
@@ -48,7 +48,7 @@ export default function Authorize(): JSX.Element {
   const [consentInfo, setConsentInfo] = useState<ConsentInformation | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [formId] = useState<string>(identifiers.alphaNanoid());
-  const [isIntervalSet, setIntervalSetStatus] = useState<boolean>(false);
+  const autoAuthSet = useRef<boolean>(false);
 
   useEffect(() => {
     (async () => {
@@ -116,12 +116,12 @@ export default function Authorize(): JSX.Element {
   const isProprietaryService = [DEVELOPER_PORTAL_CLIENT_ID, FORUM_CLIENT_ID, STORE_CLIENT_ID, XPKG_CLIENT_CLIENT_ID].includes(consentInfo.clientId);
   const shouldAutoAuth = consentInfo.autoConsent || (isProprietaryService && consentInfo.clientId !== DEVELOPER_PORTAL_CLIENT_ID);
   
-  if (shouldAutoAuth && !isIntervalSet){
+  if (shouldAutoAuth && !autoAuthSet.current){
     const selector = '#' + formId;
-    console.log('Check');
     
-    setIntervalSetStatus(true);
-    setInterval(() => {
+    // Well it better be there in 100ms...
+    autoAuthSet.current = true;
+    setTimeout(() => {
       const formElement: HTMLFormElement | null = document.querySelector(selector);
       if (formElement)
         formElement.submit();

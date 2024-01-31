@@ -13,7 +13,7 @@
  * either express or implied limitations under the License.
  */
 import { logger, expressLogger, atlasConnect } from '@xpkg/backend-util';
-import Express from 'express';
+import Express, { NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -77,6 +77,12 @@ app.use(expressLogger(() => {
   return requestId;
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: Error, req: Express.Request, res: Express.Response, _: NextFunction): void => {
+  req.logger.error(err);
+  res.status(500);
+});
+
 const authorizeRoutes = [
   '/account/userdata',
   '/account/resetpfp',
@@ -98,6 +104,7 @@ app.use('/account', account);
 app.use('/oauth', oauth);
 
 app.all('*', (_, res) => {
+  logger.trace('Request to invalid URL');
   res.sendStatus(404);
 });
 
