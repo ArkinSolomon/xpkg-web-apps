@@ -24,11 +24,13 @@ declare global {
      * @property {Logger} logger The logger of the request.
      * @property {string} id The identifier of the request.
      * @property {number} startTime The time at which the request was made, from the Unix epoch using {@link Performance#now}.
+     * @property {Inspector} inspector The request inspector.
      */
     interface Request {
       logger: Logger;
       id: string;
       startTime: number;
+      inspector: Inspector;
     }
   }
 }
@@ -36,6 +38,7 @@ declare global {
 import logger from './logger.js';
 import { Request, Response, NextFunction } from 'express';
 import { Logger } from 'pino';
+import Inspector from 'inspector-api';
 
 /**
  * Create a middleware to log the request recieved and status code of the route, as well attach a logger to the function.
@@ -44,10 +47,20 @@ import { Logger } from 'pino';
  * @returns A new middleware function.
  */
 export default function (genRequestId: () => string) {
-  return function (req: Request, res: Response, next: NextFunction) {
+  return async function(req: Request, res: Response, next: NextFunction) {
     req.startTime = performance.now();
     req.id = genRequestId();
     res.setHeader('X-Request-Id', req.id);
+    
+    req.inspector = new Inspector({
+      storage: {
+        type: 'fs'
+      }
+    });
+
+    await req.inspector.profiler.enable();
+    await req.inspector.profiler.start();
+
     req.logger = logger.child({
       url: req.url.split(/[#?]/)[0],
       requestId: req.id,
@@ -55,7 +68,8 @@ export default function (genRequestId: () => string) {
     });
 
     req.logger.info({ method: req.method }, 'Recieved HTTP request');
-    res.once('finish', () => {
+    res.once('finish', async () => {
+      await req.inspector.profiler.stop();
       req.logger.info({
         responseTime: performance.now() - req.startTime,
         statusCode: res.statusCode,
