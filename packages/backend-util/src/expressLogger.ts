@@ -57,7 +57,7 @@ export default function (genRequestId: () => string) {
     req.logger.info({ method: req.method }, 'Recieved HTTP request');
     res.once('finish', () => {
       req.logger.info({
-        responseTime: performance.now() - req.startTime,
+        responseTimeMs: performance.now() - req.startTime,
         statusCode: res.statusCode,
         etag: res.getHeader('etag')
       }, 'Request complete');
