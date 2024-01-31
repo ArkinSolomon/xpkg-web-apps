@@ -217,7 +217,31 @@ export async function deleteToken(userId: string, tokenId: string, session?: Cli
  * @returns {Promise<string>} A promise which resolves to the regenerated token.
  * @throws {NoSuchTokenError} Error thrown if a token with the given id is not found.
  */
-export async function regenerateToken(userId: string, tokenId: string, expiry: Date, session?: ClientSession): Promise<string>;
+export async function regenerateToken(userId: string, tokenId: string, expiry: Date, session?: ClientSession): Promise<string> {
+  const tokenSecret = identifiers.alphanumericNanoid(71);
+  const tokenSecretHash = await Bun.password.hash(tokenSecret, {
+    algorithm: 'bcrypt',
+    cost: 12
+  });
+
+  return genericSessionFunction(async session => {
+    const updated = await TokenModel.updateOne({
+      userId, 
+      tokenId
+    }, {
+      expiry,
+      tokenSecretHash,
+      regenerated: new Date()
+    })
+      .session(session)
+      .exec();
+
+    if (updated.matchedCount !== 1) 
+      throw new NoSuchTokenError(tokenId);
+
+    return `xpkg_${tokenId}${tokenSecret}${DateTime.fromJSDate(expiry).toUnixInteger().toString(16).padStart(8, '0')}`;
+  }, session);
+}
 
 /**
  * Regenerate a token with new permissions.
@@ -231,57 +255,31 @@ export async function regenerateToken(userId: string, tokenId: string, expiry: D
  * @returns {Promise<string>} A promise which resolves to the regenerated token.
  * @throws {NoSuchTokenError} Error thrown if a token with the given id is not found.
  */
-export async function regenerateToken(userId: string, tokenId: string, permissionsNumber: bigint, expiry: Date, session?: ClientSession): Promise<string>;
-
-export async function regenerateToken(userId: string, tokenId: string, permissionsNumber: Date | bigint, expiry?: Date | ClientSession, session?: ClientSession): Promise<string> {
+export async function regenerateTokenAndPermissions(userId: string, tokenId: string, permissionsNumber: bigint, expiry: Date, session?: ClientSession): Promise<string> {
   const tokenSecret = identifiers.alphanumericNanoid(71);
   const tokenSecretHash = await Bun.password.hash(tokenSecret, {
     algorithm: 'bcrypt',
     cost: 12
   });
 
-  let expiryDate: Date;
-  if (permissionsNumber instanceof Date) 
-    return genericSessionFunction(async session => {
-      expiryDate = permissionsNumber;
+  return genericSessionFunction(async session => {
+    const updated = await TokenModel.updateOne({
+      userId, 
+      tokenId
+    }, {
+      expiry,
+      permissionsNumber,
+      tokenSecretHash,
+      regenerated: new Date()
+    })
+      .session(session)
+      .exec();
+    
+    if (updated.matchedCount !== 1) 
+      throw new NoSuchTokenError(tokenId);
 
-      const updated = await TokenModel.updateOne({
-        userId, 
-        tokenId
-      }, {
-        expiry,
-        tokenSecretHash,
-        regenerated: new Date()
-      })
-        .session(session)
-        .exec();
-
-      if (updated.matchedCount !== 1) 
-        throw new NoSuchTokenError(tokenId);
-
-      return `xpkg_${tokenId}${tokenSecret}${DateTime.fromJSDate(expiryDate).toUnixInteger().toString(16).padStart(8, '0')}`;
-    }, expiry as ClientSession | undefined);
-  else
-    return genericSessionFunction(async session => {
-      expiryDate = expiry as Date;
-      const updated = await TokenModel.updateOne({
-        userId, 
-        tokenId
-      }, {
-        expiry,
-        permissionsNumber,
-        tokenSecretHash,
-        regenerated: new Date()
-      })
-        .session(session)
-        .exec();
-      
-      if (updated.matchedCount !== 1) 
-        throw new NoSuchTokenError(tokenId);
-
-      return `xpkg_${tokenId}${tokenSecret}${DateTime.fromJSDate(expiryDate).toUnixInteger().toString(16).padStart(8, '0')}`;
-    }, session);
-  
+    return `xpkg_${tokenId}${tokenSecret}${DateTime.fromJSDate(expiry).toUnixInteger().toString(16).padStart(8, '0')}`;
+  }, session);
 }
 
 /**

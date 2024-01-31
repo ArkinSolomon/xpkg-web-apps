@@ -54,7 +54,7 @@ export default function (genRequestId: () => string) {
       ip: req.ip
     });
 
-    req.logger.info('Recieved HTTP request');
+    req.logger.info({ method: req.method }, 'Recieved HTTP request');
     res.once('finish', () => {
       req.logger.info({
         responseTime: performance.now() - req.startTime,
