@@ -20,7 +20,7 @@
  * @param {ClientSession} session The session used for all Mongoose operations within the callback.
  * @returns {Promise<T>} A promise that resolves to the value which is returned from the callback's calling function.
  */
-export interface GenericSessionCallback<T> {
+interface GenericSessionCallback<T> {
   (session: ClientSession): Promise<T>;
 }
 

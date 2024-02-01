@@ -17,3 +17,4 @@ export { default as logger } from './logger.js';
 export { default as verifyRecaptcha } from './verifyRecaptcha.js';
 export { default as atlasConnect } from './atlasConnect.js';
 export { default as expressLogger } from './expressLogger.js';
+export { default as genericSessionFunction } from './genericSessionFunction.js';

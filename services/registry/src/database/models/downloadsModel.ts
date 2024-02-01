@@ -55,7 +55,7 @@ const downloadsSchema = new Schema<DownloadEntry>({
   collection: 'downloads'
 });
 
-const downloadsDB = mongoose.connection.useDb('packages');
-const DownloadsModel = downloadsDB.model<DownloadEntry>('downloads', downloadsSchema);
+const registryDB = mongoose.connection.useDb('registry');
+const DownloadsModel = registryDB.model<DownloadEntry>('downloads', downloadsSchema);
 
 export default DownloadsModel;

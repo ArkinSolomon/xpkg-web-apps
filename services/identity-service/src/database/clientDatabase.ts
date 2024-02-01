@@ -12,10 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import genericSessionFunction from './genericSessionFunction.js';
 import ClientModel, { ClientData } from './models/clientModel.js';
 import { customAlphabet } from 'nanoid';
 import { ClientSession, HydratedDocument } from 'mongoose';
+import { genericSessionFunction } from '@xpkg/backend-util';
 
 const numericNanoid = customAlphabet('0123456789');
 const alphanumericNanoid = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
@@ -32,8 +32,7 @@ const DEFAULT_CLIENT_ICON = 'https://placehold.co/1024/jpg';
  * @param {string} defaultRedirect The default redirect URI.
  * @param {boolean} isSecret True if the client should have a secret.
  * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
- * @returns {Promise<[string, string | null]>} A promise which resolves to a tuple with the first value being the client id, and the second value being the full client secret, or null if the client is not secure
- * \.
+ * @returns {Promise<[string, string | null]>} A promise which resolves to a tuple with the first value being the client id, and the second value being the full client secret, or null if the client is not secure.
  */
 export async function createClient(userId: string, name: string, description: string, defaultRedirect: string, isSecure: boolean, session?: ClientSession): Promise<[string, string | null]> {
   const clientId = 'xpkg_id_' + numericNanoid(48);

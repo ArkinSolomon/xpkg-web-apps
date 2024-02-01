@@ -13,16 +13,15 @@
  * either express or implied limitations under the License.
  */
 
-import { matchedData, param, query, validationResult } from 'express-validator';
+import { matchedData, param, query, validationResult, header } from 'express-validator';
 import { Version } from '@xpkg/versioning';
 import { validators } from '@xpkg/validation';
-import { logger } from '@xpkg/backend-util';
 import { Router } from 'express';
 import { dateToUTCHour } from '../util/dateUtil.js';
 import * as packageDatabase from '../database/packageDatabase.js';
 import * as analyticsDatabase from '../database/analyticsDatabase.js';
 import NoSuchPackageError from '../errors/noSuchPackageError.js';
-import { AuthorizableRequest } from '../auth/authorizeRoute.js';
+import { TokenScope, isTokenValidAny } from '@xpkg/auth-util';
 
 const route = Router();
 
@@ -39,19 +38,12 @@ route.get('/:packageId/:packageVersion',
   query('before').trim().notEmpty().isInt({
     min: 1672531260000 // Sun, 01 Jan 2023 00:01:00 GMT
   }).toInt().optional().withMessage('bad_before_date'),
-  async (req: AuthorizableRequest, res) => {
-    const token = req.user;
-
-    const routeLogger = logger.child({
-      ip: req.ip,
-      route: '/analytics/:packageId/:packageVersion',
-      requestId: req.id
-    });
-
+  validators.isValidTokenFormat(header('authorization')),
+  async (req, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
       const message = result.array()[0].msg;
-      routeLogger.trace(`Validation failed with message: ${message}`);
+      req.logger.trace(`Validation failed with message: ${message}`);
       return res
         .status(400)
         .send(message);
@@ -62,8 +54,16 @@ route.get('/:packageId/:packageVersion',
       packageId: string;
       after?: number;
       before?: number;
+      authorization: string;
     };
-    const { packageId, packageVersion } = validatedFields;
+    const { packageId, packageVersion, authorization: token } = validatedFields;
+
+    const isTokenValid = await isTokenValidAny(token, TokenScope.DeveloperPortal, TokenScope.RegistryViewAnalytics);
+    if (!isTokenValid) {
+      req.logger.info('Insufficient permission to get analytics');
+      return res.sendStatus(401);
+    }
+    const authorId = isTokenValid;
 
     let after = new Date(validatedFields.after ?? Date.now() - ONE_DAY_MS);
     let before = validatedFields.before ? new Date(validatedFields.before) : new Date(after.getTime() + ONE_DAY_MS);
@@ -72,7 +72,7 @@ route.get('/:packageId/:packageVersion',
     before = dateToUTCHour(before);
 
     if (after > before) {
-      routeLogger.trace('After date is after before date (bad_date_combo)');
+      req.logger.trace('After date is after before date (bad_date_combo)');
       return res
         .status(400)
         .send('bad_date_combo');
@@ -80,7 +80,7 @@ route.get('/:packageId/:packageVersion',
 
     const difference = before.valueOf() - after.valueOf();
     if (difference < ONE_HOUR_MS) {
-      routeLogger.info({
+      req.logger.info({
         difference: `${difference}ms`
       }, 'Time difference is less than one hour (short_diff)');
       return res
@@ -89,7 +89,7 @@ route.get('/:packageId/:packageVersion',
     }
 
     if (before.valueOf() - after.valueOf() > THIRTY_DAYS_MS) {
-      routeLogger.info({
+      req.logger.info({
         difference: `${difference}ms`
       }, 'Time difference is greater than 30 days (long_diff)');
       return res
@@ -97,37 +97,35 @@ route.get('/:packageId/:packageVersion',
         .send('long_diff');
     }
 
-    routeLogger.setBindings({
+    req.logger.setBindings({
       after: after.toUTCString(),
       before: before.toUTCString()
     });
 
     try {
-      const versionData = await packageDatabase.getVersionData(packageId, packageVersion);
-      const authorHasPackage = token && await packageDatabase.doesAuthorHavePackage(token.authorId, packageId);
+      const [packageData] = await Promise.all([
+        packageDatabase.getPackageData(packageId),
+        packageDatabase.getVersionData(packageId, packageVersion)
+      ]);
 
-      if (!versionData.isPublic && !authorHasPackage) {
-        routeLogger.trace('Version is not public, or author does not have package');
-
-        if (!token || !token.canViewAnalytics(packageId)) {
-          routeLogger.trace('No token provided, or has insufficient permissions');
-          return res.sendStatus(404);
-        }
+      if (packageData.authorId !== authorId) {
+        req.logger.info('Author does not own package');
+        return res.sendStatus(401);
       }
 
       const analytics = await analyticsDatabase.getVersionAnalyticsData(packageId, packageVersion, after, before);
-      routeLogger.trace('Got analytics');
+      req.logger.trace('Got analytics');
 
       res
         .status(200)
         .json(analytics);
     } catch (e) {
       if (e instanceof NoSuchPackageError) {
-        routeLogger.trace(e, 'Attempted to get version data for non-existent package');
-        return res.sendStatus(404);
+        req.logger.info(e, 'Attempted to get version data for non-existent package');
+        return res.sendStatus(401);
       }
 
-      routeLogger.error(e);
+      req.logger.error(e);
       return res.sendStatus(500);
     }
   });

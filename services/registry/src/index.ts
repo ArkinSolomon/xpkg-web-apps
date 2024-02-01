@@ -54,13 +54,12 @@ type FullRegistryData = {
 import dotenv from 'dotenv';
 dotenv.config();
 
-import Express, { Request } from 'express';
+import Express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { pinoHttp } from 'pino-http';
-import { logger, atlasConnect } from '@xpkg/backend-util';
+import { logger, atlasConnect, expressLogger } from '@xpkg/backend-util';
 import { unzippedFilesLocation, xpkgFilesLocation } from './routes/packages.js';
 import { customAlphabet } from 'nanoid';
 
@@ -110,87 +109,26 @@ app.use(function (_, res, next) {
 
 let currentRequest = 0;
 const maxRequest = 9999;
-app.use(pinoHttp({
-  logger,
-  genReqId: function (_, res): string {
-    if (currentRequest >= maxRequest)
-      currentRequest = 0;
+app.use(expressLogger(() => {
+  if (currentRequest >= maxRequest)
+    currentRequest = 0;
 
-    const requestId = serverIdHash + Date.now().toString(16) + currentRequest.toString().padStart(4, '0') + alphaNumericNanoid(8);
-    res.setHeader('X-Request-Id', requestId);
-    ++currentRequest;
-    return requestId;
-  },
-  serializers: {
-    req: (req: Request) => ({
-      id: req.id,
-      method: req.method,
-      url: req.url,
-      ip: req.ip
-    })
-  }
+  const requestId = serverIdHash + Date.now().toString(16) + currentRequest.toString().padStart(4, '0') + alphaNumericNanoid(8);
+  ++currentRequest;
+  return requestId;
 }));
 
 const storeFile = path.resolve('./data.json');
 
 import packages from './routes/packages.js';
-import auth from './routes/auth.js';
-import account from './routes/account.js';
 import analytics from './routes/analytics.js';
 
 import * as packageDatabase from './database/packageDatabase.js';
 import { PackageType } from './database/models/packageModel.js';
 import { PlatformSupport } from './database/models/versionModel.js';
-import rateLimiter, { globalRateLimiter } from './util/rateLimiter.js';
-import authorizeRoute from './auth/authorizeRoute.js';
 import hasha from 'hasha';
 
-// Update these arrays with all routes that are authorized
-const requiredAuthRoutes = [
-  '/auth/issue',
-  '/packages/upload',
-  '/packages/new',
-  '/packages/description',
-  '/packages/upload',
-  '/packages/retry',
-  '/packages/incompatibilities',
-  '/packages/xpselection',
-  '/account/*'
-];
-const optionalAuthRoutes = [
-  '/analytics/*'
-];
-
-app.use(requiredAuthRoutes, authorizeRoute());
-app.use(optionalAuthRoutes, authorizeRoute(true));
-
-app.use('*', globalRateLimiter());
-
-app.use('/meta', rateLimiter('meta', 4, 10));
-
-app.use('/account/data', rateLimiter('account-data', 8, 5));
-app.use('/account/changename', rateLimiter('account-changename', 3, 5));
-app.use('/account/packages/*', rateLimiter('account-packages', 5, 3));
-
-app.use('/analytics/', rateLimiter('analytics', 6, 4));
-
-app.use('/auth/login', rateLimiter('auth-login', 5, 3));
-app.use('/auth/create', rateLimiter('auth-create', 5, 3));
-app.use('/auth/verify', rateLimiter('auth-verify', 3, 4));
-app.use('/auth/issue', rateLimiter('auth-issue', 3, 3));
-
-app.use('/packages/info', rateLimiter('packages-info', 10, 2));
-app.use('/packages/new', rateLimiter('packages-new', 3, 5));
-app.use('/packages/upload', rateLimiter('packages-upload', 3, 8));
-app.use('/packages/retry', rateLimiter('packages-retry', 3, 8));
-app.use('/packages/description', rateLimiter('packages-description', 3, 4));
-app.use('/packages/incompatibilities', rateLimiter('packages-incompatibilities', 3, 4));
-app.use('/packages/xpselection', rateLimiter('packages-xpselection', 3, 4));
-app.use('/packages$', rateLimiter('packages', 4, 4));
-
-app.use('/account', account);
 app.use('/analytics', analytics);
-app.use('/auth', auth);
 app.use('/packages', packages);
 
 app.get('/meta', (_, res) => {

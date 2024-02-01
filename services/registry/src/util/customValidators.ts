@@ -13,7 +13,6 @@
  * either express or implied limitations under the License.
  */
 import { PackageType } from '../database/models/packageModel.js';
-import { TokenPermission } from '../auth/authToken.js';
 import { ValidationChain } from 'express-validator';
 
 /**
@@ -45,21 +44,4 @@ export function asPackageType(chain: ValidationChain): ValidationChain {
     })
     .bail().withMessage('invalid_pkg_type')
     .customSanitizer(() => (chain as ValidationChain & { __xpkgPkgTypeCache: PackageType; }).__xpkgPkgTypeCache);
-}
-
-/**
- * Ensure that a provided value is a valid permissions number without administrator permissions.
- * 
- * @param {ValidationChain} chain The source of the value to validate.
- * @returns {ValidationChain} The validation chain provided to an Express route, or used for further modification.
- */
-export function isValidPermissions(chain: ValidationChain): ValidationChain {
-  return chain
-    .isInt({
-      min: 2,
-
-      // If there is a bit set greater than the highest permission bit
-      max: 1 << 15 /* << Update this */ - 1
-    }).bail().withMessage('invalid_num')
-    .custom(value => (value & TokenPermission.Admin) > 0).withMessage('is_admin');
 }

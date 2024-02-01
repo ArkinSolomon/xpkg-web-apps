@@ -20,10 +20,10 @@ import { HydratedDocument } from 'mongoose';
 import { hash } from 'hasha';
 import EmailChangeModel, { EmailChangeData } from './models/emailChangeModel.js';
 import { ClientSession } from 'mongoose';
-import genericSessionFunction from './genericSessionFunction.js';
 import NoSuchRequestError from '../errors/noSuchRequestError.js';
 import XpkgError from '../errors/xpkgError.js';
 import { identifiers } from '@xpkg/auth-util';
+import { genericSessionFunction } from '@xpkg/backend-util';
 
 /**
  * Create a new user with a random identifier.

@@ -12,11 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
+import { genericSessionFunction } from '@xpkg/backend-util';
 import CodeModel, { CodeData } from './models/codeModel.js';
 import { identifiers } from '@xpkg/auth-util';
 import { hash } from 'hasha';
 import { DateTime } from 'luxon';
-import genericSessionFunction from './genericSessionFunction.js';
 import { ClientSession } from 'mongoose';
 
 /**

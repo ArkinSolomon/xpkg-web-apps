@@ -22,10 +22,10 @@ import { generateCode, verifyCode } from '../database/codeDatabase.js';
 import queryString from 'query-string';
 import { validators } from '@xpkg/validation';
 import * as tokenDatabase from '../database/tokenDatabase.js';
-import genericSessionFunction from '../database/genericSessionFunction.js';
 import { getUserFromId } from '../database/userDatabase.js';
 import { TokenType } from '../database/models/tokenModel.js';
 import { DEVELOPER_PORTAL_CLIENT_ID } from '@xpkg/auth-util';
+import { genericSessionFunction } from '@xpkg/backend-util';
 
 const route = Router();
 
@@ -316,7 +316,46 @@ route.post('/tokenvalidate',
 
       if ((tokenData.permissionsNumber & permissionsNumber) !== permissionsNumber)
         res.sendStatus(401);
-      res.sendStatus(204);
+      res
+        .status(200)
+        .json({
+          userId: tokenData.userId
+        });
+    } catch (e) {
+      req.logger.error(e);
+      res.sendStatus(500);
+    }
+  });
+
+route.post('/tokenvalidateany',
+  validators.isValidTokenFormat(header('authorization')),
+  isValidOAuthScope(body('scopes')),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      const message = result.array()[0].msg;
+      req.logger.trace(`Invalid token with message: ${message}`);
+      return res.sendStatus(401);
+    }
+
+    const { authorization: token, scopes: permissionsNumber } = matchedData(req) as {
+      authorization: string;
+      scopes: bigint;
+  };
+
+    try {
+      const tokenData = await tokenDatabase.validateToken(token, { deleteExpired: true });
+
+      if (!tokenData)
+        return res.sendStatus(401);
+
+      if (!(tokenData.permissionsNumber & permissionsNumber))
+        res.sendStatus(401);
+      res
+        .status(200)
+        .json({
+          userId: tokenData.userId
+        });
     } catch (e) {
       req.logger.error(e);
       res.sendStatus(500);

@@ -173,7 +173,7 @@ export function createPermissionsNumber(...scopes: TokenScope[]): TokenScope {
  * @param {TokenScope} scope The scope to check for.
  * @returns {boolean} True if the number contains the specified scope.
  */
-export function hasPermission(permissionsNumber: bigint, scope: TokenScope): boolean { 
+export function hasPermission(permissionsNumber: bigint, scope: TokenScope): boolean {
   return (permissionsNumber & scope) > 0n;
 }
 

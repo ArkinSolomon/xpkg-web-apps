@@ -14,6 +14,7 @@
   "author": "Arkin Solomon",
   "license": "Apache-2.0",
   "dependencies": {
+    "@xpkg/auth-util": "^0.1.0",
     "@xpkg/backend-util": "^0.1.0",
     "@xpkg/validation": "^0.1.0",
     "@xpkg/versioning": "^0.1.0",
@@ -28,7 +29,6 @@
     "nanoid": "^5.0.2",
     "oci-common": "^2.73.0",
     "oci-objectstorage": "^2.73.0",
-    "pino-http": "^8.5.1",
     "rate-limiter-flexible": "^3.0.3",
     "socket.io-client": "^4.7.2"
   },

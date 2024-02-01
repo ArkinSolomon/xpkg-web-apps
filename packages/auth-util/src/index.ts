@@ -37,16 +37,16 @@ export * from './permissionsNumber.js';
  * @param {string} token The token to check.
  * @param {TokenScope} scope The required scope.
  * @param {...TokenScope} scopes Additional scopes to check for.
- * @returns {Promise<number>} A promise which resolves to true if the token is valid for all of the provided scopes.
+ * @returns {Promise<number>} A promise which resolves to the userId of the owner of the token if the token is valid for all of the provided scopes.
  */
-export async function isTokenValid(token: string | null, scope: TokenScope, ...scopes: TokenScope[]): Promise<boolean> {
+export async function isTokenValid(token: string | null, scope: TokenScope, ...scopes: TokenScope[]): Promise<string|null> {
   const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ body: { token } });
   if (!isTokenValid)
-    return false;
+    return null;
 
   const isTokenExpired = isExpired(token!);
   if (isTokenExpired) 
-    return false;
+    return null;
 
   const data = await axios.post(XIS_URL + '/oauth/tokenvalidate', {
     scopes: [scope, ...scopes].map(s => toScopeStr(s)).join(' ')
@@ -57,7 +57,41 @@ export async function isTokenValid(token: string | null, scope: TokenScope, ...s
     validateStatus: () => true
   });
 
-  return data.status === 204;
+  if (data.status === 200)
+    return data.data.userId;
+  return null;
+}
+
+/**
+ * Check to see a provided token is valid for any of the provided scopes.
+ * 
+ * @async
+ * @param {string} token The token to check.
+ * @param {TokenScope} scope The required scope.
+ * @param {...TokenScope} scopes Additional scopes to check for.
+ * @returns {Promise<string|null>} A promise which resolves to the userId of the owner of the token if the token is valid for any of the provided scopes.
+ */
+export async function isTokenValidAny(token: string | null, scope: TokenScope, ...scopes: TokenScope[]): Promise<string|null> {
+  const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ body: { token } });
+  if (!isTokenValid)
+    return null;
+
+  const isTokenExpired = isExpired(token!);
+  if (isTokenExpired) 
+    return null;
+
+  const data = await axios.post(XIS_URL + '/oauth/tokenvalidateany', {
+    scopes: [scope, ...scopes].map(s => toScopeStr(s)).join(' ')
+  }, {
+    headers: {
+      Authorization: token
+    },
+    validateStatus: () => true
+  });
+
+  if (data.status === 200)
+    return data.data.userId;
+  return null;
 }
 
 /**

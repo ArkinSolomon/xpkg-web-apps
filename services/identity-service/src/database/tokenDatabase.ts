@@ -16,8 +16,8 @@ import { TokenScope, createPermissionsNumber, hasAnyPermission, hasPermission, d
 import TokenModel, { TokenType } from './models/tokenModel.js';
 import { DateTime, DurationLike } from 'luxon';
 import { ClientSession } from 'mongoose';
-import genericSessionFunction from './genericSessionFunction.js';
 import NoSuchTokenError from '../errors/noSuchTokenError.js';
+import { genericSessionFunction } from '@xpkg/backend-util';
 
 /**
  * Create an access token for a user to interact with the X-Pkg identity service. Invalidates any remaining tokens.

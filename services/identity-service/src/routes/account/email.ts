@@ -12,14 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
-import { logger, sendEmail } from '@xpkg/backend-util';
+import { genericSessionFunction, logger, sendEmail } from '@xpkg/backend-util';
 import { validators } from '@xpkg/validation';
 import { Router, Response } from 'express';
 import { body, query, matchedData, validationResult } from 'express-validator';
 import { AuthorizedRequest } from '../../util/authorization.js';
 import * as tokenDatabase from '../../database/tokenDatabase.js';
 import * as userDatabase from '../../database/userDatabase.js';
-import genericSessionFunction from '../../database/genericSessionFunction.js';
 import NoSuchRequestError from '../../errors/noSuchRequestError.js';
 import XpkgError from '../../errors/xpkgError.js';
 import { TokenScope } from '@xpkg/auth-util';

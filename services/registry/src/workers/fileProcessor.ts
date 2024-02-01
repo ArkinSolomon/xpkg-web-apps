@@ -59,7 +59,7 @@ import { ConfigFileAuthenticationDetailsProvider } from 'oci-common';
 import { existsSync as exists, rmSync } from 'fs';
 import { unlinkSync, lstatSync, Stats, createReadStream } from 'fs';
 import path from 'path';
-import { logger as loggerBase } from '@xpkg/backend-util';
+import { logger as loggerBase, sendEmail } from '@xpkg/backend-util';
 import { Version } from '@xpkg/versioning';
 import { nanoid } from 'nanoid';
 import { isMainThread, parentPort, workerData } from 'worker_threads';
@@ -71,6 +71,7 @@ import { unzippedFilesLocation, xpkgFilesLocation } from '../routes/packages.js'
 import childProcess from 'child_process';
 import { VersionStatus } from '../database/models/versionModel.js';
 import { PackageType } from '../database/models/packageModel.js';
+import { startSession } from 'mongoose';
 
 if (isMainThread) {
   console.error('Worker files can not be run as part of the main thread');
@@ -113,6 +114,9 @@ const logger = loggerBase.child({
   tempId
 });
 
+const session = await startSession();
+session.startTransaction();
+
 logger.info({
   ...data,
   dependencies: `${data.dependencies.length} dependencies`,
@@ -122,7 +126,7 @@ logger.info({
 
 parentPort?.postMessage('started');
 
-let author = await authorDatabase.getAuthorDoc(authorId);
+const author = await authorDatabase.getAuthorDoc(authorId);
 
 const jobData: JobData = {
   jobType: JobType.Packaging,
@@ -135,7 +139,6 @@ const jobsService = new JobsServiceManager(jobData, logger, abort);
 await jobsService.waitForAuthorization();
 
 let fileSize = 0;
-let hasUsedStorage = false;
 try {
   logger.trace('Calculating unzipped file size');
   const unzippedSize = await getUnzippedFileSize(zipFileLoc);
@@ -145,7 +148,7 @@ try {
     logger.info('Unzipped zip file is greater than 16 gibibytes, can not continue');
     await Promise.all([
       fs.rm(zipFileLoc, { force: true }),
-      packageDatabase.updateVersionStatus(packageId, packageVersion, VersionStatus.FailedFileTooLarge),
+      packageDatabase.updateVersionStatus(packageId, packageVersion, VersionStatus.FailedFileTooLarge, session),
       sendFailureEmail(VersionStatus.FailedFileTooLarge)
     ]);
     logger.trace('Deleted zip file, updated database, and notified author');
@@ -163,7 +166,7 @@ try {
     searchProcess.on('error', reject);
   });
 
-  logger.trace('Decompressig zip file');
+  logger.trace('Decompressing zip file');
   const startTime = new Date();
   await new Promise<void>((resolve, reject) => {
     childProcess.exec(`unzip -qq -d "${unzippedFileLoc}" "${zipFileLoc}" -x "__MACOSX/*" && chown -R $USER "${unzippedFileLoc}" && chmod -R 700 "${unzippedFileLoc}"`, err => {
@@ -276,20 +279,20 @@ try {
   logger.info({ installedSize }, 'Calculated installed size');
 
   logger.trace('Trying to consume storage');
-  author = await authorDatabase.getAuthorDoc(authorId);
-  const canConsume = await author.tryConsumeStorage(fileSize);
+  const newUsedSize = author.usedStorage + BigInt(fileSize);
+  const canConsume = newUsedSize > author.totalStorage;
 
   if (!canConsume) {
     logger.info('Author does not have enough space to store package');
     await Promise.all([
       fs.rm(xpkgFileLoc, { force: true }),
-      packageDatabase.updateVersionStatus(packageId, packageVersion, VersionStatus.FailedNotEnoughSpace),
+      packageDatabase.updateVersionStatus(packageId, packageVersion, VersionStatus.FailedNotEnoughSpace, session),
       sendFailureEmail(VersionStatus.FailedNotEnoughSpace)
     ]);
     logger.trace('Deleted xpkg file, updated database, and notified author');
     process.exit(0);
   }
-  hasUsedStorage = true;
+  await authorDatabase.setUsedStorage(authorId, newUsedSize, session);
   logger.trace('Consumed storage');
 
   logger.trace('Fetching namespace from Oracle Cloud');
@@ -355,9 +358,9 @@ try {
   logger.trace('Deleted local xpkg file and updated database, sending job done to jobs service');
 
   if (accessConfig.isStored)
-    await author.sendEmail(`X-Pkg Package Uploaded (${packageId})`, `Your package ${packageId} has been successfully processed and uploaded to the X-Pkg registry.${accessConfig.isPrivate ? ' Since your package is private, to distribute it, you must give out your private key, which you can find in the X-Pkg developer portal.' : ''}\n\nPackage id: ${packageId}\nPackage version: ${packageVersion.toString()}\nChecksum: ${hash}`);
+    await sendEmail(author.authorEmail, `X-Pkg Package Uploaded (${packageId})`, `Your package ${packageId} has been successfully processed and uploaded to the X-Pkg registry.${accessConfig.isPrivate ? ' Since your package is private, to distribute it, you must give out your private key, which you can find in the X-Pkg developer portal.' : ''}\n\nPackage id: ${packageId}\nPackage version: ${packageVersion.toString()}\nChecksum: ${hash}`);
   else
-    await author.sendEmail(`X-Pkg Package Processed (${packageId})`, `Your package ${packageId} has been successfully processed. Since you have decided not to upload it to the X-Pkg registry, you need to download it now. Your package will be innaccessible after the link expires, the link expires in 24 hours. Anyone with the link may download the package.\n\nPackage id: ${packageId}\nPackage version: ${packageVersion.toString()}\nChecksum: ${hash}\nLink: objectUrl`);
+    await sendEmail(author.authorEmail, `X-Pkg Package Processed (${packageId})`, `Your package ${packageId} has been successfully processed. Since you have decided not to upload it to the X-Pkg registry, you need to download it now. Your package will be innaccessible after the link expires, the link expires in 24 hours. Anyone with the link may download the package.\n\nPackage id: ${packageId}\nPackage version: ${packageVersion.toString()}\nChecksum: ${hash}\nLink: objectUrl`);
 
   logger.trace('Author notified of process success, notifying jobs service');
   await jobsService.completed();
@@ -368,13 +371,10 @@ try {
   else
     logger.error(e, 'Error occured during file processing');
 
-  if (hasUsedStorage) {
-    logger.info('Error occured after storage claimed, attempting to free');
-    await author.freeStorage(fileSize).catch();
-    logger.trace('Freed claimed storage');
-  }
+  session.abortTransaction();
 
   await Promise.all([
+    // Do not put this with the session, we do not want this to be an "all or nothing"
     packageDatabase.updateVersionStatus(packageId, packageVersion, VersionStatus.Aborted),
     sendFailureEmail(VersionStatus.FailedServer),
     jobsService.completed()
@@ -465,7 +465,7 @@ async function abort(): Promise<void> {
  * @returns {Promise<void>} A promise which resolves once the email is sent.
  */
 async function sendFailureEmail(failureStatus: VersionStatus): Promise<void> {
-  return author.sendEmail(`X-Pkg Packaging Failure (${packageId})`, `Your package, ${packageId}, was not able to be processed. ${getVersionStatusReason(failureStatus)}\n\nPackage id: ${packageId}\nPackage version: ${packageVersion.toString()}`);
+  return sendEmail(author.authorEmail, `X-Pkg Packaging Failure (${packageId})`, `Your package, ${packageId}, was not able to be processed. ${getVersionStatusReason(failureStatus)}\n\nPackage id: ${packageId}\nPackage version: ${packageVersion.toString()}`);
 }
 
 /**

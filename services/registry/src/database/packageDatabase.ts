@@ -17,6 +17,8 @@ import { Version, VersionSelection } from '@xpkg/versioning';
 import NoSuchPackageError from '../errors/noSuchPackageError.js';
 import PackageModel, { PackageData, PackageType } from './models/packageModel.js';
 import VersionModel, { PlatformSupport, VersionData, VersionStatus } from './models/versionModel.js';
+import { ClientSession } from 'mongoose';
+import { genericSessionFunction } from '@xpkg/backend-util';
 
 /**
  * Add a new package to the database. Does not check for existence.
@@ -28,19 +30,22 @@ import VersionModel, { PlatformSupport, VersionData, VersionStatus } from './mod
  * @param {string} authorName The name of the author that is creating the package
  * @param {string} description The description of the new package.
  * @param {PackageType} packageType The type of the package that is being created.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves if the operation is completed successfully, or rejects if it does not.
  */
-export async function addPackage(packageId: string, packageName: string, authorId: string, authorName: string, description: string, packageType: PackageType): Promise<void> {
-  const newPackage = new PackageModel({
-    packageId,
-    packageName,
-    authorId,
-    authorName,
-    description,
-    packageType
-  });
-
-  await newPackage.save();
+export async function addPackage(packageId: string, packageName: string, authorId: string, authorName: string, description: string, packageType: PackageType, session?: ClientSession): Promise<void> {
+  genericSessionFunction(async session => {
+    const newPackage = new PackageModel({
+      packageId,
+      packageName,
+      authorId,
+      authorName,
+      description,
+      packageType
+    });
+  
+    await newPackage.save({ session });
+  }, session);
 }
 
 /**
@@ -57,24 +62,27 @@ export async function addPackage(packageId: string, packageName: string, authorI
  * @param {[string][string][]} [incompatibilities] The incompatibilities of the version.
  * @param {VersionSelection} xpSelection The X-Plane selection.
  * @param {PlatformSupport} platforms The platform support for the version.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves if the operation is completed successfully, or rejects if it does not.
  */
 export async function addPackageVersion(packageId: string, packageVersion: Version, accessConfig: {
     isPublic: boolean;
     isStored: boolean;
     privateKey?: string;
-}, dependencies: [string, string][], incompatibilities: [string, string][], xpSelection: VersionSelection, platforms: PlatformSupport): Promise<void> {
-  const newVersion = new VersionModel({
-    packageId,
-    packageVersion: packageVersion.toString(),
-    ...accessConfig,
-    dependencies,
-    incompatibilities,
-    xpSelection,
-    platforms
-  });
-
-  await newVersion.save();
+}, dependencies: [string, string][], incompatibilities: [string, string][], xpSelection: VersionSelection, platforms: PlatformSupport, session?: ClientSession): Promise<void> {
+  genericSessionFunction(async session => {
+    const newVersion = new VersionModel({
+      packageId,
+      packageVersion: packageVersion.toString(),
+      ...accessConfig,
+      dependencies,
+      incompatibilities,
+      xpSelection,
+      platforms
+    });
+  
+    await newVersion.save({ session });
+  }, session);
 }
 
 /**
@@ -84,22 +92,26 @@ export async function addPackageVersion(packageId: string, packageVersion: Versi
  * @param {string} packageId The partial package identifier of the package to update the version of.
  * @param {Version} packageVersion The version of the package of which to update the date.
  * @param {Date} [date] The date to update the version's uploaded date. Defaults to now.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves if the operation is completed successfully, or rejects if it does not.
  * @throws {NoSuchPackageError} Thrown if a package with the given version does not exist, or if the version does not exist for the given identifier.
  */
-export async function updateVersionDate(packageId: string, packageVersion: Version, date = new Date()): Promise<void> {
-  const result = await VersionModel.updateOne({
-    packageId,
-    packageVersion: packageVersion.toString()
-  }, {
-    $set: {
-      uploadDate: date
-    }
-  })
-    .exec();
-  
-  if (!result.modifiedCount)
-    throw new NoSuchPackageError(packageId, packageVersion);
+export async function updateVersionDate(packageId: string, packageVersion: Version, date?: Date, session?: ClientSession): Promise<void> {
+  genericSessionFunction(async session => {
+    const result = await VersionModel.updateOne({
+      packageId,
+      packageVersion: packageVersion.toString()
+    }, {
+      $set: {
+        uploadDate: date ?? new Date()
+      }
+    })
+      .session(session)
+      .exec();
+    
+    if (!result.matchedCount)
+      throw new NoSuchPackageError(packageId, packageVersion);
+  }, session);
 }
 
 /**
@@ -112,23 +124,31 @@ export async function updateVersionDate(packageId: string, packageVersion: Versi
  * @param {number} size The size of the xpkg file in bytes.
  * @param {number} installedSize The size of the unzipped xpkg file in bytes.
  * @param {string} [loc] The URL of the package, or undefined if the package is not stored.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves if the operation completes successfully.
  * @throws {NoSuchPackageError} Error thrown if no package exists with the given id or version.
  */
-export async function resolveVersionData(packageId: string, packageVersion: Version, hash: string, size: number, installedSize: number, loc?: string): Promise<void> {
-  const result = await VersionModel.findOneAndUpdate({
-    packageId,
-    packageVersion: packageVersion.toString()
-  }, {
-    hash,
-    loc,
-    size,
-    installedSize,
-    status: VersionStatus.Processed
-  }).updateOne();
-
-  if (!result.modifiedCount)
-    throw new NoSuchPackageError(packageId, packageVersion);
+export async function resolveVersionData(packageId: string, packageVersion: Version, hash: string, size: number, installedSize: number, loc?: string, session?: ClientSession): Promise<void> {
+  genericSessionFunction(async session => {
+    const result = await VersionModel.findOneAndUpdate({
+      packageId,
+      packageVersion: packageVersion.toString()
+    }, {
+      $set: {
+        hash,
+        loc,
+        size,
+        installedSize,
+        status: VersionStatus.Processed
+      }
+    })
+      .session(session)
+      .updateOne()
+      .exec();
+  
+    if (!result.matchedCount)
+      throw new NoSuchPackageError(packageId, packageVersion);
+  }, session);
 }
 
 /**
@@ -138,19 +158,27 @@ export async function resolveVersionData(packageId: string, packageVersion: Vers
  * @param {string} packageId The id of the package which contains the version to update.
  * @param {Version} packageVersion The version of the package to update the status of.
  * @param {VersionStatus} newStatus The new status to set.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves if the operation completes successfully.
  * @throws {NoSuchPackageError} Error thrown if no package exists with the given id or if the package version does not exist.
  */
-export async function updateVersionStatus(packageId: string, packageVersion: Version, newStatus: VersionStatus): Promise<void> {
-  const result = await VersionModel.findOneAndUpdate({
-    packageId,
-    packageVersion: packageVersion.toString()
-  }, {
-    status: newStatus
-  }).updateOne();
-
-  if (!result.modifiedCount)
-    throw new NoSuchPackageError(packageId, packageVersion);
+export async function updateVersionStatus(packageId: string, packageVersion: Version, newStatus: VersionStatus, session?: ClientSession): Promise<void> {
+  genericSessionFunction(async session => {
+    const result = await VersionModel.findOneAndUpdate({
+      packageId,
+      packageVersion: packageVersion.toString()
+    }, {
+      $set: {
+        status: newStatus
+      }
+    })
+      .session(session)
+      .updateOne()
+      .exec();
+  
+    if (!result.matchedCount)
+      throw new NoSuchPackageError(packageId, packageVersion);
+  }, session);
 }
 
 /**
@@ -160,19 +188,27 @@ export async function updateVersionStatus(packageId: string, packageVersion: Ver
  * @param {string} packageId The id of the package to update the private key of.
  * @param {Version} packageVersion The version of the package to update the private key of.
  * @param {string} privateKey The new private key of the version. Does not check access config.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves if the operation completes.
  * @throws {NoSuchPackageError} Error thrown if no package exists with the given id or if the package version does not exist.
  */
-export async function updatePrivateKey(packageId: string, packageVersion: Version, privateKey: string): Promise<void> {
-  const result = await VersionModel.findOneAndUpdate({
-    packageId,
-    packageVersion: packageVersion.toString()
-  }, {
-    privateKey
-  }).updateOne();
-
-  if (result.modifiedCount !== 1)
-    throw new NoSuchPackageError(packageId, packageVersion);
+export async function updatePrivateKey(packageId: string, packageVersion: Version, privateKey: string, session?: ClientSession): Promise<void> {
+  genericSessionFunction(async session => {
+    const result = await VersionModel.findOneAndUpdate({
+      packageId,
+      packageVersion: packageVersion.toString()
+    }, {
+      $set: {
+        privateKey
+      }
+    })
+      .session(session)
+      .updateOne()
+      .exec();
+  
+    if (result.matchedCount !== 1)
+      throw new NoSuchPackageError(packageId, packageVersion);
+  }, session);
 }
 
 /**
@@ -276,22 +312,26 @@ export async function allPublicProcessedVersions(): Promise<VersionData[]> {
  * @param {string} packageId The identifier of the package to update the incompatibilities of.
  * @param {Version} packageVersion The version of the package to update the incompatibilities of.
  * @param {[string, string][]} incompatibilities The new incompatibilities of the package to overwrite.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves if the incompatibilities are updated successfully.
  * @throws {NoSuchPackageError} Error thrown if the package does not exist, or the version does not exist.
  */
-export async function updateVersionIncompatibilities(packageId: string, packageVersion: Version, incompatibilities: [string, string][]): Promise<void> {
-  const result = await VersionModel.updateOne({
-    packageId,
-    packageVersion: packageVersion.toString()
-  }, {
-    $set: {
-      incompatibilities
-    }
-  })
-    .exec();
-  
-  if (!result.modifiedCount)
-    throw new NoSuchPackageError(packageId, packageVersion);
+export async function updateVersionIncompatibilities(packageId: string, packageVersion: Version, incompatibilities: [string, string][], session?: ClientSession): Promise<void> {
+  genericSessionFunction(async session => {
+    const result = await VersionModel.updateOne({
+      packageId,
+      packageVersion: packageVersion.toString()
+    }, {
+      $set: {
+        incompatibilities
+      }
+    })
+      .session(session)
+      .exec();
+    
+    if (!result.matchedCount)
+      throw new NoSuchPackageError(packageId, packageVersion);
+  }, session);
 }
 
 /**
@@ -301,22 +341,26 @@ export async function updateVersionIncompatibilities(packageId: string, packageV
  * @param {string} packageId The identifier of the package to update the X-Plane selection of.
  * @param {Version} packageVersion The version of the package to update the X-Plane selection of.
  * @param {VersionSelection} xpSelection The new X-Plane selection of the package.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves if the X-Plane selection is updated successfully.
  * @throws {NoSuchPackageError} Error thrown if the package does not exist, or the version does not exist.
  */
-export async function updateVersionXPSelection(packageId: string, packageVersion: Version, xpSelection: VersionSelection): Promise<void> {
-  const result = await VersionModel.updateOne({
-    packageId,
-    packageVersion: packageVersion.toString()
-  }, {
-    $set: {
-      xpSelection: xpSelection.toString()
-    }
-  })
-    .exec();
-  
-  if (!result.modifiedCount)
-    throw new NoSuchPackageError(packageId, packageVersion);
+export async function updateVersionXPSelection(packageId: string, packageVersion: Version, xpSelection: VersionSelection, session?: ClientSession): Promise<void> {
+  genericSessionFunction(async session => {
+    const result = await VersionModel.updateOne({
+      packageId,
+      packageVersion: packageVersion.toString()
+    }, {
+      $set: {
+        xpSelection: xpSelection.toString()
+      }
+    })
+      .session(session)
+      .exec();
+    
+    if (!result.matchedCount)
+      throw new NoSuchPackageError(packageId, packageVersion);
+  }, session);
 }
 
 /**
@@ -369,18 +413,26 @@ export async function packageNameExists(packageName: string): Promise<boolean> {
  * @async
  * @param {string} packageId The id of the package which we're changing the description of.
  * @param {string} newDescription The new description of the package.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves if the operation completes successfully.
  * @throws {NoSuchPackageError} Error thrown if no package exists with the given id.
  */
-export async function updateDescription(packageId: string, newDescription: string): Promise<void> {
-  const result = await PackageModel.findOneAndUpdate({
-    packageId
-  }, {
-    description: newDescription
-  }).updateOne();
-
-  if (result.modifiedCount !== 1)
-    throw new NoSuchPackageError(packageId);
+export async function updateDescription(packageId: string, newDescription: string, session?: ClientSession): Promise<void> {
+  genericSessionFunction(async session => {
+    const result = await PackageModel.findOneAndUpdate({
+      packageId
+    }, {
+      $set: {
+        description: newDescription
+      }
+    })
+      .session(session)
+      .updateOne()
+      .exec();
+  
+    if (result.matchedCount !== 1)
+      throw new NoSuchPackageError(packageId);
+  }, session);
 }
 
 /**
@@ -421,12 +473,20 @@ export async function doesAuthorHavePackage(authorId: string, packageId: string)
  * @async
  * @param {string} authorId The id of the author to change the name of.
  * @param {string} newName The new name of the author.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves if the operation completes successfully.
  */
-export async function updateAuthorName(authorId: string, newName: string): Promise<void> {
-  await PackageModel.find({
-    authorId
-  }).updateMany({
-    authorName: newName
-  }).exec();
+export async function updateAuthorName(authorId: string, newName: string, session?: ClientSession): Promise<void> {
+  genericSessionFunction(async session => {
+    await PackageModel.find({
+      authorId
+    })
+      .updateMany({
+        $set: {
+          authorName: newName
+        }
+      })
+      .session(session)
+      .exec();
+  }, session);
 }
