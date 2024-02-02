@@ -50,3 +50,5 @@ route.get('/personalinformation', validators.isValidTokenFormat(header('authoriz
       name: userData.name
     });
 });
+
+export default route;

@@ -99,9 +99,11 @@ app.use(authorizeRoutes, authorization);
 
 import account from './routes/account.js';
 import oauth from './routes/oauth.js';
+import users from './routes/users.js';
 
 app.use('/account', account);
 app.use('/oauth', oauth);
+app.use('/users', users);
 
 app.all('*', (_, res) => {
   logger.trace('Request to invalid URL');
