@@ -345,7 +345,7 @@ export async function userHasToken(userId: string, clientId: string): Promise<{ 
  * @async
  * @param {string} token The token to validate.
  * @param {Object} [opts] Additional verification options.
- * @param {boolean} [opts.deleteExpired=false] True if the token should be deleted if it is expired.
+ * @param {boolean} [opts.deleteExpired=false] True if the token should be deleted if it is expired. Defaults to false.
  * @param {ClientSession} [opts.session] An optional session to use for an atomic transaction.
  * @returns The document of the token, or null if the token is invalid.
  */
