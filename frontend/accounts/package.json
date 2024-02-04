@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@types/grecaptcha": "^3.0.6",
+    "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.2.34",
     "@types/react-dom": "^18.2.14",
     "bun-types": "^1.0.8",
@@ -23,7 +24,6 @@
   "author": "Arkin Solomon",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/js-cookie": "^3.0.6",
     "@xpkg/auth-util": "^0.1.0",
     "@xpkg/validation": "^0.1.0",
     "axios": "^1.6.2",

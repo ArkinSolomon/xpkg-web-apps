@@ -132,7 +132,7 @@ export default function Authorize(): JSX.Element {
   if (searchParams.has('next'))
     searchParams.delete('next');
 
-  const submitUrl = XIS_URL + '/oauth/authorize?' + searchParams.toString();
+  const submitUrl = '/authorize?' + searchParams.toString();
   
   return (
     <SmallContentBox>
@@ -154,6 +154,7 @@ export default function Authorize(): JSX.Element {
         <div className='bottom-buttons mt-12 mb-12 px-8'>
           <button className='secondary-button' onClick={() => window.location.href = '/'} disabled={shouldAutoAuth}>Cancel</button>
           <div className='center-link-wrapper' />
+          {/* We can not use axios because it will follow the redirect itself, instead of the form. */}
           <form action={submitUrl} id={formId} method='POST'>
             <input className='primary-button' id='authorize-button' type='submit' value='Authorize' disabled={shouldAutoAuth} />
           </form>
