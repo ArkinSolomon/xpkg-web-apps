@@ -99,10 +99,12 @@ route.get('/data', validators.isValidTokenFormat(header('authorization')), async
     .status(200)
     .json({
       id: author.authorId,
-      name: author.authorName,
-      email: author.authorEmail,
+      name: author.authorName,  
+      isVerified: author.emailVerified,
       usedStorage: author.usedStorage,
-      totalStorage: author.totalStorage
+      totalStorage: author.totalStorage,
+      isBanned: author.authorBanned,
+      banReason: author.banReason ?? ''
     });
 });
 

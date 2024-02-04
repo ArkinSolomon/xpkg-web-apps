@@ -41,7 +41,7 @@ import HexagonImage from '../components/HexagonImage';
 import axios from 'axios';
 import ConnectArrows from '../svgs/ConnectArrows';
 import { DEVELOPER_PORTAL_CLIENT_ID, FORUM_CLIENT_ID, STORE_CLIENT_ID, TokenScope, XIS_URL, XPKG_CLIENT_CLIENT_ID, identifiers, isTokenValid } from '@xpkg/auth-util';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 import '../css/Authorize.scss';
 
 export default function Authorize(): JSX.Element {
@@ -68,12 +68,12 @@ export default function Authorize(): JSX.Element {
         return setError('Invalid/malformed request: invalid code challenge. Did you hash your code verifier?');
       
       try {
-        const isLoginValid = await isTokenValid(cookies.getCookie('token'), TokenScope.Identity);
+        const isLoginValid = await isTokenValid(Cookies.get('token'), TokenScope.Identity);
         if (!isLoginValid) {
           if (searchParams.has('next'))
             searchParams.delete('next');
           searchParams.append('next', 'authorize');
-          cookies.deleteCookie('token');
+          Cookies.remove('token');
           window.location.href = '/authenticate?' + searchParams.toString();
         }
       
@@ -83,7 +83,7 @@ export default function Authorize(): JSX.Element {
 
         const response = await axios.get(XIS_URL + '/oauth/consentinformation?' + consentInfoQuery.toString(), {
           headers: {
-            Authorization: cookies.getCookie('token')!
+            Authorization: Cookies.get('token')!
           },
           validateStatus: () => true
         });

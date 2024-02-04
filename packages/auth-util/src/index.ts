@@ -56,7 +56,7 @@ export * from './permissionsNumber.js';
  * @param {...TokenScope} [scopes] Additional scopes to check for.
  * @returns A promise which resolves to the userId of the owner of the token if the token is valid for all of the provided scopes.
  */
-export async function isTokenValid(token: string | null, scope: TokenScope, ...scopes: TokenScope[]): Promise<string|null> {
+export async function isTokenValid(token: string | null | undefined, scope: TokenScope, ...scopes: TokenScope[]): Promise<string|null> {
   const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ body: { token } });
   if (!isTokenValid)
     return null;
@@ -88,7 +88,7 @@ export async function isTokenValid(token: string | null, scope: TokenScope, ...s
  * @param {...TokenScope} scopes Additional scopes to check for.
  * @returns {Promise<string|null>} A promise which resolves to the userId of the owner of the token if the token is valid for any of the provided scopes.
  */
-export async function isTokenValidAny(token: string | null, scope: TokenScope, ...scopes: TokenScope[]): Promise<string|null> {
+export async function isTokenValidAny(token: string | null | undefined, scope: TokenScope, ...scopes: TokenScope[]): Promise<string|null> {
   const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ body: { token } });
   if (!isTokenValid)
     return null;

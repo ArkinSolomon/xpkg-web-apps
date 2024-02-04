@@ -99,7 +99,7 @@ import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
 import Checkbox from '../components/Checkbox';
 import axios from 'axios';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 import { TokenScope, XIS_URL, isTokenValid } from '@xpkg/auth-util';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -163,14 +163,14 @@ export default class extends Component {
     }
 
     if (this.state.currentPage !== Page.ErrorPage)
-      isTokenValid(cookies.getCookie('token'), TokenScope.Identity)
+      isTokenValid(Cookies.get('token'), TokenScope.Identity)
         .then(isValid => {
           if (isValid) {
             window.location.href = this._redirectUrl;
             return;
           }
 
-          cookies.deleteCookie('token');
+          Cookies.remove('token');
           this._setPageFromIndex(Page.DefaultPage);
         });
     
@@ -316,7 +316,7 @@ export default class extends Component {
               if (result.status !== 200)
                 throw 'Error: status ' + result.status;
 
-              cookies.setCookie('token', result.data.token, 1, { secure: true, domain: 'accounts.xpkg.net' });
+              Cookies.set('token', result.data.token, { expires: 1, secure: true, domain: 'accounts.xpkg.net' });
               window.location.href = this._redirectUrl;
             } catch (e) {
               console.error(e);
@@ -381,7 +381,7 @@ export default class extends Component {
               if (result.status !== 200) 
                 throw 'Error: status ' + result.status;
               
-              cookies.setCookie('token', result.data.token, 1);
+              Cookies.set('token', result.data.token, { expires: 1, secure: true, domain: 'accounts.xpkg.net' });
               window.location.href = this._redirectUrl;
             } catch (e) {
               console.error(e);

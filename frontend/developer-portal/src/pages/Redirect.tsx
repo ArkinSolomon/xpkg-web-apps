@@ -38,7 +38,7 @@ export default function Redirect() {
     
     (async () => {
       try {
-        const response = await axios.post(XIS_URL + '/oauth/token', {
+        const tokenResponse = await axios.post(XIS_URL + '/oauth/token', {
           client_id: DEVELOPER_PORTAL_CLIENT_ID,
           grant_type: 'authorization_code',
           code,
@@ -50,7 +50,12 @@ export default function Redirect() {
           }
         });
       
-        cookies.setCookie('token', response.data.access_token, 1, { domain: 'developers.xpkg.net' });
+        const token = tokenResponse.data.access_token;
+        cookies.setCookie('token', token, 1, { domain: 'developers.xpkg.net' });
+
+        // This should return 201 or 204, either of which are good
+        await axios.post(window.REGISTRY_URL + '/account/init', {});
+
         window.location.href = redirect;
       } catch (e) {
         window.location.href = '/?next=' + encodeURIComponent(redirect);

@@ -138,7 +138,7 @@ import Error from '../components/accountPages/Error';
 import Modal, { ModalProps } from '../components/Modal';
 import { TokenScope, deconstructToken, isTokenValid, identifiers, XIS_URL } from '@xpkg/auth-util';
 import LogoutIcon from '../svgs/LogoutIcon';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 
 export default class extends Component<Record<string, never>, AccountState> {
   private _userData?: UserData;
@@ -159,7 +159,7 @@ export default class extends Component<Record<string, never>, AccountState> {
 
     (async () => {
       try {
-        const isLoginValid = await isTokenValid(cookies.getCookie('token'), TokenScope.Identity);
+        const isLoginValid = await isTokenValid(Cookies.get('token'), TokenScope.Identity);
         if (!isLoginValid) 
           loginAgain();
         
@@ -174,7 +174,7 @@ export default class extends Component<Record<string, never>, AccountState> {
       try {
         const response = await axios.get(XIS_URL + '/account/userdata', {
           headers: {
-            Authorization: cookies.getCookie('token')!
+            Authorization: Cookies.get('token')!
           }
         });
 
@@ -191,7 +191,7 @@ export default class extends Component<Record<string, never>, AccountState> {
         return this._changePage(AccountPage.Error);
       }
 
-      const [,, expiryDate] = deconstructToken(cookies.getCookie('token')!);
+      const [,, expiryDate] = deconstructToken(Cookies.get('token')!);
       const delay = expiryDate.valueOf() - Date.now();
 
       setTimeout(() => {
@@ -419,6 +419,6 @@ export default class extends Component<Record<string, never>, AccountState> {
  * Redirect the user to login again.
  */
 function loginAgain() {
-  cookies.deleteCookie('token');
+  Cookies.remove('token');
   window.location.href = '/authenticate?next=account';
 }
