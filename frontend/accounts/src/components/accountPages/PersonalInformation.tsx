@@ -54,7 +54,7 @@ import { body } from 'express-validator';
 import { ModalProps } from '../Modal';
 import axios from 'axios';
 import ExternalLinkIcon from '../../svgs/ExternalLinkIcon';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 import { XIS_URL } from '@xpkg/auth-util';
 
 export default class PersonalInformation extends Component<PersonalInformationProps, PersonalInformationState> {
@@ -130,7 +130,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
             try {
               const result = await axios.patch(XIS_URL + '/account/resetpfp', {}, {
                 headers: {
-                  Authorization: cookies.getCookie('token')
+                  Authorization: Cookies.get('token')
                 },
                 validateStatus: () => true
               });  
@@ -191,7 +191,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
                 newName: this._newName
               }, {
                 headers: {
-                  Authorization: cookies.getCookie('token')
+                  Authorization: Cookies.get('token')
                 }
               });
 
@@ -257,7 +257,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
             try {
               const result = await axios.post(XIS_URL + '/account/email/changeemail', {}, {
                 headers: {
-                  Authorization: cookies.getCookie('token')
+                  Authorization: Cookies.get('token')
                 }
               });
 
@@ -320,7 +320,7 @@ export default class PersonalInformation extends Component<PersonalInformationPr
     try {
       await axios.post(XIS_URL + '/account/email/resend', {}, {
         headers: {
-          Authorization: cookies.getCookie('token')
+          Authorization: Cookies.get('token')
         }
       });
 
