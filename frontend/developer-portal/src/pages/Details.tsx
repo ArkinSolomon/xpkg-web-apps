@@ -87,7 +87,7 @@ import {
   Filler,
   TimeScale
 } from 'chart.js';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 
 ChartJS.register(
   LinearScale,
@@ -134,7 +134,7 @@ class Details extends Component {
     this._maxDate = DateTime.now().startOf('day');
     this._minDate = this._maxDate.minus(Duration.fromObject({ weeks: 2 }));
 
-    const token = cookies.getCookie('token');
+    const token = Cookies.get('token');
     if (!token) {
       const next = Buffer.from('/packages').toString('base64url');
       window.location.href = '/?next=' + next;
@@ -207,7 +207,7 @@ class Details extends Component {
           errorMessage = 'Invalid package identifier or version provided.';
           break;
         case 401:
-          cookies.deleteCookie('token');
+          Cookies.remove('token');
           window.location.href = '/?next=' + Buffer.from('/packages').toString('base64url');
           return;
         case 404:
@@ -248,7 +248,7 @@ class Details extends Component {
         method: HTTPMethod.POST,
         data: formData,
         headers: {
-          Authorization: cookies.getCookie('token')!
+          Authorization: Cookies.get('token')
         }, 
         onUploadProgress: e => {
           this.setState({
@@ -347,7 +347,7 @@ class Details extends Component {
 
     let response;
     try {
-      response = await httpRequest(`${window.REGISTRY_URL}/packages/xpselection`, HTTPMethod.PATCH, cookies.getCookie('token')!, {
+      response = await httpRequest(`${window.REGISTRY_URL}/packages/xpselection`, HTTPMethod.PATCH, Cookies.get('token')!, {
         packageId: this._data?.packageId as string,
         packageVersion: this._data?.versionData.packageVersion.toString(),
         xpSelection: this.state.xpSelection.toString()
@@ -384,7 +384,7 @@ class Details extends Component {
       } as Partial<DetailsState>);
     }
     case 401:
-      cookies.deleteCookie('token');
+      Cookies.get('token');
       window.location.href = '/?next=' + Buffer.from('/packages').toString('base64url');
       return;
     case 409:
@@ -454,7 +454,7 @@ class Details extends Component {
 
     let response;
     try {
-      response = await httpRequest(`${window.REGISTRY_URL}/packages/incompatibilities`, HTTPMethod.PATCH, cookies.getCookie('token')! as string, {
+      response = await httpRequest(`${window.REGISTRY_URL}/packages/incompatibilities`, HTTPMethod.PATCH, Cookies.get('token'), {
         packageId: this._data?.packageId as string,
         packageVersion: this._data?.versionData.packageVersion.toString(),
         incompatibilities
@@ -496,7 +496,7 @@ class Details extends Component {
       } as Partial<DetailsState>);
     }
     case 401: 
-      cookies.deleteCookie('token');
+      Cookies.remove('token');
       window.location.href = '/?next=' + Buffer.from('/packages').toString('base64url');
       return;
     case 409:

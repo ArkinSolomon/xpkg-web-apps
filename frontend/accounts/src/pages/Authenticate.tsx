@@ -506,7 +506,7 @@ export default class extends Component {
                 <img src='/icons/lock.png' alt='Lock Icon' />
               </div>
               <div className='right'>
-                <p>Ensure you are only submitting your credentials to<b>accounts.xpkg.net</b>. Do not login from suspicious links.</p>
+                <p>Ensure you are only submitting your credentials to <b>accounts.xpkg.net</b>. Do not login from suspicious links.</p>
               </div>
             </div>
           }

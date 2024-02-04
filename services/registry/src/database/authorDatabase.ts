@@ -99,7 +99,7 @@ export async function getAuthorDoc(authorId: string) {
  * @returns {Promise<void>} A promise which resolves when the database has been updated with the new used storage.
  * @throws {NoSuchAccountError} Error thrown if an author does not exist with the given id. 
  */
-export async function setUsedStorage(authorId: string, size: bigint, session?: ClientSession): Promise<void> { 
+export async function setUsedStorage(authorId: string, size: number, session?: ClientSession): Promise<void> { 
   genericSessionFunction(async session => {
     const result = await AuthorModel.updateOne({
       authorId
@@ -124,7 +124,7 @@ export async function setUsedStorage(authorId: string, size: bigint, session?: C
  * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @throws {NoSuchAccountError} Error thrown if an author does not exist with the given id. 
  */
-export async function setTotalStorage(authorId: string, size: bigint, session?: ClientSession): Promise<void> {
+export async function setTotalStorage(authorId: string, size: number, session?: ClientSession): Promise<void> {
   genericSessionFunction(async session => { 
     const result = await AuthorModel.updateOne({
       authorId

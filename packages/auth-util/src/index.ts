@@ -57,7 +57,7 @@ export * from './permissionsNumber.js';
  * @returns A promise which resolves to the userId of the owner of the token if the token is valid for all of the provided scopes.
  */
 export async function isTokenValid(token: string | null | undefined, scope: TokenScope, ...scopes: TokenScope[]): Promise<string|null> {
-  const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ body: { token } });
+  const isTokenValid = (await validators.isValidTokenFormat(body('token')).run({ body: { token } })).isEmpty();
   if (!isTokenValid)
     return null;
 
@@ -89,7 +89,7 @@ export async function isTokenValid(token: string | null | undefined, scope: Toke
  * @returns {Promise<string|null>} A promise which resolves to the userId of the owner of the token if the token is valid for any of the provided scopes.
  */
 export async function isTokenValidAny(token: string | null | undefined, scope: TokenScope, ...scopes: TokenScope[]): Promise<string|null> {
-  const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ body: { token } });
+  const isTokenValid = (await validators.isValidTokenFormat(body('token')).run({ body: { token } })).isEmpty();
   if (!isTokenValid)
     return null;
 
@@ -119,7 +119,7 @@ export async function isTokenValidAny(token: string | null | undefined, scope: T
  * @returns {Promise<UserPersonalInformation|null>} A promise which resolves to the user's personal information, or null if the user is not permitted to access the user's personal information.
  */
 export async function getUserPersonalData(token: string | null): Promise<UserPersonalInformation|null> {
-  const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ body: { token } });
+  const isTokenValid = (await validators.isValidTokenFormat(body('token')).run({ body: { token } })).isEmpty();
   if (!isTokenValid)
     return null;
 

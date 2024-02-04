@@ -31,8 +31,8 @@ export type AuthorData = {
   authorName: string;
   authorEmail: string;
   emailVerified: boolean;
-  usedStorage: bigint;
-  totalStorage: bigint;
+  usedStorage: number;
+  totalStorage: number;
   authorBanned: boolean;
   banReason?: string;
 };
@@ -61,13 +61,13 @@ const authorSchema = new Schema<AuthorData>({
     required: true
   },
   usedStorage: {
-    type: BigInt,
-    default: 0n,
+    type: Number,
+    default: 0,
     required: true
   },
   totalStorage: {
-    type: BigInt,
-    default: 536870912n,
+    type: Number,
+    default: 536870912,
     required: true
   },
   authorBanned: {

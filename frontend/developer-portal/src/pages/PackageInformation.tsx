@@ -68,7 +68,7 @@ import { AuthorPackageData, AuthorVersionData, PackageType, VersionStatus, getAu
 import RegistryError from '../scripts/registryError';
 import { getBestUnits } from '../scripts/displayUtil';
 // import { Line } from 'react-chartjs-2';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 
 class PackageInformation extends Component {
 
@@ -89,7 +89,7 @@ class PackageInformation extends Component {
       isDescriptionOriginal: true
     };
 
-    const token = cookies.getCookie('token');
+    const token = Cookies.get('token');
     if (!token) {
       const next = Buffer.from('/packages').toString('base64url');
       window.location.href = '/?next=' + next;
@@ -129,7 +129,7 @@ class PackageInformation extends Component {
       if (e instanceof RegistryError) 
         switch (e.status) {
         case 401:
-          cookies.deleteCookie('token');
+          Cookies.remove('token');
           window.location.href = '/?next=' + Buffer.from('/packages').toString('base64url');
           return;
         case 404:
@@ -174,7 +174,7 @@ class PackageInformation extends Component {
           isFormSubmitting: true
         } as Partial<PackageInformationState>); 
         
-        httpRequest(`${window.REGISTRY_URL}/packages/description`, HTTPMethod.PATCH, cookies.getCookie('token') as string, {
+        httpRequest(`${window.REGISTRY_URL}/packages/description`, HTTPMethod.PATCH, Cookies.get('token'), {
           newDescription: description,
           packageId: this.state.currentPackageData?.packageId as string
         }, (err, res) => {
@@ -187,7 +187,7 @@ class PackageInformation extends Component {
             if (res)
               switch (res.status) {
               case 401:
-                cookies.deleteCookie('token');
+                Cookies.remove('token');
                 window.location.href = '/?next=' + Buffer.from('/packages').toString('base64url');
                 break;
               case 400:

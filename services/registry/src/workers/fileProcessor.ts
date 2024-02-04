@@ -279,7 +279,7 @@ try {
   logger.info({ installedSize }, 'Calculated installed size');
 
   logger.trace('Trying to consume storage');
-  const newUsedSize = author.usedStorage + BigInt(fileSize);
+  const newUsedSize = author.usedStorage + fileSize;
   const canConsume = newUsedSize > author.totalStorage;
 
   if (!canConsume) {

@@ -94,7 +94,7 @@ import '../css/Upload.scss';
 import { AuthorPackageData, AuthorVersionData, PackageType, getAuthorPackage } from '../scripts/author';
 import RegistryError from '../scripts/registryError';
 import VersionSelection from '../scripts/versionSelection';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 
 class Upload extends Component {
   
@@ -125,7 +125,7 @@ class Upload extends Component {
       incompatibilityErr: false
     };    
 
-    const token = cookies.getCookie('token');
+    const token = Cookies.get('token');
     if (!token) {
       sessionStorage.setItem('post-auth-redirect', '/packages');
       window.location.href = '/';
@@ -194,7 +194,7 @@ class Upload extends Component {
       if (e instanceof RegistryError) 
         switch (e.status) {
         case 401:
-          cookies.deleteCookie('token');
+          Cookies.remove('token');
           window.location.href = '/';
           return;
         case 404:
@@ -273,7 +273,7 @@ class Upload extends Component {
         method: HTTPMethod.POST,
         data: formData,
         headers: {
-          Authorization: cookies.getCookie('token')!
+          Authorization: Cookies.remove('token')!
         }, 
         onUploadProgress: e => {
           this.setState({

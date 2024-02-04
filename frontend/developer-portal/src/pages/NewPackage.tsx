@@ -56,7 +56,7 @@ import '../css/Buttons.scss';
 import InputArea, { InputAreaProps } from '../components/Input/InputArea';
 import axios, { AxiosError } from 'axios';
 import { validateId } from '../scripts/validators';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 
 // Compute the default option
 export const packageTypes = {
@@ -80,7 +80,7 @@ class NewPackage extends Component {
       errors: {}
     };
 
-    const token = cookies.getCookie('token');
+    const token = Cookies.get('token');
     if (!token) {
       window.location.href = '/';
       return;
@@ -143,7 +143,7 @@ class NewPackage extends Component {
         method: 'POST',
         data: formData,
         headers: {
-          Authorization: cookies.getCookie('token')
+          Authorization: Cookies.get('token')
         }
       });
 
@@ -178,7 +178,7 @@ class NewPackage extends Component {
           } as Partial<NewPackageState>);
           break;
         case 401:
-          cookies.getCookie('token');
+          Cookies.get('token');
           window.location.href = '/';
           break;
         case 500:

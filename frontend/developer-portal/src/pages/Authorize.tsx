@@ -13,12 +13,12 @@
  * either express or implied limitations under the License.
  */
 import { ACCOUNTS_URL, DEVELOPER_PORTAL_CLIENT_ID, TokenScope, identifiers, isTokenValid } from '@xpkg/auth-util';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 import { useEffect } from 'react';
 
 export default function Authorize() {
   useEffect(() => {
-    const token = cookies.getCookie('token');
+    const token = Cookies.get('token');
     const currentParams = new URLSearchParams(window.location.href);
     const next = currentParams.get('next') ?? '/packages';
   
@@ -30,14 +30,14 @@ export default function Authorize() {
         return;
       }
 
-      cookies.deleteCookie('token');
+      Cookies.remove('token');
 
       let state = btoa(next);
       const equalCount = state.length - state.indexOf('=');
       state += equalCount;
 
       const codeVerifier = identifiers.alphanumericNanoid(32);
-      cookies.setCookie('code_verifier', codeVerifier, 1);
+      sessionStorage.setItem('code_verifier', codeVerifier);
       const codeChallenge = await sha256(codeVerifier);
 
       const authParams = new URLSearchParams();

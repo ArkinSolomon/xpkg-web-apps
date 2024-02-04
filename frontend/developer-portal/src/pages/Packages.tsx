@@ -115,7 +115,7 @@ import Big from 'big.js';
 import { AuthorData, AuthorPackageData, PackageType, VersionStatus, getAllAuthorPackages, getAuthorData } from '../scripts/author';
 import StorageBar from '../components/StorageBar';
 import RegistryError from '../scripts/registryError';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 
 class Packages extends Component {
 
@@ -140,7 +140,7 @@ class Packages extends Component {
       errorMessage
     };
 
-    const token = cookies.getCookie('token');
+    const token = Cookies.get('token');
     if (!token) {
       const next = Buffer.from('/packages').toString('base64url');
       window.location.href = '/?next=' + next;
@@ -294,7 +294,7 @@ class Packages extends Component {
       } as Partial<PackagesState>);
 
       if (e instanceof RegistryError && e.status === 401) {
-        cookies.deleteCookie('token');
+        Cookies.remove('token');
         window.location.href = '/';
       }
     }

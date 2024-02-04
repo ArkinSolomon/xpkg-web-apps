@@ -13,7 +13,7 @@
  * either express or implied limitations under the License.
  */
 import { DEVELOPER_PORTAL_CLIENT_ID, XIS_URL } from '@xpkg/auth-util';
-import { cookies } from '@xpkg/frontend-util';
+import Cookies from 'js-cookie';
 import { useEffect } from 'react';
 import axios from 'axios';
 
@@ -32,7 +32,7 @@ export default function Redirect() {
       redirect = atob(state);
     }
 
-    if (!currentParams.has('code')) 
+    if (!currentParams.has('code') || !sessionStorage.getItem('code_verifier'))
       window.location.href = '/?next=' + encodeURIComponent(redirect);
     const code = currentParams.get('code');
     
@@ -43,7 +43,7 @@ export default function Redirect() {
           grant_type: 'authorization_code',
           code,
           redirect_uri: 'http://127.0.0.1:3001/redirect',
-          code_verifier: cookies.getCookie('code_verifier')!
+          code_verifier: sessionStorage.getItem('code_verifier')!
         }, {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -51,10 +51,14 @@ export default function Redirect() {
         });
       
         const token = tokenResponse.data.access_token;
-        cookies.setCookie('token', token, 1, { domain: 'developers.xpkg.net' });
+        Cookies.set('token', token, { expires: 1 });
 
         // This should return 201 or 204, either of which are good
-        await axios.post(window.REGISTRY_URL + '/account/init', {});
+        await axios.post(window.REGISTRY_URL + '/account/init', {}, {
+          headers: {
+            'Authorization': token
+          }
+        });
 
         window.location.href = redirect;
       } catch (e) {

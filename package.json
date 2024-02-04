@@ -10,7 +10,6 @@
     "frontend/developer-portal",
     "packages/auth-util",
     "packages/backend-util",
-    "packages/frontend-util",
     "packages/validation",
     "packages/versioning",
     "services/identity-service",
