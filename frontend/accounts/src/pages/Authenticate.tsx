@@ -311,12 +311,12 @@ export default class extends Component {
                 name: this._authData.name,
                 password: this._authData.password,
                 validation: recaptchaToken
-              }); 
+              });
 
-              if (result.status !== 200) 
+              if (result.status !== 200)
                 throw 'Error: status ' + result.status;
 
-              cookies.setCookie('token', result.data.token, 1);
+              cookies.setCookie('token', result.data.token, 1, { secure: true, domain: 'accounts.xpkg.net' });
               window.location.href = this._redirectUrl;
             } catch (e) {
               console.error(e);

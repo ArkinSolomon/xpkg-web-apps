@@ -12,6 +12,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied limitations under the License.
  */
+
+/**
+ * A user's personal information.
+ * 
+ * @typedef {Object} UserPersonalInformation
+ * @property {string} userId The id of the user.
+ * @property {string} userEmail The email address of the user.
+ * @property {boolean} emailVerified True if the user is verified.
+ * @property {string} name The user's display name.
+ */
+export type UserPersonalInformation = {
+  userId: string;
+  userEmail: string;
+  emailVerified: boolean;
+  name: string;
+};
+
 import { DateTime } from 'luxon';
 import { validators } from '@xpkg/validation';
 import { body } from 'express-validator';
@@ -36,8 +53,8 @@ export * from './permissionsNumber.js';
  * @async
  * @param {string} token The token to check.
  * @param {TokenScope} scope The required scope.
- * @param {...TokenScope} scopes Additional scopes to check for.
- * @returns {Promise<number>} A promise which resolves to the userId of the owner of the token if the token is valid for all of the provided scopes.
+ * @param {...TokenScope} [scopes] Additional scopes to check for.
+ * @returns A promise which resolves to the userId of the owner of the token if the token is valid for all of the provided scopes.
  */
 export async function isTokenValid(token: string | null, scope: TokenScope, ...scopes: TokenScope[]): Promise<string|null> {
   const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ body: { token } });
@@ -91,6 +108,34 @@ export async function isTokenValidAny(token: string | null, scope: TokenScope, .
 
   if (data.status === 200)
     return data.data.userId;
+  return null;
+}
+
+/**
+ * The user's personal information.
+ * 
+ * @async
+ * @param {string} token The token to use to get the user's personal information.
+ * @returns {Promise<UserPersonalInformation|null>} A promise which resolves to the user's personal information, or null if the user is not permitted to access the user's personal information.
+ */
+export async function getUserPersonalData(token: string | null): Promise<UserPersonalInformation|null> {
+  const isTokenValid = await validators.isValidTokenFormat(body('token')).run({ body: { token } });
+  if (!isTokenValid)
+    return null;
+
+  const isTokenExpired = isExpired(token!);
+  if (isTokenExpired) 
+    return null;
+
+  const data = await axios.get(XIS_URL + '/users/personalinformation', {
+    headers: {
+      Authorization: token
+    },
+    validateStatus: () => true
+  });
+
+  if (data.status === 200)
+    return data.data as UserPersonalInformation;
   return null;
 }
 

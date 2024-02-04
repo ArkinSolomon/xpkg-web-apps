@@ -40,5 +40,12 @@
     "@types/hasha": "^3.0.1",
     "@types/multer": "^1.4.9",
     "@types/socket.io-client": "^3.0.0"
+  }, 
+  "nx": {
+    "targets": {
+      "start": {
+        "dependsOn": ["build"]
+      }
+    }
   }
 }

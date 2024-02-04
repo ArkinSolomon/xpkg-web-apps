@@ -122,12 +122,14 @@ const storeFile = path.resolve('./data.json');
 
 import packages from './routes/packages.js';
 import analytics from './routes/analytics.js';
+import account from './routes/account.js';
 
 import * as packageDatabase from './database/packageDatabase.js';
 import { PackageType } from './database/models/packageModel.js';
 import { PlatformSupport } from './database/models/versionModel.js';
 import hasha from 'hasha';
 
+app.use('/account', account);
 app.use('/analytics', analytics);
 app.use('/packages', packages);
 

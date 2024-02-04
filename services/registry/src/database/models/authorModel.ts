@@ -20,15 +20,21 @@
  * @property {string} authorId The id of the author.
  * @property {string} authorName The name of the author.
  * @property {string} authorEmail The email of the author.
+ * @property {boolean} emailVerified True if the author's email has been verified.
  * @property {bigint} usedStorage The amount of storage the author has used (bytes).
  * @property {bigint} totalStorage The total amount of storage that the author has (bytes).
+ * @property {boolean} authorBanned True if the author has been banned from publishing packages.
+ * @property {string} [banReason] An optional ban reason for the author.
  */
 export type AuthorData = {
   authorId: string;
   authorName: string;
   authorEmail: string;
+  emailVerified: boolean;
   usedStorage: bigint;
   totalStorage: bigint;
+  authorBanned: boolean;
+  banReason?: string;
 };
 
 import mongoose, { Schema } from 'mongoose';
@@ -50,6 +56,10 @@ const authorSchema = new Schema<AuthorData>({
     required: true,
     unique: true
   },
+  emailVerified: {
+    type: Boolean,
+    required: true
+  },
   usedStorage: {
     type: BigInt,
     default: 0n,
@@ -59,6 +69,15 @@ const authorSchema = new Schema<AuthorData>({
     type: BigInt,
     default: 536870912n,
     required: true
+  },
+  authorBanned: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  banReason: {
+    type: String,
+    required: false
   }
 }, {
   collection: 'authors'

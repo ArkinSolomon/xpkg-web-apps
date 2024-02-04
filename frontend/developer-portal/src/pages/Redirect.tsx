@@ -50,7 +50,7 @@ export default function Redirect() {
           }
         });
       
-        cookies.setCookie('token', response.data.access_token, 30);
+        cookies.setCookie('token', response.data.access_token, 1, { domain: 'developers.xpkg.net' });
         window.location.href = redirect;
       } catch (e) {
         window.location.href = '/?next=' + encodeURIComponent(redirect);

@@ -13,7 +13,7 @@
  * either express or implied limitations under the License.
  */
 
-//These functions taken from w3schools (https://www.w3schools.com/js/js_cookies.asp)
+// These functions taken from w3schools (https://www.w3schools.com/js/js_cookies.asp) and modified
 
 /**
  * Set (or update) a cookie by name. Use a negative value for {@code exdays} to delete a cookie.
@@ -21,14 +21,21 @@
  * @param {string} cname The name of the cookie.
  * @param {string} cvalue The value of the cookie.
  * @param {number} exdays The number of days until the cookie expires.
+ * @param {Object} options Additional options for the cookie.
+ * @param {string} [opts.path='/'] The pathname for the cookie.
+ * @param {boolean} [opts.secure] True if the cookie should be secure.
+ * @param {string} [domain] The cookie's domain.
  */
 export function setCookie(cname: string, cvalue: string, exdays: number, options: {
   path?: string;
   secure?: boolean;
+  domain?: string;
 } = { secure: false }) {
   const d = new Date();
   d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-  document.cookie = `${cname}=${cvalue};${window.location.hostname === '127.0.0.1' ? '' : 'domain=xpkg.net;'}expires=${d.toUTCString()};path=${options.path ?? '/'}` + (options.secure ? ';secure' : '');
+  const domain = options.domain ?? 'xpkg.net';
+  const isLocalhost = window.location.hostname === '127.0.0.1';
+  document.cookie = `${cname}=${cvalue};${isLocalhost ? '' : `domain=${domain}`}expires=${d.toUTCString()};path=${options.path ?? '/'}` + ((options.secure && !isLocalhost) ? ';secure' : '');
 }
 
 /**

@@ -17,27 +17,56 @@ import AuthorModel from './models/authorModel.js';
 import NoSuchAccountError from '../errors/noSuchAccountError.js';
 import { ClientSession } from 'mongoose';
 import { genericSessionFunction } from '@xpkg/backend-util';
+import { UserPersonalInformation } from '@xpkg/auth-util';
 
 /**
- * Create a new author. Also initialize session randomly.
+ * Create a new author using their personal information.
  * 
  * @async
- * @param {string} authorId The id of the author to create.
- * @param {string} authorName The name of the author.
- * @param {string} authorEmail The name of the author.
+ * @param {UserPersonalInformation} personalInfo The personal information of the author.
  * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
  * @returns {Promise<void>} A promise which resolves when the author has been created successfully.
  */
-export async function createAuthor(authorId: string, authorName: string, authorEmail: string, session?: ClientSession) {
-  genericSessionFunction(async session => {
+export async function createAuthor(personalInfo: UserPersonalInformation, session?: ClientSession) {
+  return genericSessionFunction(async session => {
     const authorDoc = new AuthorModel({
-      authorId,
-      authorName,
-      authorEmail
+      authorId: personalInfo.userId,
+      authorName: personalInfo.name,
+      authorEmail: personalInfo.userEmail,
+      emailVerified: personalInfo.emailVerified
     });
     await authorDoc.save({ session });
   
     return authorDoc;
+  }, session);
+}
+
+/**
+ * Update the personal information of the author. Does not update the author's name in package data.
+ * 
+ * @param {string} authorId The id of the author to update the name of.
+ * @param {UserPersonalInformation} newInfo The new information for the author.
+ * @param {ClientSession} [session] An optional session to chain multiple requests to be atomic.
+ * @returns {Promise<void>} A promise which resolves when the author has been created successfully.
+ * @throws {NoSuchAccountError} Error thrown if no account exists with the given id.
+ */
+export async function updateAuthorInformation(authorId: string, newInfo: UserPersonalInformation, session?: ClientSession) {
+  return genericSessionFunction(async session => {
+    const result = await AuthorModel.updateOne({
+      authorId
+    }, {
+      $set: {
+        authorId: newInfo.userId,
+        authorName: newInfo.name,
+        authorEmail: newInfo.userEmail,
+        emailVerified: newInfo.emailVerified
+      }
+    })
+      .session(session)
+      .exec();
+    
+    if (result.modifiedCount !== 1)
+      throw new NoSuchAccountError('authorId', authorId);
   }, session);
 }
 
