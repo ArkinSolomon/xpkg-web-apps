@@ -80,5 +80,5 @@ export function registerCallback(cb: (isDark: boolean) => void): void {
  * @returns {boolean} True if the site is set in dark mode.
  */
 export function isSiteInDarkMode(): boolean {
-  return cookies.getCookie('theme') == 'dark';
+  return Cookies.get('theme') === 'dark';
 }
