@@ -166,7 +166,7 @@ route.get('/packages/:packageId',
     if (!result.isEmpty()) {
       const mapped = result.mapped();
       if (Object.hasOwn(mapped, 'authorization')) {
-        req.logger.info(`Authorization token format failed with message: ${mapped.authorization}`);
+        req.logger.info(`Authorization token format failed with message: ${mapped.authorization.msg}`);
         return res.sendStatus(401);
       }
       
@@ -235,7 +235,7 @@ route.get('/packages/:packageId/:packageVersion',
     if (!result.isEmpty()) {
       const mapped = result.mapped();
       if (Object.hasOwn(mapped, 'authorization')) {
-        req.logger.info(`Authorization token format failed with message: ${mapped.authorization}`);
+        req.logger.info(`Authorization token format failed with message: ${mapped.authorization.msg}`);
         return res.sendStatus(401);
       }
       

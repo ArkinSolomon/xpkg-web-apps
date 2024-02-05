@@ -191,6 +191,6 @@ const versionSchema = new Schema<VersionData>({
   collection: 'versions'
 });
 
-const packagesDB = mongoose.connection.useDb('packages');
-const VersionModel = packagesDB.model<VersionData>('version', versionSchema);
+const registryDB = mongoose.connection.useDb('registry');
+const VersionModel = registryDB.model<VersionData>('version', versionSchema);
 export default VersionModel;

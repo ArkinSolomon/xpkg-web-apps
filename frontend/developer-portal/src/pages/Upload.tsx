@@ -273,7 +273,7 @@ class Upload extends Component {
         method: HTTPMethod.POST,
         data: formData,
         headers: {
-          Authorization: Cookies.remove('token')!
+          Authorization: Cookies.get('token')
         }, 
         onUploadProgress: e => {
           this.setState({
@@ -282,7 +282,7 @@ class Upload extends Component {
         }
       });
 
-      sessionStorage.setItem('success_message', 'Uploaded new package version successfully');
+      sessionStorage.setItem('success_message', 'Your package is being processed');
       window.location.href = '/packages';
     } catch (e) {
       let errorMessage = 'An unknown error occured.';

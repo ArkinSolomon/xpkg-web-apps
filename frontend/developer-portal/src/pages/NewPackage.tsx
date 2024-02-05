@@ -131,23 +131,22 @@ class NewPackage extends Component {
     const packageType = (values.packageType || defaultPackage).trim().toLowerCase();
     const description = values.description.trim();
 
-    const formData = new FormData();
-    formData.append('packageId', packageId);
-    formData.append('packageName', packageName);
-    formData.append('packageType', packageType);
-    formData.append('description', description);
-
     try {
       await axios({
         url: `${window.REGISTRY_URL}/packages/new`,
         method: 'POST',
-        data: formData,
+        data: {
+          packageId,
+          packageName,
+          packageType,
+          description
+        },
         headers: {
           Authorization: Cookies.get('token')
         }
       });
 
-      sessionStorage.setItem('success_message', 'Your package is being processed');
+      sessionStorage.setItem('success_message', 'Your package has been created successfully.');
       window.location.href = '/packages';
     } catch (e){
       if (!(e instanceof AxiosError)) 

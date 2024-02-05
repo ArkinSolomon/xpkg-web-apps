@@ -80,6 +80,6 @@ const packageSchema = new Schema<PackageData>({
 }, {
   collection: 'packages'
 });
-const packagesDB = mongoose.connection.useDb('packages');
-const PackageModel = packagesDB.model<PackageData>('package', packageSchema);
+const registryDB = mongoose.connection.useDb('registry');
+const PackageModel = registryDB.model<PackageData>('package', packageSchema);
 export default PackageModel;
